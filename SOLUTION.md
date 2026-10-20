@@ -138,3 +138,12 @@ Every acceptance criterion and module was reviewed against real output; fixes we
 | Map popups interpolated data into HTML | XSS from source records | HTML escaping and https-only links |
 | Non-deterministic tie-breaks in the roll build; owner money total exported as DOUBLE | CID churn; inexact money | Explicit tie-breaks; BIGINT cast; contract check caught both |
 | Owners not reconciled across properties | Acceptance gap | `owners` table + registry link |
+
+## Known limitations (accepted)
+
+- **Permit coverage:** automated permit history covers the City of Austin (56% of parcels). Unincorporated Travis County (25%) has no county building permits under Texas law. Pflugerville and Lakeway adapters are designed but not built (about 8% of parcels). 19 small municipalities need Texas Public Information Act requests, which are cataloged and not sent.
+- **BBB:** excluded from ingestion (403, robots.txt, no public API). Lookup is viewer-initiated through `bbb_lookup_url`.
+- **Contractor identity:** a contractor counts as resolved on an exact, unique normalized-name match in the statewide registry. There is no fuzzy matching, so common names stay unresolved rather than mis-linked.
+- **Roof age outside Austin** relies on TCAD year built (confidence `low`/`very_low`) because no permit history exists there.
+- **Free-tier quotas:** pinning is 500 files per vendor (handled by retention and a weekly cadence). Gateway egress is about 10 GB/month per vendor; the UI falls back to independent public gateways, and browsers cache CID responses as immutable.
+- **Kit conformance:** Restate was not needed (all sources are bulk or API with idempotent script steps). Atlas registration and lexicon CARs were not attempted; the README's manifest-and-gateway publication requirements are met independently.

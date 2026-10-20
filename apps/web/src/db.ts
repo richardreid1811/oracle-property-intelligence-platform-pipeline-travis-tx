@@ -5,7 +5,9 @@ import { PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-or
 import type { Manifest } from "./types";
 
 // Vendor gateways serve CORS + HTTP range requests for reads; independent gateways (orbitor.dev, dget.top) verify.
-export const READ_GATEWAYS = ["https://ipfs.filebase.io", "https://gateway.pinata.cloud"];
+// Vendor gateways first (fast, CORS + range); independent public gateways as fallbacks so the site
+// keeps working if a free-tier egress quota (10 GB/month per vendor) is reached.
+export const READ_GATEWAYS = ["https://ipfs.filebase.io", "https://gateway.pinata.cloud", "https://ipfs.orbitor.dev", "https://dget.top"];
 const TABLES = ["leads", "roofing_permits", "contractors"] as const;
 
 export type Row = Record<string, unknown>;
