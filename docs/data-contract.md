@@ -36,6 +36,7 @@ This is the interface between the Oracle pipeline and its consumers: the roofing
 | `resolve_place` | Place name → center point (city/village, ZIP, Austin landmark) | `name` | name, kind, latitude, longitude |
 | `aged_roofs_near` | Properties in a radius with roofs strictly older than the threshold, permit-verified first | `place` or `latitude`/`longitude`, `radius_miles` (5), `older_than_years` (15; alias `min_roof_age_years`), `residential_only` (false) | lead rows + `total_matches` |
 | `open_roofing_permits_near` | Open or never-finaled roofing permits, longest-open first, with contractor | location, `radius_miles`, `min_open_years`, `issued_since` | permit rows + `total_matches` |
+| `hail_exposed_roofs_near` | Properties whose current roof was hit by hail in a time window (NOAA reports joined at query time; reports before the roof year are ignored) | location, `radius_miles`, `since` (3 years ago), `min_hail_inches` (1.75), `event_radius_miles` (1, max 3), optional `older_than_years` | lead rows with `hail_reports`, `max_hail_inches`, `last_hail_date` + `total_matches` |
 | `semantic_search_permits` | Meaning-based search over roofing permit descriptions | `query`, optional location/radius, `open_only` | permit rows with `similarity` |
 | `stale_ownership_near` | No ownership change in more than N years (exact, from `deed_date`) | location, `radius_miles`, `min_years` (10) | lead rows with `years_since_deed`, `owner_property_count` |
 | `absentee_owners_near` | Owner mails tax bills outside the area | location, `radius_miles`, `regions` | lead rows |
@@ -58,7 +59,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `bbb_status` | `excluded_no_public_api_http_403` (earlier runs: `blocked_http_403_pending_bbb_api`) |
 | `registry_link` | `business_registry_exact_name`, `business_registry_ambiguous`, `no_business_registry_match` |
 | `link_basis` | `tcad_id=geo_id`, `tcad_id=geo_id+address (<n> parcels share geo_id)`, `tcad_id=geo_id (ambiguous <n>, lowest prop_id)`, `tcad_id=prop_id`; null = permit not linked to a current parcel |
-| `permit_history_coverage` | `austin_permit_history_1978_plus`, `no_county_building_permits_in_texas`, `municipal_permits_not_yet_ingested` |
+| `permit_history_coverage` | `austin_permit_history_1978_plus`, `austin_etj_or_limited_purpose_permits` (unincorporated parcels where the City of Austin issues permits), `no_county_building_permits_in_texas`, `municipal_permits_not_yet_ingested` |
 
 ## Tables
 
@@ -101,6 +102,9 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `oldest_open_contractor` | VARCHAR | Contractor named on the oldest such permit |
 | `market_val` | BIGINT | TCAD market value (USD) |
 | `imprv_state_cd` | VARCHAR | Texas PTAD state code of the improvement (`A*` single-family, `B*` multifamily, …) |
+| `severe_hail_reports_since_roof` | BIGINT | NOAA hail reports of 1.75 inches or more (golf ball) within 1 mile, in or after `roof_year`; 0 if none or if `roof_year` is null |
+| `max_hail_inches_since_roof` | DOUBLE | Largest hail (1 inch or more) reported within 1 mile since `roof_year`; null if none |
+| `last_severe_hail_date_since_roof` | DATE | Most recent severe report counted in `severe_hail_reports_since_roof` |
 | `source_detail_url` | VARCHAR | TCAD property page |
 
 ### roofing_permits
@@ -283,6 +287,21 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `taxpayer_number` | VARCHAR | Comptroller taxpayer number when `registry_link` is exact |
 | `registry_link` | VARCHAR | Link to `businesses` (enum) |
 
+### hail_events
+`tables/hail_events.parquet`: NOAA NCEI Storm Events hail reports in and around Travis County (county extent plus ~10 miles), 1996 to present. Source of the `hail_*` lead columns.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `event_id` | VARCHAR | NOAA event ID (key) |
+| `episode_id` | VARCHAR | NOAA episode ID |
+| `event_date` | DATE | Report date |
+| `latitude` | DOUBLE | Report latitude |
+| `longitude` | DOUBLE | Report longitude |
+| `hail_inches` | DOUBLE | Hail size (inches) |
+| `county_zone` | VARCHAR | NOAA county/zone name |
+| `report_source` | VARCHAR | Who reported it (spotter, public, law enforcement, …) |
+| `source_url` | VARCHAR | NOAA yearly details file the row came from |
+
 ### businesses
 `tables/businesses.parquet`: Travis County businesses (Texas Comptroller sales-tax outlets and franchise taxpayers).
 
@@ -334,6 +353,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 
 | Effective | Change | Type |
 |---|---|---|
+| run after 20261020T223321Z | Added `hail_events` and the lead columns `severe_hail_reports_since_roof`, `max_hail_inches_since_roof`, `last_severe_hail_date_since_roof`; new `permit_history_coverage` value `austin_etj_or_limited_purpose_permits` | additive |
 | run after 20261020T194930Z | Removed `years_since_deed` from `leads` and `owner_signals`: tenure is computed at query time so snapshots do not change with the calendar. Tools still return it | breaking |
 | run after 20261020T194930Z | Removed the `tiles/leads/` index directory (unused by any consumer) | breaking |
 | run after 20261020T194930Z | Added `owners`, `leads.owner_key`, `leads.owner_property_count`, `owner_signals.owner_key`, `permit_embeddings` | additive |

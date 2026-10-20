@@ -65,7 +65,14 @@ node("src/publish/fetch-snapshot.mjs", prevManifestPath, prevDir, "--only", "tab
 const db = join(data, "build", `incr-${runId}.duckdb`);
 const runDir = join(data, "publish/runs", runId);
 execFileSync("mkdir", ["-p", join(data, "build")]);
-node("src/build/incremental.mjs", db, prevManifestPath, windowFile, "--prev-dir", prevDir);
+// NOAA hail: re-harvest the last two years (late reports and revisions); older years are carried
+// from the previous snapshot. If that snapshot has no hail history yet, harvest it all (1996+).
+const year = new Date().getUTCFullYear();
+const hailDir = join(data, "raw/noaa-recent");
+const prevManifest = JSON.parse(await readFile(prevManifestPath, "utf8"));
+const prevHasHail = prevManifest.objects.some((o) => o.name === "tables/hail_events.parquet");
+node("src/sources/noaa-hail.mjs", hailDir, "--from", prevHasHail ? String(year - 1) : "1996", "--to", String(year));
+node("src/build/incremental.mjs", db, prevManifestPath, windowFile, "--prev-dir", prevDir, "--hail", join(hailDir, "hail-events.parquet"));
 node("src/build/embeddings.mjs", db, "--prev-dir", prevDir);
 node("src/publish/export.mjs", db, runDir);
 // The published schema must match docs/data-contract.md; drift stops the run before anything is pinned.

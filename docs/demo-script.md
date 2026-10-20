@@ -58,6 +58,11 @@ Lines in quotes are suggested narration; say them in your own words.
 - Show the **Match** scores and descriptions that use different wording (e.g. "replace/repair hail/wind damaged roof").
 > "Retrieval by meaning over 32,000 roofing permit records, with vectors published on IPFS alongside the tables."
 
+## 9c. Hail on current roofs (30 s) — **Map search**
+- Set the type to **Recent hail on current roof (NOAA)**, keep 1.75 inches, search around Pflugerville or Manor (outside Austin's permit coverage).
+- Show hail reports, max size and last hail date next to roof age and basis.
+> "A countywide storm signal from NOAA, counted only against the current roof, so it still works where no permit data exists."
+
 ## 10. Agent (2 min) — tab **Agent**
 - Click the first example question (Pflugerville roofs older than 15 years). Expand the **Tool** line to show the SQL, then read the answer: total matches, basis and confidence, source links.
 - Click the second example question (downtown open permits plus contractor). Show years open, contractors, BBB links and the stated assumptions.

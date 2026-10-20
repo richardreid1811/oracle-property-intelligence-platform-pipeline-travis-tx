@@ -193,12 +193,16 @@ select
        when p.year_built is not null then 'low' else 'none' end as roof_age_confidence,
   coalesce(f.permit_key, u.permit_key) as evidence_permit_key,
   p.roof_covering, p.roof_style,
+  -- Austin also issues permits in its ETJ and limited-purpose areas, which TCAD records as
+  -- unincorporated; those parcels have real permit history.
   case when p.jurisdiction = 'CITY OF AUSTIN' then 'austin_permit_history_1978_plus'
+       when p.jurisdiction = 'TRAVIS COUNTY (UNINCORPORATED)' and ap.prop_id is not null then 'austin_etj_or_limited_purpose_permits'
        when p.jurisdiction = 'TRAVIS COUNTY (UNINCORPORATED)' then 'no_county_building_permits_in_texas'
        else 'municipal_permits_not_yet_ingested' end as permit_history_coverage
 from properties p
 left join final_roof f using (prop_id)
-left join unverified_roof u using (prop_id);
+left join unverified_roof u using (prop_id)
+left join (select distinct prop_id from permits where prop_id is not null) ap using (prop_id);
 alter table roof_age add column if not exists roof_age_years integer;
 update roof_age set roof_age_years = year(current_date) - roof_year where roof_year is not null`;
 
@@ -273,3 +277,34 @@ create or replace temp table prop_owner as
 select prop_id, 'owner:' || md5(${normName("owner_name")} || '|' ||
        upper(trim(regexp_replace(coalesce(mail_line1, '') || ' ' || coalesce(mail_line2, ''), '\\s+', ' ', 'g'))) || '|' || coalesce(mail_zip, '')) as owner_key
 from properties where owner_name is not null`;
+
+/**
+ * Hail exposure per property from NOAA Storm Events hail reports (table hail_events), against the
+ * current roof only (reports in or after roof_year; parcels without a roof year get none). Severe =
+ * 1.75 inches or more (golf ball), within 1 mile of the parcel centroid: hail reports are dense in
+ * this area, so wider radii or smaller sizes flag most parcels. Time-windowed questions ("hit since
+ * 2023") are answered at query time from hail_events. Needs properties and roof_age.
+ */
+export const HAIL_RADIUS_MILES = 1;
+export const HAIL_SEVERE_INCHES = 1.75;
+export const hailExposureSql = `
+create or replace table hail_exposure as
+with pr as (
+  select p.prop_id, p.latitude, p.longitude, r.roof_year
+  from properties p join roof_age r using (prop_id)
+  where p.latitude is not null and r.roof_year is not null
+),
+hits as (
+  select pr.prop_id, ev.event_date, ev.hail_inches
+  from pr join hail_events ev
+    on ev.latitude between pr.latitude - 0.0145 and pr.latitude + 0.0145
+   and ev.longitude between pr.longitude - 0.0168 and pr.longitude + 0.0168
+  where ev.hail_inches >= 1 and year(ev.event_date) >= pr.roof_year
+    and 3958.8 * 2 * asin(sqrt(pow(sin(radians(ev.latitude - pr.latitude) / 2), 2)
+        + cos(radians(pr.latitude)) * cos(radians(ev.latitude)) * pow(sin(radians(ev.longitude - pr.longitude) / 2), 2))) <= ${HAIL_RADIUS_MILES}
+)
+select prop_id,
+       count(*) filter (hail_inches >= ${HAIL_SEVERE_INCHES}) as severe_hail_reports_since_roof,
+       max(hail_inches) as max_hail_inches_since_roof,
+       max(event_date) filter (hail_inches >= ${HAIL_SEVERE_INCHES}) as last_severe_hail_date_since_roof
+from hits group by prop_id order by prop_id`;

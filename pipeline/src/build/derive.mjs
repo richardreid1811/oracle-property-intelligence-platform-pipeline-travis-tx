@@ -9,7 +9,7 @@
 // Usage: node src/build/derive.mjs <county.duckdb> <raw-dir>
 import { DuckDBInstance } from "@duckdb/node-api";
 import { join } from "node:path";
-import { contractorAggSql, normName, ownerRegionFallbackSql, ownersSql, roofAgeSql } from "./permit-sql.mjs";
+import { contractorAggSql, hailExposureSql, normName, ownerRegionFallbackSql, ownersSql, roofAgeSql } from "./permit-sql.mjs";
 
 const [dbPath, raw] = process.argv.slice(2);
 if (!dbPath || !raw) {
@@ -30,6 +30,8 @@ const step = async (label, sql) => {
 };
 
 await step("roof_age", roofAgeSql);
+
+await step("hail", `create or replace table hail_events as select * from read_parquet(${lit(join(raw, "noaa/hail-events.parquet"))});\n` + hailExposureSql);
 
 await step("zip_region", `
 create or replace temp table zcta_county as

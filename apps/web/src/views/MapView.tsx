@@ -10,6 +10,7 @@ const MODES = {
   open_roofing_permits_near: { label: "Open / never-finaled roofing permits", threshold: "min_open_years", dflt: 3, unit: "years open" },
   stale_ownership_near: { label: "No ownership change", threshold: "min_years", dflt: 10, unit: "years" },
   absentee_owners_near: { label: "Out-of-area owners", threshold: null, dflt: 0, unit: "" },
+  hail_exposed_roofs_near: { label: "Recent hail on current roof (NOAA)", threshold: "min_hail_inches", dflt: 1.75, unit: "inches, last 3 years" },
   semantic_search_permits: { label: "Describe the work (semantic search)", threshold: null, dflt: 0, unit: "" },
 } as const;
 type Mode = keyof typeof MODES;
@@ -126,7 +127,7 @@ export default function MapView({ data }: { data: AppData }) {
         )}
         {m.threshold && (
           <label>Threshold ({m.unit})
-            <input type="number" min={0} max={100} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} />
+            <input type="number" min={0} max={100} step="any" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} />
           </label>
         )}
         <button className="primary" onClick={search} disabled={!data.dbReady || busy}>{busy ? "Searching…" : data.dbReady ? "Search" : "Loading data…"}</button>
@@ -157,6 +158,8 @@ function ResultTable({ rows, mode }: { rows: Row[]; mode: Mode }) {
       ? [["situs_address", "Address"], ["distance_miles", "mi"], ["roof_age_years", "Roof age"], ["roof_age_basis", "Basis"], ["roof_age_confidence", "Confidence"], ["roof_covering", "Covering"], ["open_roofing_permits", "Open roof permits"]]
       : mode === "open_roofing_permits_near"
         ? [["address", "Address"], ["permit_number", "Permit"], ["status", "Status"], ["open_years", "Years open"], ["contractor_company_name", "Contractor"], ["contractor_identity", "Registry"], ["bbb_rating", "BBB"]]
+      : mode === "hail_exposed_roofs_near"
+        ? [["situs_address", "Address"], ["distance_miles", "mi"], ["hail_reports", "Hail reports"], ["max_hail_inches", "Max in"], ["last_hail_date", "Last hail"], ["roof_age_years", "Roof age"], ["roof_age_basis", "Basis"]]
       : mode === "semantic_search_permits"
         ? [["similarity", "Match"], ["address", "Address"], ["permit_number", "Permit"], ["status", "Status"], ["open_years", "Years open"], ["description", "Work description"], ["contractor_company_name", "Contractor"], ["bbb_rating", "BBB"]]
         : mode === "stale_ownership_near"

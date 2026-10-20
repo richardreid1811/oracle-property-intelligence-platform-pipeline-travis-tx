@@ -23,7 +23,7 @@ const HISTORY_URL =
   process.env.TRAVIS_ORACLE_HISTORY_URL ??
   "https://raw.githubusercontent.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/travis-pipeline/runs/history.json";
 const GATEWAYS = (process.env.TRAVIS_ORACLE_GATEWAYS ?? "https://ipfs.filebase.io,https://gateway.pinata.cloud,https://ipfs.orbitor.dev,https://dget.top").split(",");
-const TABLES = ["leads", "roofing_permits", "contractors"];
+const TABLES = ["leads", "roofing_permits", "contractors", "hail_events"];
 const log = (...a) => console.error("[travis-oracle-mcp]", ...a); // stdout is the MCP channel
 
 async function getJson(url) {

@@ -10,12 +10,12 @@
 //   - contractors: re-aggregated from permits; registry identity carried over by contractor key,
 //     new contractors marked pending_registry_refresh until the next full identity refresh
 // Usage: node src/build/incremental.mjs <out.duckdb> <prev-manifest.json> <window.ndjson>
-//          [--prev-dir <run-dir>] [--gateway https://ipfs.filebase.io]
+//          [--prev-dir <run-dir>] [--gateway https://ipfs.filebase.io] [--hail <recent hail-events.parquet>]
 import { DuckDBInstance } from "@duckdb/node-api";
 import { existsSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { contractorAggSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
+import { contractorAggSql, hailExposureSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
 
 const [out, prevManifestPath, windowFile, ...rest] = process.argv.slice(2);
 const opt = (n) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : null);
@@ -79,6 +79,16 @@ insert into permits by name select * from permits_window;`);
 await step("open days (all)", openDaysSql("permits"));
 
 await step("roof_age", roofAgeSql);
+
+// Hail: previous snapshot's reports plus a recent NOAA harvest (newer rows win by event_id).
+const hailRecent = opt("--hail");
+const prevHail = (() => { try { return source("tables/hail_events.parquet"); } catch { return null; } })();
+const hailParts = [prevHail && `select * from read_parquet(${prevHail})`, hailRecent && `select * from read_parquet(${lit(hailRecent)})`].filter(Boolean);
+await step("hail", (hailParts.length
+  ? `create or replace table hail_events as select * exclude (rk) from (
+       select *, row_number() over (partition by event_id order by source_url desc) as rk from (${hailParts.join(" union all by name ")})
+     ) where rk = 1 order by event_date, event_id;\n`
+  : `create or replace table hail_events (event_id varchar, episode_id varchar, event_date date, latitude double, longitude double, hail_inches double, county_zone varchar, report_source varchar, source_url varchar);\n`) + hailExposureSql);
 // Older snapshots carried a calendar-dependent years_since_deed; tenure is now computed at query time.
 await step("owner_signals", "alter table owner_signals drop column if exists years_since_deed;\n" + ownerRegionFallbackSql);
 await step("owners", ownersSql + `;

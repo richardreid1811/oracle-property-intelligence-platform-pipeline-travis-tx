@@ -48,7 +48,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | BBB ratings where available | **Excluded from automated ingestion.** bbb.org returned HTTP 403, robots.txt bars search and pagination, and BBB offers no public API. Per the kit, the block is not circumvented. Instead, BBB lookup is **ad hoc and viewer-initiated**: every contractor row carries `bbb_lookup_url`, which opens BBB's own search for that contractor in the user's browser (UI link, agent answer, MCP field). The pipeline never fetches BBB | Map › open roofing permits › Check BBB |
 | Businesses | 367,843 Travis County businesses (sales-tax outlets + franchise taxpayers) | Run summary |
 | Coordinates | 430,761 parcels with coordinates (390k own centroid, 40k parent lot for condos), labelled by basis | Map |
-| Roof age / proxies, configurable threshold | Per-property roof year with basis and confidence: finaled re-roof permit (high), unfinaled (medium), year built (low; very_low if more than 50 years). Threshold is a parameter, default 15 | `aged_roofs_near` |
+| Roof age / proxies, configurable threshold | Per-property roof year with basis and confidence: finaled re-roof permit (high), unfinaled (medium), year built (low; very_low if more than 50 years). Threshold is a parameter, default 15. Each parcel carries `permit_history_coverage`, so a year-built estimate is never mistaken for a missing permit search (unincorporated parcels with Austin ETJ/limited-purpose permits are labelled separately) | `aged_roofs_near` |
 | Reconcile duplicate entities | Parcels keyed on PROP_ID (padding normalized); permits deduplicated by number; deterministic geo_id links with ambiguity flagged; contractors deduplicated by normalized name and resolved to the Comptroller registry; **owners reconciled across properties** (normalized name + mailing address → `owners`, 376k entities, 21.8k multi-property portfolios) and linked to the business registry; businesses deduplicated by taxpayer number | `owners`, `link_basis`, `identity_status`, `registry_link` |
 | Source provenance | Every row carries its source URL or record link; every source has a receipt (URL, digest, counts, timestamp) in `run.json` | UI › Run summary › Sources |
 | Continuous / incremental | Business-date windows (Socrata `:updated_at` is rewritten nightly), idempotent upserts, carried records re-classified under current rules, record-level deltas, **weekly** scheduled CI refresh plus on-demand runs, no-change checks recorded. Published tables hold only stable facts (durations and tenure are computed at query time), so unchanged data never creates new pins | `runs/history.json`, UI › Run history |
@@ -63,6 +63,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | Agent: retrieval-augmented, source-backed | Two retrieval paths feed the model: structured tools (radius, roof age, permits, ownership) and **semantic retrieval**. Semantic retrieval embeds the 31,968 roofing permits with bge-small-en-v1.5 (vectors published as `permit_embeddings.parquet`) and ranks them by cosine similarity in DuckDB. Answers cite rows and source links | UI › Agent, Map › "Describe the work" |
 | UI | Hosted React app | Live runtime |
 | Roofing queries (radius, roof > N years, open permits, contractor + BBB, ownership > 10 years, out-of-area owners) | Six tools with source-backed rows; place names resolve via an in-data gazetteer | UI › Map, Agent |
+| Storm signal (beyond the README) | NOAA NCEI Storm Events hail reports (1,093 since 1996). `hail_exposed_roofs_near` joins them at query time against the current roof only (default: 1.75 in or larger within 1 mile in the last 3 years). Countywide, so it also covers unincorporated areas with no permit data | UI › Map (Recent hail), Agent |
 
 ## Texas adaptations of the Florida-oriented kit
 
@@ -84,6 +85,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | TCAD centroids | 386,682 features | 2 m 19 s | ArcGIS 2,000-feature pages, concurrency 2 |
 | Austin permits full pull | 2,380,939 | 19 m 42 s | Socrata 50k pages; `:updated_at` unusable for change detection |
 | Austin permit window | tens to thousands of rows | seconds | Business-date filters |
+| NOAA hail (Storm Events) | 31 yearly national files, 1,093 local reports | ~1 min first run, then the last 2 years weekly | A few national rows have malformed quotes; rejects are checked so no Texas hail row is dropped |
 | Franchise taxpayers (statewide) | 3,487,662 | 9 m 18 s | Needed for contractor identity |
 | Permit build / derive / export | 2.4M permits | ~4 m / 25 s / ~2 m | |
 | Publish (pins + verification) | 72 objects, ~240 MB | ~4–5 min | Free-plan Pinata accepts no CAR or pin-by-CID, so files are uploaded and CIDs compared |
@@ -144,6 +146,7 @@ Every acceptance criterion and module was reviewed against real output; fixes we
 - **Permit coverage:** automated permit history covers the City of Austin (56% of parcels). Unincorporated Travis County (25%) has no county building permits under Texas law. Pflugerville and Lakeway adapters are designed but not built (about 8% of parcels). 19 small municipalities need Texas Public Information Act requests, which are cataloged and not sent.
 - **BBB:** excluded from ingestion (403, robots.txt, no public API). Lookup is viewer-initiated through `bbb_lookup_url`.
 - **Contractor identity:** a contractor counts as resolved on an exact, unique normalized-name match in the statewide registry. There is no fuzzy matching, so common names stay unresolved rather than mis-linked.
-- **Roof age outside Austin** relies on TCAD year built (confidence `low`/`very_low`) because no permit history exists there.
+- **Roof age outside Austin** relies on TCAD year built (confidence `low`/`very_low`) because no permit history exists there. Unincorporated parcels in Austin's ETJ or limited-purpose area have partial Austin permit history and are labelled `austin_etj_or_limited_purpose_permits`.
+- **Hail** reports are NOAA point observations (spotter, public, radar-confirmed), not swaths. Exposure is a lead signal, not evidence of damage, and parcels without a roof year get none.
 - **Free-tier quotas:** pinning is 500 files per vendor (handled by retention and a weekly cadence). Gateway egress is about 10 GB/month per vendor; the UI falls back to independent public gateways, and browsers cache CID responses as immutable.
 - **Kit conformance:** Restate was not needed (all sources are bulk or API with idempotent script steps). Atlas registration and lexicon CARs were not attempted; the README's manifest-and-gateway publication requirements are met independently.

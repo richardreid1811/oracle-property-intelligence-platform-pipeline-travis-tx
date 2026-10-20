@@ -49,13 +49,16 @@ const sources = [
     kind: "socrata", receipt: await readJson(join(raw, "identity/tdlr-contractor-licenses.ndjson.receipt.json")) },
   { key: "census_zcta_county", name: "US Census 2020 ZCTA-to-county relationship file",
     kind: "bulk_download", receipt: { url: "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt", sha256: "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf" } },
+  { key: "noaa_hail", name: "NOAA NCEI Storm Events: hail reports around Travis County (1996-present)",
+    kind: "bulk_download", receipt: (await readJson(join(raw, "noaa-recent/receipt.json"))) ?? (await readJson(join(raw, "noaa/receipt.json"))) },
   { key: "bbb", name: "Better Business Bureau profiles", kind: "blocked",
     receipt: await readJson(join(raw, "bbb/access-evidence.json")) },
 ];
 
 const limitations = [
   "BBB ratings excluded from automated ingestion: bbb.org returned HTTP 403 to automated requests, robots.txt disallows search and pagination, and BBB offers no public API. Contractors carry bbb_status instead of a rating rather than data obtained by circumventing those controls.",
-  "Permit history is automated for the City of Austin (56.2% of parcels). Unincorporated Travis County (25.2%) has no county building permits under Texas law, so roof age there is year-built based. Pflugerville and Lakeway adapters are planned; 19 other municipalities require Texas Public Information Act requests.",
+  "Permit history is automated for the City of Austin (56.2% of parcels) and for unincorporated parcels in Austin's ETJ and limited-purpose areas (43,496 parcels, 9.8%), where the City issues permits. The rest of unincorporated Travis County (about 15%) has no county building permits under Texas law, so roof age there is year-built based. Pflugerville and Lakeway adapters are designed but not built; 19 other municipalities require Texas Public Information Act requests.",
+  "Hail exposure uses NOAA Storm Events hail reports: the published lead columns count severe hail (1.75 inches or more) within 1 mile of a parcel in or after its roof year, and the hail tool joins reports at query time for any window, size and distance. Parcels without a roof year get no hail exposure. Reports are point observations, so exposure is a lead signal, not evidence of roof damage.",
   "Roof age basis: finaled re-roof permit (high), issued-but-unfinaled re-roof permit (medium), TCAD year built assuming original roof (low). The basis and confidence are recorded per property.",
   "Texas is a non-disclosure state: no sale prices. Ownership age is derived from the TCAD deed date.",
   "11,211 assessed parcels (2.5%) have no polygon or parent-lot centroid and are excluded from radius queries; 40,405 condo units use their parent lot centroid.",

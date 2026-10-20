@@ -73,7 +73,8 @@ export const tools = [
       return `
         select prop_id, situs_address, jurisdiction, round(${miles(lat, lon)}, 2) as distance_miles,
                roof_age_years, roof_year, roof_age_basis, roof_age_confidence, roof_covering, year_built,
-               open_roofing_permits, oldest_open_date, owner_mail_region, latitude, longitude, source_detail_url
+               open_roofing_permits, oldest_open_date, severe_hail_reports_since_roof, max_hail_inches_since_roof, last_severe_hail_date_since_roof,
+               owner_mail_region, latitude, longitude, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
           and roof_age_years > ${age} ${res}
@@ -119,6 +120,17 @@ export const tools = [
               where roofing_work in ('roof_replacement', 'roof_repair') and status_bucket in ('open', 'expired_unfinaled')
                 and ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and date_diff('day', opened_date, current_date) >= ${minDays} ${since}`;
     },
+  },
+  {
+    name: "hail_exposed_roofs_near",
+    description: "Properties within a radius whose current roof was hit by hail in a time window: NOAA Storm Events hail reports of at least min_hail_inches (default 1.75, golf ball) within event_radius_miles (default 1) of the property, on or after since (default: the last 3 years) and not before the roof year. Works countywide, including unincorporated areas without permits. Hail exposure is a lead signal, not evidence of damage.",
+    input_schema: { type: "object", properties: { ...POINT_PROPS,
+      since: { type: "string", description: "ISO date; only hail on or after it (default: 3 years ago)." },
+      min_hail_inches: { type: "number", description: "Minimum hail size in inches (default 1.75)." },
+      event_radius_miles: { type: "number", description: "Distance from a hail report to the property (default 1, max 3)." },
+      older_than_years: { type: "number", description: "Optional: only roofs strictly older than this many years." } } },
+    sql: (a) => hailSql(a, false),
+    count_sql: (a) => hailSql(a, true),
   },
   {
     name: "semantic_search_permits",
@@ -218,6 +230,46 @@ export const tools = [
 ];
 
 export const toolByName = Object.fromEntries(tools.map((t) => [t.name, t]));
+
+// Query-time hail join: hail_events is small (about 1,100 reports), so the time window, size and
+// radius stay parameters instead of being baked into published columns.
+function hailSql(a, countOnly) {
+  const { lat, lon, r } = point(a);
+  const minIn = num(a.min_hail_inches, { min: 0.75, max: 6, dflt: 1.75 });
+  const er = num(a.event_radius_miles, { min: 0.25, max: 3, dflt: 1 });
+  const since = /^\d{4}-\d{2}-\d{2}$/.test(a.since ?? "") ? `date '${a.since}'` : "current_date - interval 3 year";
+  const age = a.older_than_years === undefined || a.older_than_years === null || a.older_than_years === "" ? null : num(a.older_than_years, { min: 0, max: 150 });
+  const dLat = er / 69.0;
+  const dLon = er / (69.17 * Math.cos((lat * Math.PI) / 180));
+  const body = `
+    with p as (
+      select prop_id, situs_address, jurisdiction, latitude, longitude, roof_year, roof_age_years, roof_age_basis,
+             roof_age_confidence, roof_covering, open_roofing_permits, source_detail_url
+      from leads
+      where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and roof_year is not null
+        ${age === null ? "" : `and roof_age_years > ${age}`}
+    ),
+    ev as (
+      select event_id, event_date, latitude as elat, longitude as elon, hail_inches from hail_events
+      where hail_inches >= ${minIn} and event_date >= ${since}
+        and ${bbox(lat, lon, r + er, "latitude", "longitude")}
+    ),
+    hits as (
+      select p.prop_id, count(*) as hail_reports, max(ev.hail_inches) as max_hail_inches, max(ev.event_date) as last_hail_date
+      from p join ev on ev.elat between p.latitude - ${dLat} and p.latitude + ${dLat}
+                    and ev.elon between p.longitude - ${dLon} and p.longitude + ${dLon}
+      where year(ev.event_date) >= p.roof_year and ${miles("p.latitude", "p.longitude", "ev.elat", "ev.elon")} <= ${er}
+      group by p.prop_id
+    )`;
+  if (countOnly) return `${body} select count(*) as matches from hits`;
+  return `${body}
+    select p.prop_id, p.situs_address, p.jurisdiction, round(${miles(lat, lon, "p.latitude", "p.longitude")}, 2) as distance_miles,
+           h.hail_reports, h.max_hail_inches, h.last_hail_date, p.roof_age_years, p.roof_year, p.roof_age_basis, p.roof_age_confidence,
+           p.roof_covering, p.open_roofing_permits, p.latitude, p.longitude, p.source_detail_url
+    from hits h join p using (prop_id)
+    order by h.hail_reports desc, h.max_hail_inches desc, h.last_hail_date desc, p.prop_id
+    limit ${LIMIT(a.limit)}`;
+}
 
 /**
  * Viewer-initiated BBB lookup. BBB blocks automated access and has no public API, so the pipeline

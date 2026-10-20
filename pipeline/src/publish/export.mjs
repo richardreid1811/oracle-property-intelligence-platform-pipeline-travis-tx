@@ -52,12 +52,16 @@ select p.prop_id, p.geo_id, p.situs_address, p.situs_zip, p.jurisdiction,
        r.evidence_permit_key, r.roof_covering, r.roof_style, r.permit_history_coverage,
        coalesce(x.open_roofing_permits, 0) as open_roofing_permits, x.oldest_open_date,
        x.oldest_open_permit, x.oldest_open_contractor,
-       p.market_val, p.imprv_state_cd, p.source_detail_url
+       p.market_val, p.imprv_state_cd,
+       coalesce(h.severe_hail_reports_since_roof, 0) as severe_hail_reports_since_roof,
+       h.max_hail_inches_since_roof, h.last_severe_hail_date_since_roof,
+       p.source_detail_url
 from properties p
 join roof_age r using (prop_id)
 join owner_signals o using (prop_id)
 left join owners ow on ow.owner_key = o.owner_key
 left join open_roof x using (prop_id)
+left join hail_exposure h using (prop_id)
 order by p.prop_id::bigint`);
 
 await copy("leads", "select * from leads");
@@ -67,6 +71,7 @@ await copy("owner_signals", "select * from owner_signals order by prop_id::bigin
 await copy("roofing_permits", `select * exclude (open_days) from permits where roofing_work is not null order by permit_key`);
 await copy("contractors", "select * exclude (phones, trades, tdlr_licenses), array_to_string(phones, ';') as phones, array_to_string(trades, ';') as trades, array_to_string(tdlr_licenses, ';') as tdlr_licenses from contractors order by contractor_key");
 await copy("owners", "select * from owners order by owner_key");
+await copy("hail_events", "select * from hail_events order by event_date, event_id");
 await copy("businesses", "select * from businesses order by business_key");
 // Semantic retrieval vectors (int8, 384-d) keyed by permit; absent in builds made before embeddings.
 const hasEmb = (await c.runAndReadAll("select count(*) as n from information_schema.tables where table_name = 'permit_embeddings'")).getRowObjectsJson()[0].n > 0;
