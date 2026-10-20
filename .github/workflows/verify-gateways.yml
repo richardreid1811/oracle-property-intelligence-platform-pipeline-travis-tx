@@ -1,0 +1,53 @@
+# Independent retrieval proof: fetch every CID in the latest run manifest from public IPFS gateways
+# this project does not operate (ipfs.io, dweb.link) and check bytes against the manifest.
+name: verify-gateways
+
+on:
+  push:
+    branches: [travis-pipeline, main]
+    paths: ["runs/*/manifest.json"]
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Run id to verify (default: latest in runs/history.json)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: verify-gateways
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --workspace pipeline --include-workspace-root=false --ignore-scripts
+      - name: Pick run
+        id: pick
+        run: |
+          RUN="${{ github.event.inputs.run_id }}"
+          if [ -z "$RUN" ]; then RUN=$(node -e "console.log(require('./runs/history.json').runs.at(-1).run_id)"); fi
+          echo "run_id=$RUN" >> "$GITHUB_OUTPUT"
+      - name: Verify on ipfs.io and dweb.link
+        id: verify
+        continue-on-error: true
+        run: node pipeline/src/publish/verify-gateways.mjs runs/${{ steps.pick.outputs.run_id }}/manifest.json --gateways https://ipfs.io,https://dweb.link
+      - name: Commit verification evidence
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add runs/${{ steps.pick.outputs.run_id }}/gateway-verification.json
+          git commit -m "Gateway verification for run ${{ steps.pick.outputs.run_id }}" || echo "no change"
+          git push
+      - name: Fail if any object failed
+        if: steps.verify.outcome != 'success'
+        run: exit 1
