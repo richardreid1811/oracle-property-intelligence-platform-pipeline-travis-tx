@@ -28,12 +28,12 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 |---|---|
 | `pipeline/src/sources/` | Harvesters: TCAD export extract with receipt, ArcGIS centroids, Austin permits (full pull or business-date window), generic Socrata, BBB sitemap reader (stopped on 403) |
 | `pipeline/src/build/` | `tcad-roll` builds properties; `permits` + shared `permit-sql` handle classification, status, deterministic parcel links and roof age; `derive` builds owner signals, contractors, businesses and licenses; `incremental` layers a window onto the previous snapshot |
-| `pipeline/src/publish/` | `export` (byte-stable Parquet, tiles, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest), `verify-gateways`, `fetch-snapshot` |
+| `pipeline/src/publish/` | `export` (byte-stable Parquet, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest), `verify-gateways`, `fetch-snapshot`, `check-contract`, `prune-pins` |
 | `pipeline/src/run-incremental.mjs` | One incremental run end to end (what CI runs) |
 | `packages/query-tools/` | One definition per roofing tool (JSON Schema + DuckDB SQL), shared by the UI, agent and MCP; `embed.mjs` is the shared embedder for semantic retrieval |
 | `apps/web/` | React UI + Worker (`wrangler.jsonc`) |
 | `mcp/` | stdio MCP server |
-| `.github/workflows/` | `refresh.yml` (daily incremental run), `verify-gateways.yml` (independent retrieval proof) |
+| `.github/workflows/` | `refresh.yml` (weekly incremental run + on-demand, retention), `verify-gateways.yml` (independent retrieval proof) |
 
 ## Acceptance criteria → evidence
 
@@ -57,7 +57,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | No ongoing Oracle infrastructure cost | Cloudflare free plan (no card), free pinning tiers, GitHub Actions on a public repo, browser-side DuckDB | [Cost](#cost) |
 | IPFS: CIDv1, public, manifest fields | Kubo-default UnixFS profile; locally computed CIDs must equal the Filebase and Pinata CIDs or publication fails. Manifest lists cid, name, size, codec, sha256, pins and CARs | `runs/<run>/manifest.json`, UI › IPFS artifacts |
 | New CIDs on republish, prior CIDs immutable | Byte-deterministic export: unchanged files keep CIDs, changed files get new ones, nothing is ever unpinned. Both runs' CIDs remain in history | UI › Run history ("Check this snapshot still resolves") |
-| CARs for directories | Root, `tables/permits` and `tiles/leads` CARs attached to each run's GitHub Release, with their sha256 in the manifest | Releases |
+| CARs for directories | Root and `tables/permits` CARs attached to each run's GitHub Release, with their sha256 in the manifest (runs 1–3 also include the since-retired `tiles/leads` CAR) | Releases |
 | Two independent public gateways | `verify-gateways` fetches every CID from **ipfs.orbitor.dev** and **dget.top** (independent operators, not our pinning vendors) and checks size + sha256; evidence committed per run. The UI re-verifies any file in your own browser. The README's examples, ipfs.io and dweb.link, **retired programmatic HTTP access on 2026-09-21** (service-worker-only; plain HTTP clients now get 429 with a notice pointing to gatewaychanges.ipfs.io). They still work in a browser via the service worker | `runs/<run>/gateway-verification.json`, UI › IPFS artifacts |
 | DuckDB / MCP-ready / agent access | DuckDB-WASM in the browser and DuckDB in the MCP server, over the same Parquet; MCP `tools/list`, `tools/call`, `run_sql` and resources. A published **data contract** documents every table, key, enum and tool; each publish is gated on an exact schema match | UI › MCP & SQL, `mcp/`, `docs/data-contract.md` |
 | Agent: retrieval-augmented, source-backed | Two retrieval paths feed the model: structured tools (radius, roof age, permits, ownership) and **semantic retrieval**. Semantic retrieval embeds the 31,968 roofing permits with bge-small-en-v1.5 (vectors published as `permit_embeddings.parquet`) and ranks them by cosine similarity in DuckDB. Answers cite rows and source links | UI › Agent, Map › "Describe the work" |
@@ -114,7 +114,7 @@ node src/sources/austin-permits.mjs data/raw/permits/austin/full.ndjson
 node src/sources/socrata.mjs ...         # Comptroller / TDLR (see pipeline/docs)
 node src/build/tcad-roll.mjs ... && node src/build/permits.mjs ... && node src/build/derive.mjs ...
 node src/publish/export.mjs ... && node src/publish/run-summary.mjs ... && node src/publish/publish.mjs ...
-# incremental (what CI runs daily)
+# incremental (what CI runs weekly / on demand)
 node src/run-incremental.mjs --runs ../runs
 # rebuild any published run from CIDs alone
 node src/publish/fetch-snapshot.mjs ../runs/<run>/manifest.json <dir>
