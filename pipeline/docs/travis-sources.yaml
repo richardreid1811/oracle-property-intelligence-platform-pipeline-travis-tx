@@ -337,7 +337,15 @@ identity:
   licensing: "TDLR All Licenses (data.texas.gov); Texas does not license roofing contractors — replaces DBPR"
 
 enrichment:
-  bbb: {source: "bbb.org Central Texas roofing categories", expected_count: null}
+  bbb:
+    source: "bbb.org Central Texas roofing categories"
+    source_access_status: blocked
+    source_access_complete: false
+    incomplete_reason: http_403_source_block
+    evidence: "pipeline/data/raw/bbb/access-evidence.json (403 on /us/tx/austin/category/roofing-contractors, 2026-10-20)"
+    robots_notes: "robots.txt disallows /*? (search, category pagination); allows /us/*/*/profile/* and lists profile sitemaps"
+    access_route: "official BBB API, https://developer.bbb.org/ (operator application required)"
+    expected_count: null
   places: {source: overture, fips: "48453"}
 
 destination:

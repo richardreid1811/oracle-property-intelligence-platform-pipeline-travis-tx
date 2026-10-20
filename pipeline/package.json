@@ -1,0 +1,17 @@
+{
+  "name": "@travis-oracle/pipeline",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "tcad:extract": "node src/sources/tcad-extract.mjs",
+    "tcad:build": "node src/build/tcad-roll.mjs",
+    "gis:centroids": "node src/sources/tcad-gis-centroids.mjs data/raw/gis/tcad-centroids.ndjson"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "1.5.6-r.1",
+    "ipfs-car": "3.1.0"
+  }
+}
