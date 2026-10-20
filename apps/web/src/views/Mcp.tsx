@@ -29,8 +29,10 @@ export default function Mcp({ data }: { data: AppData }) {
     }
   }
 
+  const setup = `git clone -b travis-pipeline ${REPO}.git travis-oracle
+cd travis-oracle && npm ci --workspace mcp`;
   const config = JSON.stringify(
-    { mcpServers: { "travis-oracle": { command: "npx", args: ["-y", `github:richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx#travis-pipeline`, "travis-oracle-mcp"] } } },
+    { mcpServers: { "travis-oracle": { command: "node", args: ["/absolute/path/to/travis-oracle/mcp/server.mjs"], env: { TRAVIS_ORACLE_MANIFEST_CID: "(optional: pin a run manifest CID)" } } } },
     null,
     2,
   );
@@ -42,8 +44,11 @@ export default function Mcp({ data }: { data: AppData }) {
         <p className="small">
           The same tool definitions power this UI, the agent and an MCP server (stdio, <code>mcp/</code> in the{" "}
           <a href={REPO} target="_blank" rel="noreferrer">repository</a>). The server loads the snapshot by CID from IPFS into DuckDB, so agents and the roofing CRM
-          query the same data model with no hosted database. Add it to an MCP client:
+          query the same data model with no hosted database. It exposes the tools below plus a read-only <code>run_sql</code>, and resources
+          for the artifact manifest and run summary.
         </p>
+        <pre>{setup}</pre>
+        <p className="small">Then add it to an MCP client (Claude Desktop, Claude Code, or the roofing CRM's agent):</p>
         <pre>{config}</pre>
       </section>
       <section className="grid-2">
