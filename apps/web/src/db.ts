@@ -4,7 +4,7 @@ import * as duckdb from "@duckdb/duckdb-wasm";
 import { PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
 import type { Manifest } from "./types";
 
-// Vendor gateways serve CORS + HTTP range requests; ipfs.io/dweb.link are used for verification.
+// Vendor gateways serve CORS + HTTP range requests for reads; independent gateways (orbitor.dev, dget.top) verify.
 export const READ_GATEWAYS = ["https://ipfs.filebase.io", "https://gateway.pinata.cloud"];
 const TABLES = ["leads", "roofing_permits", "contractors"] as const;
 

@@ -3,7 +3,8 @@ import type { AppData } from "../App";
 import { bytes, shortCid, when } from "../format";
 import type { ManifestObject } from "../types";
 
-const VERIFY_GATEWAYS = ["https://ipfs.io", "https://dweb.link"];
+// Independent public gateways (not our pinning vendors). ipfs.io/dweb.link retired HTTP access 2026-09-21.
+const VERIFY_GATEWAYS = ["https://ipfs.orbitor.dev", "https://dget.top"];
 type Check = { state: "running" | "ok" | "bad"; detail: string };
 
 async function sha256Hex(buf: ArrayBuffer) {
@@ -95,7 +96,7 @@ export default function Artifacts({ data }: { data: AppData }) {
               {shown.map((o) => (
                 <tr key={o.cid}>
                   <td>{o.name}{o.reused_from_previous_run && <span className="tag">unchanged</span>}</td>
-                  <td><a href={o.gateway_urls[0]} target="_blank" rel="noreferrer"><code title={o.cid}>{shortCid(o.cid)}</code></a></td>
+                  <td><a href={`https://ipfs.orbitor.dev/ipfs/${o.cid}`} target="_blank" rel="noreferrer"><code title={o.cid}>{shortCid(o.cid)}</code></a></td>
                   <td className="num">{bytes(o.size)}</td>
                   <td><code className="small">{o.sha256?.slice(0, 12)}…</code></td>
                   <td className="small">{o.pins.map((p) => p.provider).join(", ")}</td>
@@ -107,7 +108,7 @@ export default function Artifacts({ data }: { data: AppData }) {
                         return c ? <div key={g} className={c.state === "ok" ? "ok-text" : c.state === "bad" ? "error" : "muted"}>{new URL(g).host}: {c.detail}</div> : null;
                       })
                     ) : (
-                      <button onClick={() => check(o)}>ipfs.io + dweb.link</button>
+                      <button onClick={() => check(o)}>orbitor.dev + dget.top</button>
                     )}
                   </td>
                 </tr>

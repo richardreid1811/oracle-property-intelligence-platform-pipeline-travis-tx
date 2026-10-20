@@ -51,7 +51,7 @@ jobs:
       - name: Verify new run on independent public gateways
         if: steps.run.outputs.run_id != ''
         continue-on-error: true
-        run: node pipeline/src/publish/verify-gateways.mjs runs/${{ steps.run.outputs.run_id }}/manifest.json --gateways https://ipfs.io,https://dweb.link --budget-min 30
+        run: node pipeline/src/publish/verify-gateways.mjs runs/${{ steps.run.outputs.run_id }}/manifest.json --gateways https://ipfs.orbitor.dev,https://dget.top --budget-min 30
       - name: Commit manifest and run history
         if: always()
         run: |

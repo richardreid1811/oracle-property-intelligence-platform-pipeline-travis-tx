@@ -20,7 +20,9 @@ if (!manifestPath) {
   process.exit(2);
 }
 const opt = (n, d) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : d);
-const gateways = opt("--gateways", "https://ipfs.io,https://dweb.link").split(",");
+// ipfs.io and dweb.link retired programmatic access on 2026-09-21 (service-worker-only; 429 to HTTP
+// clients), so the defaults are other independent public gateways. Neither is a pinning vendor of ours.
+const gateways = opt("--gateways", "https://ipfs.orbitor.dev,https://dget.top").split(",");
 const deadline = Date.now() + Number(opt("--budget-min", "50")) * 60_000;
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const SHA2_256 = 0x12;

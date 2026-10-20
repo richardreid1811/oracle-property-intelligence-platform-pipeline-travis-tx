@@ -28,7 +28,8 @@ const filebaseToken = () =>
   Buffer.from(`${env.FILEBASE_ACCESS_KEY}:${env.FILEBASE_SECRET_KEY}:${env.FILEBASE_BUCKET}`).toString("base64");
 const DIRECTORY_ARTIFACTS = ["", "tables/permits", "tiles/leads"];
 const LISTED_FILE = (p) => !p.startsWith("tiles/leads/"); // tiles are reachable via their directory root
-const GATEWAYS = ["https://ipfs.io", "https://dweb.link"];
+// Derived convenience locators only (the CID is the artifact). ipfs.io/dweb.link retired HTTP access 2026-09-21.
+const GATEWAYS = ["https://ipfs.orbitor.dev", "https://dget.top"];
 
 async function walk(dir, base = dir) {
   const out = [];

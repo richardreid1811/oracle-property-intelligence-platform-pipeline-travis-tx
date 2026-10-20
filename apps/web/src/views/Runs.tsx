@@ -14,8 +14,8 @@ export default function Runs({ data }: { data: AppData }) {
     try {
       const m = (await (await fetch(`${data.runsBase}/${runId}/manifest.json`)).json()) as Manifest;
       const cov = m.objects.find((o) => o.name === "coverage.json")!;
-      const r = await verifyInBrowser(cov, "https://ipfs.io");
-      setChecks((c) => ({ ...c, [runId]: `${r.state === "ok" ? "✓ resolves" : "✗"} coverage.json ${cov.cid.slice(0, 14)}… via ipfs.io: ${r.detail}` }));
+      const r = await verifyInBrowser(cov, "https://ipfs.orbitor.dev");
+      setChecks((c) => ({ ...c, [runId]: `${r.state === "ok" ? "✓ resolves" : "✗"} coverage.json ${cov.cid.slice(0, 14)}… via ipfs.orbitor.dev: ${r.detail}` }));
     } catch (e) {
       setChecks((c) => ({ ...c, [runId]: `✗ ${String((e as Error).message ?? e)}` }));
     }

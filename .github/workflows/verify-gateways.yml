@@ -1,5 +1,5 @@
 # Independent retrieval proof: fetch every CID in each run manifest from public IPFS gateways this
-# project does not operate (ipfs.io, dweb.link) and check bytes against the manifest. Runs for
+# project does not operate (ipfs.orbitor.dev, dget.top; ipfs.io/dweb.link retired programmatic access 2026-09-21) and check bytes against the manifest. Runs for
 # every run in history that has no verification yet (and re-verifies the latest daily), so earlier
 # snapshots are shown to still resolve after later runs.
 name: verify-gateways
@@ -42,13 +42,13 @@ jobs:
             const todo = runs.filter((r) => r === latest || !fs.existsSync('runs/' + r + '/gateway-verification.json'));
             console.log(todo.join(' '));")
           echo "runs=$RUNS" >> "$GITHUB_OUTPUT"
-      - name: Verify on ipfs.io and dweb.link
+      - name: Verify on ipfs.orbitor.dev and dget.top
         id: verify
         continue-on-error: true
         run: |
           status=0
           for RUN in ${{ steps.pick.outputs.runs }}; do
-            node pipeline/src/publish/verify-gateways.mjs runs/$RUN/manifest.json --gateways https://ipfs.io,https://dweb.link --budget-min 40 || status=1
+            node pipeline/src/publish/verify-gateways.mjs runs/$RUN/manifest.json --gateways https://ipfs.orbitor.dev,https://dget.top --budget-min 40 || status=1
           done
           exit $status
       - name: Commit verification evidence

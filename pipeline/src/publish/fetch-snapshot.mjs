@@ -15,7 +15,7 @@ if (!manifestPath || !outDir) {
   process.exit(2);
 }
 const opt = (n, d) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : d);
-const gateways = opt("--gateways", "https://ipfs.filebase.io,https://gateway.pinata.cloud,https://ipfs.io").split(",");
+const gateways = opt("--gateways", "https://ipfs.filebase.io,https://gateway.pinata.cloud,https://ipfs.orbitor.dev,https://dget.top").split(",");
 const only = opt("--only", "");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const sha256 = (b) => createHash("sha256").update(b).digest("hex");

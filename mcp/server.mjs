@@ -6,7 +6,7 @@
 // Snapshot selection (first match wins):
 //   TRAVIS_ORACLE_MANIFEST_CID  pin an exact run manifest by CID
 //   TRAVIS_ORACLE_HISTORY_URL   run history JSON (default: runs/history.json in the GitHub repo)
-// Gateways: TRAVIS_ORACLE_GATEWAYS (comma-separated; default Filebase, Pinata, ipfs.io).
+// Gateways: TRAVIS_ORACLE_GATEWAYS (comma-separated; default Filebase, Pinata, orbitor.dev, dget.top).
 import { DuckDBInstance } from "@duckdb/node-api";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -21,7 +21,7 @@ import { mcpTools, PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "
 const HISTORY_URL =
   process.env.TRAVIS_ORACLE_HISTORY_URL ??
   "https://raw.githubusercontent.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/travis-pipeline/runs/history.json";
-const GATEWAYS = (process.env.TRAVIS_ORACLE_GATEWAYS ?? "https://ipfs.filebase.io,https://gateway.pinata.cloud,https://ipfs.io").split(",");
+const GATEWAYS = (process.env.TRAVIS_ORACLE_GATEWAYS ?? "https://ipfs.filebase.io,https://gateway.pinata.cloud,https://ipfs.orbitor.dev,https://dget.top").split(",");
 const TABLES = ["leads", "roofing_permits", "contractors"];
 const log = (...a) => console.error("[travis-oracle-mcp]", ...a); // stdout is the MCP channel
 
