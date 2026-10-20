@@ -16,7 +16,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { mcpTools, PLACES_SQL, resolveArgs, toolByName } from "@travis-oracle/query-tools";
+import { mcpTools, PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
 
 const HISTORY_URL =
   process.env.TRAVIS_ORACLE_HISTORY_URL ??
@@ -116,7 +116,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     const tool = toolByName[name];
     if (!tool) throw new Error(`unknown tool ${name}`);
     const resolved = await resolveArgs(name, args, rows);
-    const out = await rows(tool.sql(resolved));
+    const out = withLookupLinks(await rows(tool.sql(resolved)));
     const count = tool.count_sql ? (await rows(tool.count_sql(resolved)))[0] : undefined;
     const { manifest } = await ensureLoaded();
     const payload = {

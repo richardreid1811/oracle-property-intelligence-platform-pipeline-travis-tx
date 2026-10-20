@@ -78,7 +78,7 @@ export const tools = [
   },
   {
     name: "open_roofing_permits_near",
-    description: "Roofing permits (re-roof / roof repair) within a radius that are still open or expired without a final inspection, longest-open first, with contractor identity, registry resolution and BBB status. min_open_years filters long-open permits.",
+    description: "Roofing permits (re-roof / roof repair) within a radius that are still open or expired without a final inspection, longest-open first, with contractor identity and Texas registry resolution. BBB ratings are not ingested (BBB blocks automated access); each contractor row includes bbb_lookup_url for the user to check BBB directly. min_open_years filters long-open permits.",
     input_schema: { type: "object", properties: { ...POINT_PROPS, min_open_years: { type: "number", description: "Only permits open at least this many years (default 0)." }, issued_since: { type: "string", description: "Optional ISO date; only permits opened on/after it." } } },
     sql: (a) => {
       const { lat, lon, r } = point(a);
@@ -167,6 +167,20 @@ export const tools = [
 ];
 
 export const toolByName = Object.fromEntries(tools.map((t) => [t.name, t]));
+
+/**
+ * Viewer-initiated BBB lookup. BBB blocks automated access and has no public API, so the pipeline
+ * never fetches BBB; instead each contractor row carries a link that opens BBB's own search in the
+ * viewer's browser, prefilled with the contractor name and Austin, TX.
+ */
+export const bbbLookupUrl = (name, city = "Austin, TX") =>
+  name ? `https://www.bbb.org/search?find_country=USA&find_text=${encodeURIComponent(name)}&find_loc=${encodeURIComponent(city)}` : null;
+
+/** Add bbb_lookup_url to any result row that names a contractor. */
+export const withLookupLinks = (rows) =>
+  rows.map((r) => (r.contractor_company_name || r.oldest_open_contractor || r.display_name
+    ? { ...r, bbb_lookup_url: bbbLookupUrl(r.contractor_company_name ?? r.oldest_open_contractor ?? r.display_name) }
+    : r));
 
 /**
  * Resolve a `place` argument to latitude/longitude before building SQL, so models never have to copy

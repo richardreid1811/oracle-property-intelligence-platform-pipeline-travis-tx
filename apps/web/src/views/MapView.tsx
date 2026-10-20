@@ -150,7 +150,7 @@ function ResultTable({ rows, mode }: { rows: Row[]; mode: Mode }) {
         <tbody>
           {rows.map((r, i) => (
             <tr key={i}>
-              {cols.map(([k]) => <td key={k}>{k === "bbb_rating" ? (r.bbb_rating ? String(r.bbb_rating) : <span className="muted" title={String(r.bbb_status)}>n/a</span>) : fmt(r[k])}</td>)}
+              {cols.map(([k]) => <td key={k}>{k === "bbb_rating" ? (r.bbb_rating ? String(r.bbb_rating) : r.bbb_lookup_url ? <a href={String(r.bbb_lookup_url)} target="_blank" rel="noreferrer" title="Opens BBB's own search in your browser; BBB data is not ingested">Check BBB ↗</a> : <span className="muted">—</span>) : fmt(r[k])}</td>)}
               <td><a href={String(r.source_detail_url)} target="_blank" rel="noreferrer">record</a></td>
             </tr>
           ))}

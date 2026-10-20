@@ -1,7 +1,7 @@
 // DuckDB-WASM over IPFS: the published Parquet tables are fetched by CID from public gateways and
 // queried in the browser. No Oracle-hosted database.
 import * as duckdb from "@duckdb/duckdb-wasm";
-import { PLACES_SQL, resolveArgs, toolByName } from "@travis-oracle/query-tools";
+import { PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
 import type { Manifest } from "./types";
 
 // Vendor gateways serve CORS + HTTP range requests; ipfs.io/dweb.link are used for verification.
@@ -75,7 +75,7 @@ export async function runTool(
   if (!tool) throw new Error(`unknown tool ${name}`);
   const args = await resolveArgs(name, rawArgs, query);
   const sql = tool.sql(args);
-  const rows = await query(sql);
+  const rows = withLookupLinks(await query(sql));
   const count = tool.count_sql ? (await query(tool.count_sql(args)))[0] : undefined;
   return { rows, count, sql, resolved: args.resolved_place as Row | undefined };
 }
