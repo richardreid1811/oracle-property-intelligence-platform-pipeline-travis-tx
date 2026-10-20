@@ -173,10 +173,56 @@
         "owner_out_of_state": 0
       },
       "previous_run_id": "20261020T194930Z"
+    },
+    {
+      "run_id": "20261020T225920Z",
+      "published_at": "2026-10-20T23:02:28.721Z",
+      "root_cid": "bafybeihilmsi337ys6drdvtsyuf7wss3dj2qgie2egj6txkx6yzcvg22wy",
+      "manifest_cid": "bafkreidjx6oo3hmoyqdmhlktoc4qkjaduc7gbahkudpab4ajbxr6ad6kmq",
+      "manifest_path": "runs/20261020T225920Z/manifest.json",
+      "objects": 74,
+      "new_objects": 10,
+      "counts": {
+        "properties": "441972",
+        "properties_with_coordinates": "430761",
+        "permits": "2380939",
+        "permits_linked_to_parcel": "2017553",
+        "roofing_permits": "31968",
+        "roofing_permits_open_or_unfinaled": "1724",
+        "contractors": "32467",
+        "contractors_resolved": "10745",
+        "contractors_with_bbb": "0",
+        "businesses": "367843",
+        "licenses": "54784",
+        "roof_15y_plus": "280258",
+        "deed_over_10y": "170003",
+        "owners": "376634",
+        "multi_property_owners": "21793",
+        "owner_out_of_state": "26231"
+      },
+      "deltas_vs_previous": {
+        "properties": 0,
+        "properties_with_coordinates": 0,
+        "permits": 0,
+        "permits_linked_to_parcel": 0,
+        "roofing_permits": 0,
+        "roofing_permits_open_or_unfinaled": 0,
+        "contractors": 0,
+        "contractors_resolved": 0,
+        "contractors_with_bbb": 0,
+        "businesses": 0,
+        "licenses": 0,
+        "roof_15y_plus": 0,
+        "deed_over_10y": 0,
+        "owners": 0,
+        "multi_property_owners": 0,
+        "owner_out_of_state": 0
+      },
+      "previous_run_id": "20261020T223321Z"
     }
   ],
   "retention": {
     "policy": "keep initial run + latest 7 runs pinned on both vendors; older runs archived as CARs",
-    "last_applied": "2026-10-20T22:44:28.697Z"
+    "last_applied": "2026-10-20T23:04:36.028Z"
   }
 }
