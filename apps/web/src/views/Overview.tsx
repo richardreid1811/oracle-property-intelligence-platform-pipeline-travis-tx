@@ -14,6 +14,8 @@ const COUNT_LABELS: [string, string][] = [
   ["businesses", "Businesses (Travis County)"],
   ["licenses", "TDLR contractor licenses"],
   ["roof_15y_plus", "Roofs 15+ years old"],
+  ["owners", "Owner entities (reconciled across properties)"],
+  ["multi_property_owners", "Owners with multiple properties"],
   ["deed_over_10y", "No ownership change in 10+ years"],
   ["owner_out_of_state", "Out-of-state / international owners"],
 ];
