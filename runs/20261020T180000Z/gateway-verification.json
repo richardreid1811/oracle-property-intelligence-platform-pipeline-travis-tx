@@ -1,0 +1,1223 @@
+{
+  "run_id": "20261020T180000Z",
+  "manifest_sha256": "0b9a470564e7d76e4df8dfdfd78b55295b7eb519cf01c2bae896f588c0a3a573",
+  "verified_at": "2026-10-20T20:04:55.519Z",
+  "verifier": "github-actions run 39483170355",
+  "gateways": [
+    "https://ipfs.io",
+    "https://dweb.link"
+  ],
+  "method": "files: full GET + sha256; directories: CAR, dag-scope=all when CAR <= 80 MB else entity (data files verified individually)",
+  "objects": 71,
+  "failures": 142,
+  "all_ok": false,
+  "results": [
+    {
+      "name": ".",
+      "cid": "bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq",
+      "codec": "directory",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 119841
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 138248
+        }
+      }
+    },
+    {
+      "name": "tables/permits",
+      "cid": "bafybeift3qhh7o62er7z5nlnyq43lmifaysfrbezvphvzfch3q24aqm7pe",
+      "codec": "directory",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 525",
+          "ms": 99713
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 158412
+        }
+      }
+    },
+    {
+      "name": "tiles/leads",
+      "cid": "bafybeicej6lybo7zv7nzehk56nx7fk62pdro5kpibb3r6jx4m23l5eecri",
+      "codec": "directory",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 138213
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 119295
+        }
+      }
+    },
+    {
+      "name": "coverage.json",
+      "cid": "bafkreihxhlwq6gopo6rkwj4tzm5vzn5gbe55iesupftkalscsdja7tbjlm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60080
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60127
+        }
+      }
+    },
+    {
+      "name": "run.json",
+      "cid": "bafkreigzv4tkl4jzfzxuqqteqr6nzoebertjhiznabhshdrf6dl4q77224",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60098
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        }
+      }
+    },
+    {
+      "name": "samples/contractors-roofing.csv",
+      "cid": "bafkreiebirc5ulk2rn6sbzycb62kkmnp4soatbz6his3vrw4jwcxej3use",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        }
+      }
+    },
+    {
+      "name": "samples/leads-roof-15y-plus.csv",
+      "cid": "bafkreie4tiu5xqlgexlskmbzofczxb7dk7ofv3x25qfkjahsc5c2vysove",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60110
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60133
+        }
+      }
+    },
+    {
+      "name": "samples/roofing-permits-open.csv",
+      "cid": "bafkreiamm3cfhcsd5gfyxysm62sa24hvqkbvzjyy5kk5yuggif4qzhkssq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60111
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60129
+        }
+      }
+    },
+    {
+      "name": "tables/businesses.parquet",
+      "cid": "bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60111
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60136
+        }
+      }
+    },
+    {
+      "name": "tables/contractors.parquet",
+      "cid": "bafybeifbc24sdduwn5isbh6obpq55c7l27dz5imn22qa6b6cv323wazvvy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60095
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60097
+        }
+      }
+    },
+    {
+      "name": "tables/leads.parquet",
+      "cid": "bafybeifi3dzifyjh2kcama7bpyrcdmo7smg53udmm3qiidvcylxcwqkv3m",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60100
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60109
+        }
+      }
+    },
+    {
+      "name": "tables/licenses.parquet",
+      "cid": "bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60096
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60368
+        }
+      }
+    },
+    {
+      "name": "tables/owner_signals.parquet",
+      "cid": "bafybeiaylyliwx65kwr7fb4r3mf6zb4gxhqtdlee4hzjwseuuye2ilhhve",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60097
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60134
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1921/part0.parquet",
+      "cid": "bafkreiewvc7kr3xw7shwgwnuypv4m4qc7zcdgdgpujle53h4q66n3jk5wi",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60106
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1969/part0.parquet",
+      "cid": "bafkreicub62oenlkt2lbq6sow4lvi46mv66q6apv25eqhopmrmswybzmui",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60098
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60123
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1970/part0.parquet",
+      "cid": "bafkreiadvxbwutuzt6dxvxctl4htwpe2sgkmtkkrhuxuv3r75gmhhrmliy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60079
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60114
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1971/part0.parquet",
+      "cid": "bafkreiejltqhzf5bif7hlppo7e4p3t5c2arpwz36mowki5amudpy6wls2m",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60129
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60117
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1976/part0.parquet",
+      "cid": "bafkreihteepvono7wupl2y76c4kb2y2utqz4c3wj6etgrj3rjvhqrw6nta",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60089
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60110
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1977/part0.parquet",
+      "cid": "bafkreibxuew772i32xjleu52xvao4drzy2ca5mbt7zpvflcvvrqigb7ije",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60104
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60118
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1978/part0.parquet",
+      "cid": "bafkreichdq6sqqpelnlrnwqjqaqkixhuvizicfepmfvkq4hjk7dfll63ui",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60252
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60142
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1979/part0.parquet",
+      "cid": "bafkreihhhwiv3qie2nfg4ljfd2jxtmms7dp2kwc6roqrlzioopk7dew7c4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60110
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60126
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1980/part0.parquet",
+      "cid": "bafybeicfwrn33bbjg3j3h57ln625je7h2wgmwyfqgefihvtbi2oezq6rlu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60091
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60145
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1981/part0.parquet",
+      "cid": "bafybeierlyp466y6wjzsrati5sjixuo3cv5smgseytbmzhnc6sfqd7lksm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60101
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60124
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1982/part0.parquet",
+      "cid": "bafybeidz3krfaaiax34ld3aha4vvel5pc6xvo43gzj2nukjavguzgx6ope",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60125
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60108
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1983/part0.parquet",
+      "cid": "bafybeibjmtt5zaqmzumlzvrt3gwebyhnmy2k6wc4werlorujdvn7gkch2u",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60109
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1984/part0.parquet",
+      "cid": "bafybeifhxonx4iv7lxghdpxlscm5wvgmi6r4dkmfnxdfn57vqda5xbs2ou",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60257
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60126
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1985/part0.parquet",
+      "cid": "bafybeihc3spdqvm6kryr7wxpjhqh6lf676dcokluh4g6r25ja2gotr3ggu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60096
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60109
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1986/part0.parquet",
+      "cid": "bafybeigrbb6qpuc3mrfdyiyijytnzlc4d7qkfwrt2m4iz4mrvmhgsnwdke",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60082
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60233
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1987/part0.parquet",
+      "cid": "bafybeiclv5vqxqlw4fmcwwaq5tsbzdldd5w5qb5euqlp6vx2s7tdx7e7xe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60126
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60152
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1988/part0.parquet",
+      "cid": "bafybeiebieci3ktw5rbqzgq5uviw57zrwosduemskggifu5vcv7mnure6y",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60107
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60112
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1989/part0.parquet",
+      "cid": "bafybeifvsxidoq7gg4v5ahunvn4myx6gv7tdjncfeyxpanoapdiqgqj55i",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60115
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60136
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1990/part0.parquet",
+      "cid": "bafybeieeblhldljud63crj2d4xpffvqz2ggqhkhvjidmpqanybvgosflky",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60085
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60150
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1991/part0.parquet",
+      "cid": "bafybeifsidppryf32ogenss2ovt42uo233pqeowvdkwekzndbwqflihklm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60114
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60265
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1992/part0.parquet",
+      "cid": "bafybeiexku3tio3ualfiedwkslm7nokedocnnjawzn54gekhwlksvgnxwu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60092
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60101
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1993/part0.parquet",
+      "cid": "bafybeibjszhc7zixqkyxiaqm4unxfzvmg3exn52j373ejyzyzo4idtvt6q",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60122
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60119
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1994/part0.parquet",
+      "cid": "bafybeiclzzokrqekb4upp7cacpwz33cx4qw76xxssww3zbtct7lxnckdnq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60093
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60135
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1995/part0.parquet",
+      "cid": "bafybeicpeqezbybgoszgv6caror3onsnclis6lybqvmm3rk4hwn2uaxwmm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "error": "HTTP 429",
+          "ms": 60098
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "error": "time budget exhausted (HTTP 429)",
+          "ms": 30090
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1996/part0.parquet",
+      "cid": "bafybeiaezpqzbcvqvyknry3gi3oo4cm7sjtdk7zynilk4acj32bb2f4cle",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1997/part0.parquet",
+      "cid": "bafybeiazi2u75suyyinfpwktypp4aq5dvlmhqoez4dhsydvzbjb3py2iq4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1998/part0.parquet",
+      "cid": "bafybeielkrdguvasroc26kzq7e26f63wl6gz6i6yagm7imxv6sqyzheduy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1999/part0.parquet",
+      "cid": "bafybeichvm4yvrrnpb6kmeubmkxmgqi2gnm4mxg37mudtwp3jipk525yim",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2000/part0.parquet",
+      "cid": "bafybeieoovbn6znuvwu4fsjbuzdbtppmzwddbdc7hv6sdoy4tljoczue4a",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2001/part0.parquet",
+      "cid": "bafybeidre6jxgkigalmfigz4caloo5qunxsqjtdeqr4eomup6auhvzposq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2002/part0.parquet",
+      "cid": "bafybeicgs4xp2mkn6zbg73xpqnipdawxhcywz5az5mlzv43oizzl4mqxye",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2003/part0.parquet",
+      "cid": "bafybeigtbuu7w2hazxylb4qrleaxjynagkzukmexnsomgv6efedkdjmcqe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2004/part0.parquet",
+      "cid": "bafybeiezvc6olnle4wf7wfah22eynus5yhdiu4beieuxmiihkabwrdr3fe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2005/part0.parquet",
+      "cid": "bafybeiatg4gk7mlz7nidm462w52ua7apqizy3lkwn3vryvjfapuwwutmzq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2006/part0.parquet",
+      "cid": "bafybeifrooqdeypejicro2sov2jtxtsen7nejnl7clsrqp6ot7athuicla",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2007/part0.parquet",
+      "cid": "bafybeiabyr6ovquu23xr2hjozvtdourneelmo55rxzg2way357qof7wj5y",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2008/part0.parquet",
+      "cid": "bafybeifx2mw6zbp37ng5om7hehhwtfaa6rclv55s4usjxs6a2jxnwnkmnu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2009/part0.parquet",
+      "cid": "bafybeigdybs5gfkk2vc5xfk3jes427fdq2gfsrxo4qjgedzexa6qbz5ue4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2010/part0.parquet",
+      "cid": "bafybeigngpi7fhyb7kqqomd5gcqghyzr4erdkbbm35oqqf4bkpewuwe37y",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2011/part0.parquet",
+      "cid": "bafybeia52duhuxh5jyp4yljnculwdqkq2265iq7r3f4folusjpyv4fte3e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2012/part0.parquet",
+      "cid": "bafybeigdqaridvjpjknjdtac47b5ivvc2tjgm2xjingbuwf2clbufg5usq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2013/part0.parquet",
+      "cid": "bafybeicjib5c7ijupr24nu3brbhxsr524xmsppmdpdthcgkjjzfiupazt4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2014/part0.parquet",
+      "cid": "bafybeidmi6insl2r55yflfaahsujfiiabvt77ggjvscfrjbdufs2jew4ky",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2015/part0.parquet",
+      "cid": "bafybeibq7bqbxvtbe3ul6aftibnj4m4l2lwvnualqw7x2bynpa2isrvvde",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2016/part0.parquet",
+      "cid": "bafybeiesldkrrgg6lzfvvb5ujiqv3qvriy2qfrt72hiffajcu3xzwd3dsq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2017/part0.parquet",
+      "cid": "bafybeidkbqz2y5aysn37ksa4lteffk2aro4cgv2mrvvvos53enti45wu3e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2018/part0.parquet",
+      "cid": "bafybeifgaukp7kxyk6phmlpy2bzpuys25i2eryzw65xyxlfobjv53zabpi",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2019/part0.parquet",
+      "cid": "bafybeiaxrpwbufv4fu6ymwvtt6jmdgzmqqrp2vux7ojruviolt32rw2kfi",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2020/part0.parquet",
+      "cid": "bafybeihzgpuysq2xzcytjyvn42wa6f4ycwykynouontj2hssezk4wmubkm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2021/part0.parquet",
+      "cid": "bafybeiesus5zhhwwz43frelv2uowmbudxcw6gwul7ovksyxu2rdp3upgk4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2022/part0.parquet",
+      "cid": "bafybeietqg6uqbaeyvatihbcufvdqmuqiybggvsditggjdrevqe3ebqwre",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2023/part0.parquet",
+      "cid": "bafybeifigoovimbt7taeccecwiinkficd66lpufwbihjs4ja67vibq5klm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2024/part0.parquet",
+      "cid": "bafybeid5qkelpkh5x7c365flupmeaf6trew3wpm4qseethkuvoatnuium4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2025/part0.parquet",
+      "cid": "bafybeigrkuel7zm2byp6gyeyyhoqrtnysv4zrwpelqz5qoqqxielhx4zry",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2026/part0.parquet",
+      "cid": "bafybeiaq47aeivx32tf222wxun3eswpw62gebxr6oa4k7h6i6mua2ssg64",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/properties.parquet",
+      "cid": "bafybeicursackdscvi2cwtpkik2uavjmumuymleiwglos6ws3cfzbbhfwq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/roof_age.parquet",
+      "cid": "bafybeigj2xcxmenzz63unu3muhnuumatfgpxpa5ymucn2eclwcseefnmpa",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/roofing_permits.parquet",
+      "cid": "bafybeiczkmtho2467ah3w2agpspilno5qkamt22p6p3ekji63l432ajfyy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.io": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dweb.link": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    }
+  ]
+}
