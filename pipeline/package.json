@@ -12,6 +12,10 @@
   },
   "dependencies": {
     "@duckdb/node-api": "1.5.6-r.1",
-    "ipfs-car": "3.1.0"
+    "@ipld/car": "5.4.7",
+    "@ipld/dag-pb": "4.2.0",
+    "blockstore-core": "7.0.1",
+    "ipfs-car": "3.1.0",
+    "ipfs-unixfs-importer": "17.1.1"
   }
 }
