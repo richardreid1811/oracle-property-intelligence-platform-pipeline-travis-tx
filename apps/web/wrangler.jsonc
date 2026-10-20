@@ -1,0 +1,16 @@
+{
+  // Single free-plan Worker: static UI assets + /api/chat relay to Workers AI.
+  // No database or storage bindings: data is read by the browser from IPFS by CID.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "travis-oracle",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "ai": { "binding": "AI" },
+  "observability": { "enabled": true }
+}

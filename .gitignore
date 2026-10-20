@@ -11,3 +11,4 @@ pipeline/data/
 downloads/
 .wrangler/
 dist/
+apps/web/public/runs/

@@ -1,0 +1,28 @@
+{
+  "name": "@travis-oracle/web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync-runs": "node scripts/sync-runs.mjs",
+    "build": "npm run sync-runs && vite build",
+    "dev": "npm run sync-runs && vite",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@duckdb/duckdb-wasm": "1.32.0",
+    "@travis-oracle/query-tools": "*",
+    "leaflet": "1.9.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261006.1",
+    "@types/leaflet": "1.9.22",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.3",
+    "wrangler": "4.148.0"
+  }
+}
