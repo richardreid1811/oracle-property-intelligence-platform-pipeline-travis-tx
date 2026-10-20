@@ -78,3 +78,21 @@ export async function writeCar(blockstore, rootCid, outPath) {
   await done;
   return { blocks: seen.size };
 }
+
+/**
+ * Write a CAR holding only the UnixFS directory nodes at or below `dirPath` (rooted at its CID).
+ * Pinning this after every file is pinned on its own costs kilobytes instead of re-uploading the
+ * whole tree, which keeps each run inside free-tier storage and pin-count quotas.
+ */
+export async function writeDirOnlyCar(blockstore, entries, dirPath, outPath) {
+  const asCarCid = (cid) => CID.parse(cid.toString());
+  const root = entries.get(dirPath);
+  const { writer, out } = CarWriter.create([asCarCid(root.cid)]);
+  const done = pipeline(Readable.from(out), createWriteStream(outPath));
+  const prefix = dirPath ? `${dirPath}/` : "";
+  const dirs = [...entries].filter(([p, e]) => e.isDir && (p === dirPath || p.startsWith(prefix))).sort(([a], [b]) => a.localeCompare(b));
+  for (const [, e] of dirs) await writer.put({ cid: asCarCid(e.cid), bytes: new Uint8Array(await getBlock(blockstore, e.cid)) });
+  await writer.close();
+  await done;
+  return { blocks: dirs.length };
+}

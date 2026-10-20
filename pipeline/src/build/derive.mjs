@@ -9,7 +9,7 @@
 // Usage: node src/build/derive.mjs <county.duckdb> <raw-dir>
 import { DuckDBInstance } from "@duckdb/node-api";
 import { join } from "node:path";
-import { contractorAggSql, normName, roofAgeSql } from "./permit-sql.mjs";
+import { contractorAggSql, normName, ownerRegionFallbackSql, ownersSql, roofAgeSql } from "./permit-sql.mjs";
 
 const [dbPath, raw] = process.argv.slice(2);
 if (!dbPath || !raw) {
@@ -50,7 +50,7 @@ create or replace table owner_signals as
 select
   p.prop_id,
   p.deed_date,
-  date_diff('year', p.deed_date, current_date) as years_since_deed,
+  -- Ownership tenure is computed at query time from deed_date (no calendar-dependent columns).
   p.homestead_exempt as owner_occupied_homestead,
   -- Mailing address that repeats the situs number and street indicates owner-occupied/self-mailed.
   (p.mail_line1 is not null and p.situs_address is not null
@@ -68,6 +68,8 @@ select
   z.county_fips as owner_mail_county_fips
 from properties p
 left join zcta_county z on z.zcta = p.mail_zip`);
+
+await step("owner_region_fallback", ownerRegionFallbackSql);
 
 await step("identity_sources", `
 create or replace table licenses as
@@ -109,6 +111,10 @@ from franchise_taxpayers f
 where f.taxpayer_county_code = '227'
   and f.taxpayer_number not in (select taxpayer_number from outlets)`);
 
+await step("owners", ownersSql + `;
+alter table owner_signals add column if not exists owner_key varchar;
+update owner_signals o set owner_key = po.owner_key from prop_owner po where po.prop_id = o.prop_id`);
+
 await step("contractors", `
 create or replace table contractors as
 with agg as (${contractorAggSql}),
@@ -148,7 +154,9 @@ select
   (select count(*) from roof_age where roof_age_basis like 'permit_issued%') as roof_from_unfinaled_permit,
   (select count(*) from roof_age where roof_age_basis like 'tcad%') as roof_from_year_built,
   (select count(*) from roof_age where roof_age_years >= 15) as roof_15y_plus,
-  (select count(*) from owner_signals where years_since_deed > 10) as deed_over_10y,
+  (select count(*) from owner_signals where date_diff('day', deed_date, current_date) > 10 * 365.2425) as deed_over_10y,
+  (select count(*) from owners) as owners,
+  (select count(*) from owners where property_count > 1) as multi_property_owners,
   (select count(*) from owner_signals where owner_mail_region in ('out_of_state','international')) as owners_out_of_state,
   (select count(*) from contractors) as contractors,
   (select count(*) from contractors where identity_status = 'resolved_exact_name') as contractors_resolved,

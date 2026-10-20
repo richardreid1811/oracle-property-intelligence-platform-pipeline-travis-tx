@@ -6,7 +6,7 @@
 //   - permits: window rows replace their previous versions (same normalization, classifier and
 //     deterministic parcel links as the full build); open durations recomputed as of today
 //   - roof_age: recomputed from all permits
-//   - owner_signals: years_since_deed advanced to today
+//   - owners: owner entities and portfolios re-derived from properties (same SQL as the full build)
 //   - contractors: re-aggregated from permits; registry identity carried over by contractor key,
 //     new contractors marked pending_registry_refresh until the next full identity refresh
 // Usage: node src/build/incremental.mjs <out.duckdb> <prev-manifest.json> <window.ndjson>
@@ -15,7 +15,7 @@ import { DuckDBInstance } from "@duckdb/node-api";
 import { existsSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { contractorAggSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, rawPermitsSql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
+import { contractorAggSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
 
 const [out, prevManifestPath, windowFile, ...rest] = process.argv.slice(2);
 const opt = (n) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : null);
@@ -52,8 +52,12 @@ for (const t of ["properties", "owner_signals", "businesses", "licenses", "contr
 }
 // Partition files fetched by CID carry no year=/ path, so the partition column may be absent.
 await step("load permits", `create or replace table permits as select * from read_parquet(${source("tables/permits")});
-alter table permits drop column if exists year;`);
+alter table permits drop column if exists year;
+-- open_days is derived, not published (stable snapshots); recreate it before window rows are merged.
+alter table permits add column if not exists open_days integer;`);
 const before = Number((await c.runAndReadAll("select count(*) as n from permits")).getRowObjectsJson()[0].n);
+// Carried permits get the current classifier and status rules (the window gets them in normalize).
+await step("reclassify carried permits", reclassifySql("permits"));
 
 // Window rows through the same transform as the full build.
 await step("window normalize", rawPermitsSql([windowFile]) + ";\n" + normalizePermitsSql("permits_window"));
@@ -75,7 +79,11 @@ insert into permits by name select * from permits_window;`);
 await step("open days (all)", openDaysSql("permits"));
 
 await step("roof_age", roofAgeSql);
-await step("owner_signals", "update owner_signals set years_since_deed = date_diff('year', deed_date, current_date)");
+// Older snapshots carried a calendar-dependent years_since_deed; tenure is now computed at query time.
+await step("owner_signals", "alter table owner_signals drop column if exists years_since_deed;\n" + ownerRegionFallbackSql);
+await step("owners", ownersSql + `;
+alter table owner_signals add column if not exists owner_key varchar;
+update owner_signals o set owner_key = po.owner_key from prop_owner po where po.prop_id = o.prop_id`);
 
 await step("contractors", `
 create or replace temp table prev_contractors as select * from contractors;

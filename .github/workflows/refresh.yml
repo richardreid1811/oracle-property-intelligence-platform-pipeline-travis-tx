@@ -1,4 +1,4 @@
-# Scheduled incremental refresh on a free GitHub-hosted runner (no Oracle-hosted infrastructure):
+# Weekly incremental refresh on a free GitHub-hosted runner (no Oracle-hosted infrastructure):
 # pull the City of Austin permit window since the last watermark, apply it to the previous snapshot
 # (read by CID from IPFS), republish changed artifacts as new CIDs, and commit the manifest and run
 # history. With no source changes it only records an ingestion check.
@@ -6,7 +6,8 @@ name: refresh
 
 on:
   schedule:
-    - cron: "40 7 * * *"
+    # Weekly: keeps pin counts inside the free tiers (500 files per vendor) with the retention policy.
+    - cron: "40 7 * * 1"
   workflow_dispatch:
 
 permissions:
@@ -35,6 +36,7 @@ jobs:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
         run: |
+          set -o pipefail  # a pipeline failure must fail the step, not be masked by tee
           node pipeline/src/run-incremental.mjs --runs runs | tee run-result.json
           echo "run_id=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-result.json','utf8').trim().split('\n').pop()).run_id ?? '')")" >> "$GITHUB_OUTPUT"
       - name: Release CARs for the new run
@@ -44,7 +46,7 @@ jobs:
         run: |
           RUN=${{ steps.run.outputs.run_id }}
           C=pipeline/data/publish/cars/$RUN
-          gh release create "run-$RUN" $C/root.car $C/tables_permits.car $C/tiles_leads.car runs/$RUN/manifest.json \
+          gh release create "run-$RUN" $C/root.car $C/tables_permits.car runs/$RUN/manifest.json \
             --target "$GITHUB_REF_NAME" --title "Pipeline run $RUN (scheduled incremental)" \
             --notes "Scheduled incremental run. Root and manifest CIDs are in runs/history.json and manifest.json."
       # Pushes made with GITHUB_TOKEN do not trigger other workflows, so verify the new run here.
@@ -52,6 +54,14 @@ jobs:
         if: steps.run.outputs.run_id != ''
         continue-on-error: true
         run: node pipeline/src/publish/verify-gateways.mjs runs/${{ steps.run.outputs.run_id }}/manifest.json --gateways https://ipfs.orbitor.dev,https://dget.top --budget-min 30
+      - name: Apply pin retention (initial run + latest 7 stay pinned; older runs archived as CARs)
+        if: steps.run.outputs.run_id != ''
+        env:
+          FILEBASE_ACCESS_KEY: ${{ secrets.FILEBASE_ACCESS_KEY }}
+          FILEBASE_SECRET_KEY: ${{ secrets.FILEBASE_SECRET_KEY }}
+          FILEBASE_BUCKET: ${{ secrets.FILEBASE_BUCKET }}
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+        run: node pipeline/src/publish/prune-pins.mjs runs --keep 7 --apply
       - name: Commit manifest and run history
         if: always()
         run: |

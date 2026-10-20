@@ -56,7 +56,8 @@ select
        then try_strptime(${f(2034, 25)}, '%m-%d-%Y')::date end as deed_date,
   ${flag(2609)} as homestead_exempt, ${flag(2610)} as over65_exempt,
   ${f(2732, 10)} as imprv_state_cd, ${f(2742, 10)} as land_state_cd,
-  row_number() over (partition by substr(l, 1, 12) order by ${flag(679)}) as owner_rank
+  -- Deterministic primary owner for multi-owner parcels: not-partial first, then owner id and name.
+  row_number() over (partition by substr(l, 1, 12) order by ${flag(679)}, substr(l, 597, 12), substr(l, 609, 70)) as owner_rank
 from ${fw("PROP.TXT")}
 where trim(substr(l, 13, 5)) = 'R'`);
 
@@ -84,7 +85,7 @@ select prop_id, imprv_id, yr_built, area,
        case when det_cd = '1ST' then 'tcad_main_floor_yr_built' else 'tcad_largest_detail_yr_built' end as basis
 from (
   select *, row_number() over (partition by prop_id
-           order by (det_cd = '1ST') desc, area desc nulls last, yr_built) as rk
+           order by (det_cd = '1ST') desc, area desc nulls last, yr_built, imprv_id, det_cd) as rk
   from det where yr_built between 1800 and year(current_date)
 ) where rk = 1`);
 
@@ -99,15 +100,17 @@ group by 1, 2`);
 
 await run("centroids", `
 create or replace temp table gis as
-select prop_id, geo_id, longitude, latitude from read_json(${lit(centroids)}, format='newline_delimited')`);
+select object_id, prop_id, geo_id, longitude, latitude from read_json(${lit(centroids)}, format='newline_delimited')`);
 
 await run("properties", `
 create or replace table properties as
 with p as (select * from raw_prop where owner_rank = 1),
 owners as (select prop_id, count(*) as owner_count from raw_prop group by 1),
-by_prop as (select prop_id, any_value(longitude) lon, any_value(latitude) lat from gis group by 1),
-by_geo as (select geo_id, any_value(longitude) lon, any_value(latitude) lat from gis where geo_id is not null group by 1),
-by_parent as (select left(geo_id, 8) g8, avg(longitude) lon, avg(latitude) lat from gis where geo_id is not null group by 1)
+-- Multi-polygon parcels: the lowest GIS object id wins (explicit, not any_value). Parent-lot
+-- averages are rounded to 1e-7 degrees so parallel summation order cannot change the bytes.
+by_prop as (select prop_id, arg_min(longitude, object_id) lon, arg_min(latitude, object_id) lat from gis group by 1),
+by_geo as (select geo_id, arg_min(longitude, object_id) lon, arg_min(latitude, object_id) lat from gis where geo_id is not null group by 1),
+by_parent as (select left(geo_id, 8) g8, round(avg(longitude), 7) lon, round(avg(latitude), 7) lat from gis where geo_id is not null group by 1)
 select
   p.prop_id, p.prop_id_raw, p.geo_id,
   nullif(concat_ws(' ', p.situs_num, p.situs_prefix, p.situs_street, p.situs_suffix,

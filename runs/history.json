@@ -128,5 +128,9 @@
       },
       "previous_run_id": "20261020T185517Z"
     }
-  ]
+  ],
+  "retention": {
+    "policy": "keep initial run + latest 7 runs pinned on both vendors; older runs archived as CARs",
+    "last_applied": "2026-10-20T22:06:07.197Z"
+  }
 }

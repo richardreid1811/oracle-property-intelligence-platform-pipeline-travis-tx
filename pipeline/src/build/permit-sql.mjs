@@ -11,6 +11,56 @@ const REPLACEMENT = String.raw`\bROOF(ING)?\s+(REPLACE|REPLACEMENT|TEAR\s?-?OFF|
 const REPAIR = String.raw`\bROOF(ING)?\s+REPAIR|\bREPAIR\s+(THE\s+|EXISTING\s+)?ROOF|\bROOF\s+DECK(ING)?\s+REPAIR`;
 const EXCLUDE = String.raw`SOLAR|PHOTOVOLTAIC|\bPV\b|ROOF\s?-?TOP\s+UNIT|\bRTU\b|\bSIGN\b|ANTENNA|TELECOM|CELL\s+SITE`;
 
+/** Roofing classification from an upper-cased description column and the permit type. */
+export const roofingWorkExpr = (d, type) => `case
+    when ${type} <> 'BP' then null
+    when regexp_matches(${d}, ${lit(REROOF)}) then 'roof_replacement'
+    when regexp_matches(${d}, ${lit(EXCLUDE)}) then null
+    when regexp_matches(${d}, ${lit(REPLACEMENT)}) then 'roof_replacement'
+    when regexp_matches(${d}, ${lit(REPAIR)}) then 'roof_repair'
+    when regexp_matches(${d}, '\\bROOF') then 'roof_mention'
+  end`;
+
+/**
+ * Normalized status. Terminal statuses are matched by prefix: the source also uses variants such as
+ * 'Cancelled - Contractor Required', 'Denied but Closed' and 'Expired - License'.
+ */
+export const statusBucketExpr = (status, completed) => `case
+    when regexp_matches(upper(coalesce(${status}, '')), '^(FINAL|CLOSED|COMPLETE)') then 'closed'
+    when regexp_matches(upper(coalesce(${status}, '')), '^(VOID|WITHDRAWN|CANCEL|DENIED|ABORTED|REVOKED|REJECTED)') then 'void'
+    when regexp_matches(upper(coalesce(${status}, '')), '^EXPIRED') and ${completed} is null then 'expired_unfinaled'
+    when regexp_matches(upper(coalesce(${status}, '')), '^EXPIRED') then 'closed'
+    else 'open'
+  end`;
+
+/**
+ * Re-apply the current classifier and status rules to every row of `table`, so rule changes reach
+ * permits carried over from earlier snapshots (incremental builds only normalize the new window).
+ */
+export const reclassifySql = (table) => `
+update ${table} set
+  roofing_work = ${roofingWorkExpr("upper(coalesce(description, ''))", "permit_type")},
+  status_bucket = ${statusBucketExpr("status", "completed_date")},
+  closed_date = completed_date`;
+
+/**
+ * Owner mailing-region fallback: PO-box and other unique ZIPs have no Census ZIP area, so a Travis
+ * mailing city (or an Austin-area ZIP prefix) is used before calling an owner out of area.
+ */
+const TRAVIS_MAIL_CITIES = ["AUSTIN", "PFLUGERVILLE", "MANOR", "LAKEWAY", "LAGO VISTA", "DEL VALLE", "BEE CAVE", "WEST LAKE HILLS",
+  "SPICEWOOD", "JONESTOWN", "MANCHACA", "ELROY", "CREEDMOOR", "MUSTANG RIDGE", "ROLLINGWOOD", "SUNSET VALLEY", "VOLENTE",
+  "BRIARCLIFF", "POINT VENTURE", "WEBBERVILLE", "SAN LEANNA", "THE HILLS", "GARFIELD", "COUPLAND"];
+const METRO_MAIL_CITIES = ["ROUND ROCK", "CEDAR PARK", "LEANDER", "GEORGETOWN", "HUTTO", "TAYLOR", "LIBERTY HILL", "KYLE", "BUDA",
+  "SAN MARCOS", "DRIPPING SPRINGS", "WIMBERLEY", "BASTROP", "ELGIN", "SMITHVILLE", "LOCKHART", "LULING", "JARRELL", "FLORENCE"];
+export const ownerRegionFallbackSql = `
+update owner_signals o set owner_mail_region = case
+    when upper(trim(p.mail_city)) in (${TRAVIS_MAIL_CITIES.map(lit).join(", ")}) then 'travis_county'
+    when upper(trim(p.mail_city)) in (${METRO_MAIL_CITIES.map(lit).join(", ")}) or left(p.mail_zip, 3) in ('786', '787') then 'austin_metro'
+    else o.owner_mail_region end
+from properties p
+where p.prop_id = o.prop_id and o.owner_mail_region in ('texas_other', 'unknown')
+  and o.owner_mail_county_fips is null and upper(coalesce(p.mail_state, 'TX')) = 'TX'`;
+
 /** Temp table `raw_permits` from harvested NDJSON files (filename kept as harvest_file). */
 export const rawPermitsSql = (inputs) => `
 create or replace temp table raw_permits as
@@ -66,21 +116,8 @@ dedup as (
 )
 select
   * exclude (d),
-  case
-    when permit_type <> 'BP' then null
-    when regexp_matches(d, ${lit(REROOF)}) then 'roof_replacement'
-    when regexp_matches(d, ${lit(EXCLUDE)}) then null
-    when regexp_matches(d, ${lit(REPLACEMENT)}) then 'roof_replacement'
-    when regexp_matches(d, ${lit(REPAIR)}) then 'roof_repair'
-    when regexp_matches(d, '\\bROOF') then 'roof_mention'
-  end as roofing_work,
-  case
-    when upper(status) in ('FINAL', 'CLOSED', 'COMPLETE', 'COMPLETED') then 'closed'
-    when upper(status) in ('VOID', 'WITHDRAWN', 'CANCELLED', 'CANCELED', 'DENIED') then 'void'
-    when upper(status) = 'EXPIRED' and completed_date is null then 'expired_unfinaled'
-    when upper(status) = 'EXPIRED' then 'closed'
-    else 'open'
-  end as status_bucket,
+  ${roofingWorkExpr('d', 'permit_type')} as roofing_work,
+  ${statusBucketExpr('status', 'completed_date')} as status_bucket,
   coalesce(issued_date, applied_date) as opened_date,
   case when completed_date is not null then completed_date end as closed_date
 from dedup`;
@@ -200,3 +237,39 @@ agg as (
 select 'contractor:' || md5(a.name_norm) as contractor_key, a.name_norm, n.display_name, a.phones, a.trades,
        c.city, z.zip, a.permit_count, a.roofing_permit_count, a.first_permit, a.last_permit
 from agg a join top_name n using (name_norm) left join top_city c using (name_norm) left join top_zip z using (name_norm)`;
+
+/**
+ * Owner reconciliation across properties: one owner entity per normalized owner name + mailing
+ * address, with its property portfolio, linked to a Texas Comptroller business when the name
+ * matches exactly one Travis County taxpayer. Needs `properties` and `businesses`.
+ */
+export const ownersSql = `
+create or replace table owners as
+with p as (
+  select prop_id, owner_name, mail_city, mail_state, mail_zip, market_val,
+         ${normName("owner_name")} as name_norm,
+         upper(trim(regexp_replace(coalesce(mail_line1, '') || ' ' || coalesce(mail_line2, ''), '\\s+', ' ', 'g'))) as mail_norm
+  from properties where owner_name is not null
+),
+keyed as (select *, 'owner:' || md5(name_norm || '|' || mail_norm || '|' || coalesce(mail_zip, '')) as owner_key from p),
+biz as (
+  select ${normName("legal_name")} as name_norm, count(distinct taxpayer_number) as n, min(taxpayer_number) as taxpayer_number
+  from businesses group by 1
+)
+select k.owner_key,
+       arg_max(k.owner_name, struct_pack(n := 1, v := k.owner_name)) as owner_name,
+       any_value(k.name_norm) as name_norm,
+       min(k.mail_city) as mail_city, min(k.mail_state) as mail_state, min(k.mail_zip) as mail_zip,
+       count(*) as property_count,
+       sum(k.market_val)::BIGINT as total_market_val,  -- exact integer (HUGEINT would export as DOUBLE)
+       case when any_value(b.n) = 1 then any_value(b.taxpayer_number) end as taxpayer_number,
+       case when any_value(b.n) = 1 then 'business_registry_exact_name'
+            when any_value(b.n) > 1 then 'business_registry_ambiguous'
+            else 'no_business_registry_match' end as registry_link
+from keyed k left join biz b using (name_norm)
+group by k.owner_key
+order by k.owner_key;
+create or replace temp table prop_owner as
+select prop_id, 'owner:' || md5(${normName("owner_name")} || '|' ||
+       upper(trim(regexp_replace(coalesce(mail_line1, '') || ' ' || coalesce(mail_line2, ''), '\\s+', ' ', 'g'))) || '|' || coalesce(mail_zip, '')) as owner_key
+from properties where owner_name is not null`;

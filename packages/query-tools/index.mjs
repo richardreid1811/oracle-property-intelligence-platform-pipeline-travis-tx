@@ -24,11 +24,23 @@ const bbox = (lat, lon, r, latCol = "latitude", lonCol = "longitude") => {
   const dLon = r / (69.17 * Math.cos((lat * Math.PI) / 180));
   return `${latCol} between ${lat - dLat} and ${lat + dLat} and ${lonCol} between ${lon - dLon} and ${lon + dLon}`;
 };
+// Coordinates outside the Travis County area are rejected, never clamped: clamping would silently
+// search a different place.
+const inRange = (v, lo, hi, what) => {
+  const n = num(v);
+  if (n < lo || n > hi) throw new Error(`${what} ${n} is outside the Travis County area (${lo} to ${hi})`);
+  return n;
+};
 const point = (a) => ({
-  lat: num(a.latitude, { min: 29.5, max: 31.0 }),
-  lon: num(a.longitude, { min: -98.6, max: -97.0 }),
+  lat: inRange(a.latitude, 29.9, 30.7, "latitude"),
+  lon: inRange(a.longitude, -98.3, -97.3, "longitude"),
   r: num(a.radius_miles, { min: 0.1, max: 25, dflt: 5 }),
 });
+// Ownership tenure in whole years as of today (exact; not calendar-year boundaries).
+const TENURE = "cast(floor(date_diff('day', deed_date, current_date) / 365.2425) as integer)";
+// "Older than N years": strict comparison on whole-year roof age.
+const olderThan = (a) => num(a.older_than_years ?? a.min_roof_age_years, { min: 0, max: 150, dflt: 15 });
+const residential = (a) => (bool(a.residential_only, false) ? "and (imprv_state_cd like 'A%' or imprv_state_cd like 'B%' or imprv_state_cd like 'E%')" : "");
 
 const POINT_PROPS = {
   place: { type: "string", description: "Preferred: a Travis County city/village name or ZIP code (e.g. 'Pflugerville', '78704', 'Austin'). Resolved to its centroid from parcel data. Use this instead of latitude/longitude whenever the user names a place." },
@@ -52,28 +64,26 @@ export const tools = [
   },
   {
     name: "aged_roofs_near",
-    description: "Properties within a radius whose estimated roof age is at least min_roof_age_years (default 15). Ranked permit-verified first. Returns roof-age basis and confidence (high = finaled re-roof permit, medium = unfinaled re-roof permit, low = year built, very_low = year built over 50 years ago so the roof was probably replaced without a permit record), coordinates and the TCAD source link.",
-    input_schema: { type: "object", properties: { ...POINT_PROPS, min_roof_age_years: { type: "number", description: "Default 15." }, residential_only: { type: "boolean", description: "Only TCAD residential state codes (A*/B*/E*). Default true." } } },
+    description: "Properties (residential and commercial) within a radius whose estimated roof is older than older_than_years (default 15). Ranked permit-verified first. Returns roof-age basis and confidence (high = finaled re-roof permit, medium = unfinaled re-roof permit, low = year built, very_low = year built over 50 years ago so the roof was probably replaced without a permit record), coordinates and the TCAD source link.",
+    input_schema: { type: "object", properties: { ...POINT_PROPS, older_than_years: { type: "number", description: "Roof age threshold in years; matches roofs strictly older. Default 15." }, residential_only: { type: "boolean", description: "Only TCAD residential state codes (A*/B*/E*). Default false (all improved properties)." } } },
     sql: (a) => {
       const { lat, lon, r } = point(a);
-      const minAge = num(a.min_roof_age_years, { min: 0, max: 150, dflt: 15 });
-      const res = bool(a.residential_only, true) ? "and (imprv_state_cd like 'A%' or imprv_state_cd like 'B%' or imprv_state_cd like 'E%')" : "";
+      const age = olderThan(a);
+      const res = residential(a);
       return `
         select prop_id, situs_address, jurisdiction, round(${miles(lat, lon)}, 2) as distance_miles,
                roof_age_years, roof_year, roof_age_basis, roof_age_confidence, roof_covering, year_built,
                open_roofing_permits, oldest_open_date, owner_mail_region, latitude, longitude, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
-          and roof_age_years >= ${minAge} ${res}
+          and roof_age_years > ${age} ${res}
         order by case roof_age_confidence when 'high' then 0 when 'medium' then 1 when 'low' then 2 else 3 end, roof_age_years desc, distance_miles
         limit ${LIMIT(a.limit)}`;
     },
     count_sql: (a) => {
       const { lat, lon, r } = point(a);
-      const minAge = num(a.min_roof_age_years, { min: 0, max: 150, dflt: 15 });
-      const res = bool(a.residential_only, true) ? "and (imprv_state_cd like 'A%' or imprv_state_cd like 'B%' or imprv_state_cd like 'E%')" : "";
       return `select count(*) as matches, count(*) filter (roof_age_confidence = 'high') as permit_verified
-              from leads where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and roof_age_years >= ${minAge} ${res}`;
+              from leads where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and roof_age_years > ${olderThan(a)} ${residential(a)}`;
     },
   },
   {
@@ -158,11 +168,12 @@ export const tools = [
       const { lat, lon, r } = point(a);
       const minYears = num(a.min_years, { min: 0, max: 100, dflt: 10 });
       return `
-        select prop_id, situs_address, owner_name, deed_date, years_since_deed, owner_occupied_homestead,
-               roof_age_years, roof_age_basis, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
+        select prop_id, situs_address, owner_name, deed_date, ${TENURE} as years_since_deed, owner_occupied_homestead,
+               owner_property_count, roof_age_years, roof_age_basis, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
         from leads
-        where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and years_since_deed > ${minYears}
-        order by years_since_deed desc
+        where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
+          and date_diff('day', deed_date, current_date) > ${minYears} * 365.2425
+        order by deed_date, prop_id
         limit ${LIMIT(a.limit)}`;
     },
   },
@@ -175,12 +186,12 @@ export const tools = [
       const allowed = ["out_of_state", "international", "texas_other", "austin_metro"];
       const regions = (Array.isArray(a.regions) && a.regions.length ? a.regions : ["out_of_state", "international", "texas_other"]).filter((x) => allowed.includes(x));
       return `
-        select prop_id, situs_address, owner_name, mail_city, mail_state, owner_mail_region,
-               roof_age_years, years_since_deed, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
+        select prop_id, situs_address, owner_name, mail_city, mail_state, owner_mail_region, owner_property_count,
+               roof_age_years, roof_age_confidence, ${TENURE} as years_since_deed, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
           and owner_mail_region in (${regions.map((x) => `'${x}'`).join(",") || "''"})
-        order by roof_age_years desc nulls last
+        order by case roof_age_confidence when 'high' then 0 when 'medium' then 1 when 'low' then 2 else 3 end, roof_age_years desc nulls last, prop_id
         limit ${LIMIT(a.limit)}`;
     },
   },
@@ -189,7 +200,7 @@ export const tools = [
     description: "Full record for one TCAD property id: owner, deed, year built, roof attributes and roof-age evidence, plus all roofing permits on the parcel.",
     input_schema: { type: "object", properties: { prop_id: { type: "string" } }, required: ["prop_id"] },
     sql: (a) => `
-      select l.*, (select list({permit: permit_number, status: status, opened: opened_date, completed: completed_date,
+      select l.*, ${TENURE.replaceAll("deed_date", "l.deed_date")} as years_since_deed, (select list({permit: permit_number, status: status, opened: opened_date, completed: completed_date,
                                 contractor: contractor_company_name, work: roofing_work, link: source_detail_url})
                    from roofing_permits where prop_id = l.prop_id) as roofing_permits
       from leads l where l.prop_id = '${str(a.prop_id, 12).replace(/[^0-9]/g, "")}'`,

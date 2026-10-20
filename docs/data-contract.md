@@ -34,15 +34,15 @@ This is the interface between the Oracle pipeline and its consumers: the roofing
 | Tool | Purpose | Key inputs | Returns |
 |---|---|---|---|
 | `resolve_place` | Place name → center point (city/village, ZIP, Austin landmark) | `name` | name, kind, latitude, longitude |
-| `aged_roofs_near` | Properties in a radius with roof age ≥ threshold, permit-verified first | `place` or `latitude`/`longitude`, `radius_miles` (5), `min_roof_age_years` (15), `residential_only` (true) | lead rows + `total_matches` |
+| `aged_roofs_near` | Properties in a radius with roofs strictly older than the threshold, permit-verified first | `place` or `latitude`/`longitude`, `radius_miles` (5), `older_than_years` (15; alias `min_roof_age_years`), `residential_only` (false) | lead rows + `total_matches` |
 | `open_roofing_permits_near` | Open or never-finaled roofing permits, longest-open first, with contractor | location, `radius_miles`, `min_open_years`, `issued_since` | permit rows + `total_matches` |
 | `semantic_search_permits` | Meaning-based search over roofing permit descriptions | `query`, optional location/radius, `open_only` | permit rows with `similarity` |
-| `stale_ownership_near` | No ownership change in > N years | location, `radius_miles`, `min_years` (10) | lead rows |
+| `stale_ownership_near` | No ownership change in more than N years (exact, from `deed_date`) | location, `radius_miles`, `min_years` (10) | lead rows with `years_since_deed`, `owner_property_count` |
 | `absentee_owners_near` | Owner mails tax bills outside the area | location, `radius_miles`, `regions` | lead rows |
 | `property_detail` | One property with all its roofing permits | `prop_id` | lead row + `roofing_permits` list |
 | `dataset_summary` | Row counts of loaded tables | — | table, rows |
 
-All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_status`).
+All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_status`). Coordinates outside the Travis County area are rejected, never clamped.
 
 ## Enumerations
 
@@ -56,6 +56,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `owner_mail_region` | `travis_county`, `austin_metro`, `texas_other`, `out_of_state`, `international`, `unknown` |
 | `identity_status` | `resolved_exact_name`, `ambiguous_<n>_registry_matches`, `unresolved_no_registry_match`, `pending_registry_refresh` |
 | `bbb_status` | `excluded_no_public_api_http_403` (earlier runs: `blocked_http_403_pending_bbb_api`) |
+| `registry_link` | `business_registry_exact_name`, `business_registry_ambiguous`, `no_business_registry_match` |
 | `link_basis` | `tcad_id=geo_id`, `tcad_id=geo_id+address (<n> parcels share geo_id)`, `tcad_id=geo_id (ambiguous <n>, lowest prop_id)`, `tcad_id=prop_id`; null = permit not linked to a current parcel |
 | `permit_history_coverage` | `austin_permit_history_1978_plus`, `no_county_building_permits_in_texas`, `municipal_permits_not_yet_ingested` |
 
@@ -82,8 +83,9 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `owner_mail_region` | VARCHAR | Where the owner's tax bill goes (enum) |
 | `mails_to_property` | BOOLEAN | The mailing address repeats the property address |
 | `owner_occupied_homestead` | BOOLEAN | Homestead exemption granted (owner-occupied) |
-| `deed_date` | DATE | Last deed date; null if missing or invalid in source |
-| `years_since_deed` | BIGINT | Whole years since `deed_date` as of the snapshot |
+| `deed_date` | DATE | Last deed date; null if missing or invalid in source. Tenure is computed at query time as whole years since this date |
+| `owner_key` | VARCHAR | Reconciled owner entity (link to `owners`) |
+| `owner_property_count` | BIGINT | Properties held by the same owner entity in Travis County (portfolio size) |
 | `year_built` | INTEGER | Year built of the main improvement (TCAD) |
 | `roof_year` | BIGINT | Estimated year of the current roof |
 | `roof_age_years` | INTEGER | Estimated roof age as of the snapshot year |
@@ -188,7 +190,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `permit_key` | VARCHAR | Key into `roofing_permits` |
 | `text_sha256` | VARCHAR | SHA-256 of the exact text embedded (description, work class, status, contractor, address, year) |
 | `model` | VARCHAR | `Xenova/bge-small-en-v1.5` (q8, CLS pooling, normalized) |
-| `embedding` | TINYINT[384] | int8-quantized unit vector; compare with `array_cosine_similarity(embedding::FLOAT[384], query_vec)` where the query is embedded by the same model with the BGE query prefix |
+| `embedding` | TINYINT[] | int8-quantized unit vector, always 384 values (Parquet stores it as a list); compare with `array_cosine_similarity(embedding::FLOAT[384], query_vec)` where the query is embedded by the same model with the BGE query prefix |
 
 ### properties
 `tables/properties.parquet`: the full TCAD roll record per property (superset of `leads` property fields).
@@ -259,11 +261,27 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 |---|---|---|
 | `prop_id` | VARCHAR | Key |
 | `deed_date` | DATE | Last deed date |
-| `years_since_deed` | BIGINT | Years since deed |
 | `owner_occupied_homestead` | BOOLEAN | Homestead exemption |
 | `mails_to_property` | BOOLEAN | Mailing address is the property |
 | `owner_mail_region` | VARCHAR | Mailing region (enum) |
 | `owner_mail_county_fips` | VARCHAR | County FIPS of the mailing ZIP |
+| `owner_key` | VARCHAR | Reconciled owner entity (link to `owners`) |
+
+### owners
+`tables/owners.parquet`: owners reconciled across properties. One entity per normalized owner name and mailing address (legal-form suffixes, punctuation and spacing normalized), linked to the Texas Comptroller registry when the name matches exactly one Travis County taxpayer.
+
+| Column | Type | Meaning |
+|---|---|---|
+| `owner_key` | VARCHAR | `owner:<md5(normalized name, mailing address, ZIP)>` (key) |
+| `owner_name` | VARCHAR | Owner name as recorded |
+| `name_norm` | VARCHAR | Normalized name used for reconciliation |
+| `mail_city` | VARCHAR | Mailing city |
+| `mail_state` | VARCHAR | Mailing state |
+| `mail_zip` | VARCHAR | Mailing ZIP |
+| `property_count` | BIGINT | Properties held (portfolio size) |
+| `total_market_val` | BIGINT | Sum of TCAD market values (USD) |
+| `taxpayer_number` | VARCHAR | Comptroller taxpayer number when `registry_link` is exact |
+| `registry_link` | VARCHAR | Link to `businesses` (enum) |
 
 ### businesses
 `tables/businesses.parquet`: Travis County businesses (Texas Comptroller sales-tax outlets and franchise taxpayers).
@@ -311,4 +329,13 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `deltas.json` | Added, removed and changed properties and permits versus the previous run, plus schema changes |
 | `coverage.json` | Dataset counts |
 | `samples/*.csv` | Small human-readable extracts |
-| `tiles/leads/<lat>_<lon>.json` | 0.05° grid tiles of lead fields for edge lookups |
+
+## Change log
+
+| Effective | Change | Type |
+|---|---|---|
+| run after 20261020T194930Z | Removed `years_since_deed` from `leads` and `owner_signals`: tenure is computed at query time so snapshots do not change with the calendar. Tools still return it | breaking |
+| run after 20261020T194930Z | Removed the `tiles/leads/` index directory (unused by any consumer) | breaking |
+| run after 20261020T194930Z | Added `owners`, `leads.owner_key`, `leads.owner_property_count`, `owner_signals.owner_key`, `permit_embeddings` | additive |
+| run after 20261020T194930Z | `status_bucket`: statuses such as `Cancelled - …`, `Aborted`, `Denied but Closed`, `Revoked`, `Rejected` now map to `void`; `Expired - License` maps like `Expired` | correction |
+| 20261020T194930Z | Removed `open_days` and `max_open_days` (computed at query time); added `oldest_open_date` | breaking |

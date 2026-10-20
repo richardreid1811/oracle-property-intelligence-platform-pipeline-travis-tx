@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Publish one pipeline run to IPFS and write its artifact manifest + run-history entry.
 //   - CIDs are computed locally (Kubo default profile) and every vendor response must match.
-//   - Directory artifacts (run root, partitioned permits, lead tiles) get a CAR each and are
-//     imported into Filebase with dag/import (CIDs preserved block-for-block).
+//   - Directory artifacts (run root, partitioned permits) get a full CAR each (published with the
+//     GitHub Release) and are pinned on Filebase with a directory-node-only CAR after their files.
 //   - Every listed file is also added as its own root to Filebase and Pinata, so it is announced
 //     and retrievable by bare CID, and survives the loss of either vendor.
 //   - CIDs already published by a previous run are not re-uploaded; nothing is ever unpinned.
@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
-import { importTree, PROFILE_DESCRIPTION, writeCar } from "./unixfs.mjs";
+import { importTree, PROFILE_DESCRIPTION, writeCar, writeDirOnlyCar } from "./unixfs.mjs";
 
 const [runDir, runId, runsDir, carsDir, ...flags] = process.argv.slice(2);
 const dryRun = flags.includes("--dry-run");
@@ -26,8 +26,8 @@ for (const k of ["FILEBASE_ACCESS_KEY", "FILEBASE_SECRET_KEY", "FILEBASE_BUCKET"
 const FILEBASE_RPC = "https://rpc.filebase.io/api/v0";
 const filebaseToken = () =>
   Buffer.from(`${env.FILEBASE_ACCESS_KEY}:${env.FILEBASE_SECRET_KEY}:${env.FILEBASE_BUCKET}`).toString("base64");
-const DIRECTORY_ARTIFACTS = ["", "tables/permits", "tiles/leads"];
-const LISTED_FILE = (p) => !p.startsWith("tiles/leads/"); // tiles are reachable via their directory root
+const DIRECTORY_ARTIFACTS = ["", "tables/permits"];
+const LISTED_FILE = () => true;
 // Derived convenience locators only (the CID is the artifact). ipfs.io/dweb.link retired HTTP access 2026-09-21.
 const GATEWAYS = ["https://ipfs.orbitor.dev", "https://dget.top"];
 
@@ -106,11 +106,15 @@ for (const dir of DIRECTORY_ARTIFACTS) {
   const carName = `${dir ? dir.replaceAll("/", "_") : "root"}.car`;
   const carPath = join(carsDir, runId, carName);
   const { blocks } = await writeCar(blockstore, e.cid, carPath);
+  // Pinning uses a directory-only CAR (files are pinned individually below); the full CAR above is
+  // the archive published with the GitHub Release.
+  const dirOnlyPath = join(carsDir, runId, `${carName}.dirs`);
+  await writeDirOnlyCar(blockstore, entries, dir, dirOnlyPath);
   objects.push({
     name: dir || ".", cid: e.cid.toString(), codec: "directory", size: e.size, sha256: null,
     car: { file: `${runId}/${carName}`, bytes: (await stat(carPath)).size, sha256: await sha256(carPath), blocks,
            release_asset: `https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-${runId}/${carName}` },
-    pins: [], local_car_path: carPath,
+    pins: [], local_car_path: carPath, local_dir_car_path: dirOnlyPath,
   });
 }
 for (const f of files.filter(LISTED_FILE)) {
@@ -119,8 +123,9 @@ for (const f of files.filter(LISTED_FILE)) {
   objects.push({ name: f, cid: e.cid.toString(), codec: "file", size: (await stat(path)).size, sha256: await sha256(path), pins: [], local_path: path });
 }
 
-// --- upload
-for (const o of objects) {
+// --- upload: files first, so directory roots can be pinned with their directory nodes only
+const uploadOrder = [...objects.filter((o) => o.codec === "file"), ...objects.filter((o) => o.codec === "directory")];
+for (const o of uploadOrder) {
   const prior = published.get(o.cid);
   if (prior) {
     o.pins = prior;
@@ -129,9 +134,9 @@ for (const o of objects) {
   }
   if (dryRun) continue;
   if (o.codec === "directory") {
-    const got = await filebaseImportCar(o.local_car_path);
+    const got = await filebaseImportCar(o.local_dir_car_path);
     if (got !== o.cid) throw new Error(`filebase root mismatch for ${o.name}: ${got} != ${o.cid}`);
-    o.pins.push({ provider: "filebase", method: "dag/import", at: new Date().toISOString() });
+    o.pins.push({ provider: "filebase", method: "dag/import (directory nodes; files pinned individually)", at: new Date().toISOString() });
   } else {
     const fb = await filebaseAdd(o.local_path, `${runId}/${o.name}`);
     if (fb !== o.cid) throw new Error(`filebase CID mismatch for ${o.name}: ${fb} != ${o.cid}`);
@@ -140,7 +145,7 @@ for (const o of objects) {
     if (pn !== o.cid) throw new Error(`pinata CID mismatch for ${o.name}: ${pn} != ${o.cid}`);
     o.pins.push({ provider: "pinata", method: "v3 files public", at: new Date().toISOString() });
   }
-  process.stderr.write(`\rpinned ${objects.indexOf(o) + 1}/${objects.length}`);
+  process.stderr.write(`\rpinned ${uploadOrder.indexOf(o) + 1}/${uploadOrder.length}`);
 }
 process.stderr.write("\n");
 
@@ -157,7 +162,7 @@ const manifest = {
   previous_run: previous ? { run_id: previous.run_id, root_cid: previous.root_cid, manifest_cid: previous.manifest_cid } : null,
   ipns: null,
   gateway_urls_note: "Gateway URLs are derived from CIDs and are convenience locators only; the CID is the artifact.",
-  objects: objects.map(({ local_path, local_car_path, ...o }) => ({
+  objects: objects.map(({ local_path, local_car_path, local_dir_car_path, ...o }) => ({
     ...o,
     gateway_urls: GATEWAYS.map((g) => `${g}/ipfs/${o.cid}`),
   })),

@@ -6,13 +6,17 @@ import { runTool, type Row } from "../db";
 import { fmt } from "../format";
 
 const MODES = {
-  aged_roofs_near: { label: "Roofs older than threshold", threshold: "min_roof_age_years", dflt: 15, unit: "years" },
+  aged_roofs_near: { label: "Roofs older than threshold", threshold: "older_than_years", dflt: 15, unit: "years" },
   open_roofing_permits_near: { label: "Open / never-finaled roofing permits", threshold: "min_open_years", dflt: 3, unit: "years open" },
   stale_ownership_near: { label: "No ownership change", threshold: "min_years", dflt: 10, unit: "years" },
   absentee_owners_near: { label: "Out-of-area owners", threshold: null, dflt: 0, unit: "" },
   semantic_search_permits: { label: "Describe the work (semantic search)", threshold: null, dflt: 0, unit: "" },
 } as const;
 type Mode = keyof typeof MODES;
+
+// Data values are interpolated into popup HTML, so escape them (source records are untrusted input).
+const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
+const safeUrl = (v: unknown) => (/^https:\/\//.test(String(v ?? "")) ? esc(v) : "#");
 
 const CONF_COLOR: Record<string, string> = { high: "#1a7f37", medium: "#9a6700", low: "#6e7781", very_low: "#a0a7b0" };
 const DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
@@ -59,7 +63,7 @@ export default function MapView({ data }: { data: AppData }) {
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
       const color = CONF_COLOR[String(r.roof_age_confidence)] ?? "#cf222e";
       L.circleMarker([lat, lon], { radius: 5, color, fillOpacity: 0.8, weight: 1 })
-        .bindPopup(`<b>${r.situs_address ?? r.address ?? r.permit_number}</b><br/>${r.roof_age_years !== undefined ? `Roof ~${r.roof_age_years} yrs (${r.roof_age_basis})<br/>` : ""}${r.open_years !== undefined ? `Open ${r.open_years} yrs · ${r.status}<br/>` : ""}<a href="${r.source_detail_url}" target="_blank" rel="noreferrer">source record</a>`)
+        .bindPopup(`<b>${esc(r.situs_address ?? r.address ?? r.permit_number)}</b><br/>${r.roof_age_years !== undefined ? `Roof ~${esc(r.roof_age_years)} yrs (${esc(r.roof_age_basis)})<br/>` : ""}${r.open_years != null ? `Open ${esc(r.open_years)} yrs · ${esc(r.status)}<br/>` : ""}<a href="${safeUrl(r.source_detail_url)}" target="_blank" rel="noreferrer">source record</a>`)
         .addTo(layer.current);
     }
   }, [center, radius, rows]);

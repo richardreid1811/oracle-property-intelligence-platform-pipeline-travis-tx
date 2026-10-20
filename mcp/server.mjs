@@ -87,6 +87,10 @@ async function ensureLoaded() {
         }
       }
     }
+    // All data is now in memory. Lock DuckDB down so run_sql (and anything else) cannot read local
+    // files or the network: a keyword blocklist cannot catch file-path table scans like FROM '/path'.
+    await conn.run("SET enable_external_access = false");
+    await conn.run("SET lock_configuration = true");
     let run = null;
     try {
       run = (await byCid(`${manifest.root.cid}/run.json`)).json;

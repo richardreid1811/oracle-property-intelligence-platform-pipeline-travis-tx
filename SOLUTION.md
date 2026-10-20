@@ -49,9 +49,9 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | Businesses | 367,843 Travis County businesses (sales-tax outlets + franchise taxpayers) | Run summary |
 | Coordinates | 430,761 parcels with coordinates (390k own centroid, 40k parent lot for condos), labelled by basis | Map |
 | Roof age / proxies, configurable threshold | Per-property roof year with basis and confidence: finaled re-roof permit (high), unfinaled (medium), year built (low; very_low if more than 50 years). Threshold is a parameter, default 15 | `aged_roofs_near` |
-| Reconcile duplicate entities | Parcels keyed on PROP_ID (padding normalized); permits deduplicated by number; deterministic geo_id links with ambiguity flagged; contractors deduplicated by normalized name; businesses deduplicated by taxpayer number | Findings, `link_basis`, `identity_status` |
+| Reconcile duplicate entities | Parcels keyed on PROP_ID (padding normalized); permits deduplicated by number; deterministic geo_id links with ambiguity flagged; contractors deduplicated by normalized name and resolved to the Comptroller registry; **owners reconciled across properties** (normalized name + mailing address → `owners`, 376k entities, 21.8k multi-property portfolios) and linked to the business registry; businesses deduplicated by taxpayer number | `owners`, `link_basis`, `identity_status`, `registry_link` |
 | Source provenance | Every row carries its source URL or record link; every source has a receipt (URL, digest, counts, timestamp) in `run.json` | UI › Run summary › Sources |
-| Continuous / incremental | Business-date windows (Socrata `:updated_at` is rewritten nightly), idempotent upserts, record-level deltas, scheduled CI refresh, no-change checks recorded | `runs/history.json`, UI › Run history |
+| Continuous / incremental | Business-date windows (Socrata `:updated_at` is rewritten nightly), idempotent upserts, carried records re-classified under current rules, record-level deltas, **weekly** scheduled CI refresh plus on-demand runs, no-change checks recorded. Published tables hold only stable facts (durations and tenure are computed at query time), so unchanged data never creates new pins | `runs/history.json`, UI › Run history |
 | Visible run history | Timestamps, sources, counts, deltas, limitations and CIDs per run | UI › Run history |
 | Performance / slow sources / limits | See [Speed and source constraints](#speed-and-source-constraints) | |
 | No ongoing Oracle infrastructure cost | Cloudflare free plan (no card), free pinning tiers, GitHub Actions on a public repo, browser-side DuckDB | [Cost](#cost) |
@@ -97,7 +97,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 |---|---|---|
 | UI + agent relay | Cloudflare Workers free plan, no card on file (over-limit requests fail rather than bill) | $0 |
 | LLM | Workers AI free daily allocation | $0 |
-| IPFS pinning | Filebase free + Pinata free | $0 |
+| IPFS pinning | Filebase free + Pinata free (500 pinned files and 1–5 GB each). Kept inside the quotas by directory-node-only directory pins, stable published facts, a weekly cadence, and retention (initial run + latest 7 pinned on both vendors; older runs stay in history and in their release CARs) | $0 |
 | Scheduled refresh + verification | GitHub Actions on a public repository | $0 |
 | Query engine | DuckDB in the user's browser / MCP host | $0 |
 
@@ -121,3 +121,20 @@ node src/publish/fetch-snapshot.mjs ../runs/<run>/manifest.json <dir>
 # hosted UI
 cd apps/web && npm run deploy
 ```
+
+## Adversarial review (2026-10-20)
+
+Every acceptance criterion and module was reviewed against real output; fixes were verified on a full incremental dry run before publishing.
+
+| Finding | Impact | Fix |
+|---|---|---|
+| Free-tier pin quotas (500 files per vendor) would be exhausted within days by full directory re-imports and calendar-dependent columns | Pipeline would stop publishing; "$0" claim at risk | Directory-only CAR pins, stable published facts, weekly cadence, retention (`prune-pins.mjs`) |
+| Refresh workflow masked pipeline failures (`tee` exit code) | Broken runs reported green | `set -o pipefail` |
+| Terminal statuses (Cancelled…, Aborted, Denied…, Revoked, Rejected) bucketed as open | ~300 false open permits | Prefix rules; carried permits re-classified every run |
+| Deed age counted calendar-year boundaries | 2,624 properties misclassified at 10 years | Exact tenure from `deed_date` at query time |
+| PO-box mailing ZIPs (no Census ZIP area) fell through to "elsewhere in Texas" | ~11.6k local owners counted as out-of-area | Mailing-city / Austin ZIP-prefix fallback |
+| MCP `run_sql` could read local files via DuckDB path scans | Prompt-injected agents could read the host's files | `enable_external_access=false` + locked configuration after load (verified) |
+| Out-of-area coordinates were clamped, "older than 15" was ≥ 15, commercial roofs excluded by default | Wrong or silently narrowed answers | Reject out-of-area points; strict `>`; `residential_only` defaults to false |
+| Map popups interpolated data into HTML | XSS from source records | HTML escaping and https-only links |
+| Non-deterministic tie-breaks in the roll build; owner money total exported as DOUBLE | CID churn; inexact money | Explicit tie-breaks; BIGINT cast; contract check caught both |
+| Owners not reconciled across properties | Acceptance gap | `owners` table + registry link |
