@@ -5,7 +5,10 @@ name: verify-gateways
 on:
   push:
     branches: [travis-pipeline, main]
-    paths: ["runs/*/manifest.json"]
+    paths:
+      - "runs/*/manifest.json"
+      - ".github/workflows/verify-gateways.yml"
+      - "pipeline/src/publish/verify-gateways.mjs"
   schedule:
     - cron: "17 6 * * *"
   workflow_dispatch:
