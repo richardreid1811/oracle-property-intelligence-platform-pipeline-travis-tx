@@ -15,6 +15,7 @@
     "@huggingface/transformers": "4.3.1",
     "@ipld/car": "5.4.7",
     "@ipld/dag-pb": "4.2.0",
+    "@travis-oracle/query-tools": "*",
     "blockstore-core": "7.0.1",
     "ipfs-car": "3.1.0",
     "ipfs-unixfs-importer": "17.1.1"
