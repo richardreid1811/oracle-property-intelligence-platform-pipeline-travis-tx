@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@duckdb/node-api": "1.5.6-r.1",
+    "@huggingface/transformers": "4.3.1",
     "@ipld/car": "5.4.7",
     "@ipld/dag-pb": "4.2.0",
     "blockstore-core": "7.0.1",

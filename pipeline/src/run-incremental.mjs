@@ -66,7 +66,10 @@ const db = join(data, "build", `incr-${runId}.duckdb`);
 const runDir = join(data, "publish/runs", runId);
 execFileSync("mkdir", ["-p", join(data, "build")]);
 node("src/build/incremental.mjs", db, prevManifestPath, windowFile, "--prev-dir", prevDir);
+node("src/build/embeddings.mjs", db, "--prev-dir", prevDir);
 node("src/publish/export.mjs", db, runDir);
+// The published schema must match docs/data-contract.md; drift stops the run before anything is pinned.
+node("src/publish/check-contract.mjs", join(runDir, "tables"));
 node("src/publish/deltas.mjs", db, prevManifestPath, runDir, "--prev-dir", prevDir);
 node("src/publish/run-summary.mjs", runDir, runId, join(data, "raw"), "incremental", startedAt, "--prev-run", prevRunPath,
   "--note", `Austin permit business-date window since ${since} (${harvest.written} permits) layered over run ${prev.run_id}; TCAD roll and identity sources carried forward.`);

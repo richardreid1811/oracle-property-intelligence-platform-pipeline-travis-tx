@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "description": "MCP server (stdio) for the Travis County Oracle snapshot: loads published Parquet by CID from IPFS into DuckDB and serves the roofing-lead query tools.",
-  "bin": { "travis-oracle-mcp": "server.mjs" },
+  "bin": {
+    "travis-oracle-mcp": "server.mjs"
+  },
   "dependencies": {
     "@duckdb/node-api": "1.5.6-r.1",
+    "@huggingface/transformers": "4.3.1",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@travis-oracle/query-tools": "*"
   }

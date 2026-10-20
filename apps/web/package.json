@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "1.32.0",
+    "@huggingface/transformers": "4.3.1",
     "@travis-oracle/query-tools": "*",
     "leaflet": "1.9.4",
     "react": "19.3.0",

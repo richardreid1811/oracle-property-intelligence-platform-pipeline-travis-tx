@@ -17,6 +17,7 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { mcpTools, PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
+import { embed } from "@travis-oracle/query-tools/embed.mjs";
 
 const HISTORY_URL =
   process.env.TRAVIS_ORACLE_HISTORY_URL ??
@@ -73,6 +74,19 @@ async function ensureLoaded() {
       if (!done) throw new Error(`could not load ${t} from any gateway`);
     }
     await conn.run(PLACES_SQL);
+    // Semantic retrieval table (present in runs published after embeddings were added).
+    const emb = manifest.objects.find((o) => o.name === "tables/permit_embeddings.parquet");
+    if (emb) {
+      for (const g of GATEWAYS) {
+        try {
+          await conn.run(`create or replace table permit_embeddings as select * from read_parquet('${g}/ipfs/${emb.cid}')`);
+          log(`loaded permit_embeddings (${emb.cid}) via ${g}`);
+          break;
+        } catch (e) {
+          log(`gateway ${g} failed for permit_embeddings: ${e.message}`);
+        }
+      }
+    }
     let run = null;
     try {
       run = (await byCid(`${manifest.root.cid}/run.json`)).json;
@@ -90,7 +104,7 @@ const rows = async (sql) => (await (await ensureLoaded()).conn.runAndReadAll(sql
 // Read-only SQL for agents that need ad-hoc questions: a single SELECT/WITH statement.
 const SQL_TOOL = {
   name: "run_sql",
-  description: "Run one read-only SQL SELECT (DuckDB dialect) over tables leads, roofing_permits, contractors, places. Returns at most 200 rows.",
+  description: "Run one read-only SQL SELECT (DuckDB dialect) over tables leads, roofing_permits, contractors, places, permit_embeddings. Returns at most 200 rows.",
   inputSchema: { type: "object", properties: { sql: { type: "string" } }, required: ["sql"] },
 };
 function guardSql(sql) {
@@ -115,7 +129,7 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
     }
     const tool = toolByName[name];
     if (!tool) throw new Error(`unknown tool ${name}`);
-    const resolved = await resolveArgs(name, args, rows);
+    const resolved = await resolveArgs(name, args, rows, async (text) => (await embed([text], { query: true }))[0]);
     const out = withLookupLinks(await rows(tool.sql(resolved)));
     const count = tool.count_sql ? (await rows(tool.count_sql(resolved)))[0] : undefined;
     const { manifest } = await ensureLoaded();

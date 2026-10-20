@@ -10,6 +10,7 @@ const MODES = {
   open_roofing_permits_near: { label: "Open / never-finaled roofing permits", threshold: "min_open_years", dflt: 3, unit: "years open" },
   stale_ownership_near: { label: "No ownership change", threshold: "min_years", dflt: 10, unit: "years" },
   absentee_owners_near: { label: "Out-of-area owners", threshold: null, dflt: 0, unit: "" },
+  semantic_search_permits: { label: "Describe the work (semantic search)", threshold: null, dflt: 0, unit: "" },
 } as const;
 type Mode = keyof typeof MODES;
 
@@ -26,6 +27,8 @@ export default function MapView({ data }: { data: AppData }) {
   const [radius, setRadius] = useState(5);
   const [threshold, setThreshold] = useState<number>(MODES.aged_roofs_near.dflt);
   const [rows, setRows] = useState<Row[]>([]);
+  const [semanticText, setSemanticText] = useState("hail damage roof repair");
+  const [openOnly, setOpenOnly] = useState(true);
   const [count, setCount] = useState<Row | undefined>();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -77,6 +80,7 @@ export default function MapView({ data }: { data: AppData }) {
       const m = MODES[mode];
       const args: Record<string, unknown> = { latitude: center.lat, longitude: center.lon, radius_miles: radius, limit: 200 };
       if (m.threshold) args[m.threshold] = threshold;
+      if (mode === "semantic_search_permits") Object.assign(args, { query: semanticText, open_only: openOnly, limit: 100 });
       const res = await runTool(mode, args);
       setRows(res.rows);
       setCount(res.count);
@@ -107,6 +111,15 @@ export default function MapView({ data }: { data: AppData }) {
         <label>Radius: {radius} mi
           <input type="range" min={0.5} max={15} step={0.5} value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
         </label>
+        {mode === "semantic_search_permits" && (
+          <>
+            <label>Describe the work
+              <input value={semanticText} onChange={(e) => setSemanticText(e.target.value)} placeholder="e.g. metal roof replacement, storm damage" />
+            </label>
+            <label className="small"><span><input type="checkbox" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} style={{ width: "auto" }} /> Only open / never-finaled permits</span></label>
+            <p className="muted small">Meaning-based search over 31,968 roofing permit records (embeddings run in your browser; first use downloads a ~30 MB model).</p>
+          </>
+        )}
         {m.threshold && (
           <label>Threshold ({m.unit})
             <input type="number" min={0} max={100} value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} />
@@ -140,6 +153,8 @@ function ResultTable({ rows, mode }: { rows: Row[]; mode: Mode }) {
       ? [["situs_address", "Address"], ["distance_miles", "mi"], ["roof_age_years", "Roof age"], ["roof_age_basis", "Basis"], ["roof_age_confidence", "Confidence"], ["roof_covering", "Covering"], ["open_roofing_permits", "Open roof permits"]]
       : mode === "open_roofing_permits_near"
         ? [["address", "Address"], ["permit_number", "Permit"], ["status", "Status"], ["open_years", "Years open"], ["contractor_company_name", "Contractor"], ["contractor_identity", "Registry"], ["bbb_rating", "BBB"]]
+      : mode === "semantic_search_permits"
+        ? [["similarity", "Match"], ["address", "Address"], ["permit_number", "Permit"], ["status", "Status"], ["open_years", "Years open"], ["description", "Work description"], ["contractor_company_name", "Contractor"], ["bbb_rating", "BBB"]]
         : mode === "stale_ownership_near"
           ? [["situs_address", "Address"], ["owner_name", "Owner"], ["deed_date", "Deed date"], ["years_since_deed", "Years"], ["roof_age_years", "Roof age"]]
           : [["situs_address", "Address"], ["owner_name", "Owner"], ["mail_city", "Mail city"], ["mail_state", "State"], ["owner_mail_region", "Region"], ["roof_age_years", "Roof age"]];

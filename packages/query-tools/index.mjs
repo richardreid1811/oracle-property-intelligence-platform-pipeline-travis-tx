@@ -111,6 +111,46 @@ export const tools = [
     },
   },
   {
+    name: "semantic_search_permits",
+    description: "Semantic (meaning-based) search over roofing permit records: finds permits whose work description matches a natural-language phrase such as 'hail damage repair', 'metal roof replacement on commercial building' or 'storm damaged shingles', even when the exact words differ. Uses vector embeddings of each permit's description, work class, status and contractor. Optionally restrict to a place/radius and to permits still open. Returns similarity scores and source links.",
+    needs_embedding: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "What the permit work is about, in plain language." },
+        place: POINT_PROPS.place, latitude: POINT_PROPS.latitude, longitude: POINT_PROPS.longitude,
+        radius_miles: { type: "number", description: "Only with place or coordinates (default 5, max 25)." },
+        open_only: { type: "boolean", description: "Only permits still open or expired without a final inspection. Default false." },
+        limit: POINT_PROPS.limit,
+      },
+      required: ["query"],
+    },
+    sql: (a) => {
+      if (!Array.isArray(a._qvec) || a._qvec.length !== 384) throw new Error("query embedding missing");
+      const vec = `[${a._qvec.map((v) => Number(v).toFixed(6)).join(",")}]::FLOAT[384]`;
+      const hasPoint = Number.isFinite(Number(a.latitude)) && Number.isFinite(Number(a.longitude)) && a.latitude !== "" && a.longitude !== "";
+      const geo = hasPoint ? (() => { const { lat, lon, r } = point(a); return { lat, lon, r }; })() : null;
+      return `
+        with q as (select ${vec} as v)
+        select p.permit_number, p.status, p.status_bucket, p.roofing_work, p.opened_date,
+               case when p.status_bucket in ('open', 'expired_unfinaled') then round(date_diff('day', p.opened_date, current_date) / 365.25, 1) end as open_years,
+               p.address, p.prop_id, left(p.description, 200) as description,
+               p.contractor_company_name, c.legal_name as contractor_legal_name, c.identity_status as contractor_identity, c.bbb_rating,
+               round(array_cosine_similarity(e.embedding::FLOAT[384], q.v)::DOUBLE, 3) as similarity,
+               ${geo ? `round(${miles(geo.lat, geo.lon, "p.latitude", "p.longitude")}, 2) as distance_miles,` : ""}
+               p.latitude, p.longitude, p.source_detail_url
+        from permit_embeddings e
+        join roofing_permits p using (permit_key)
+        left join contractors c using (contractor_key)
+        cross join q
+        where true
+          ${bool(a.open_only, false) ? "and p.status_bucket in ('open', 'expired_unfinaled')" : ""}
+          ${geo ? `and ${bbox(geo.lat, geo.lon, geo.r, "p.latitude", "p.longitude")} and ${miles(geo.lat, geo.lon, "p.latitude", "p.longitude")} <= ${geo.r}` : ""}
+        order by array_cosine_similarity(e.embedding::FLOAT[384], q.v) desc, p.permit_key
+        limit ${LIMIT(a.limit)}`;
+    },
+  },
+  {
     name: "stale_ownership_near",
     description: "Properties within a radius that have not changed ownership in more than min_years (default 10), from the TCAD deed date (Texas does not disclose sale prices).",
     input_schema: { type: "object", properties: { ...POINT_PROPS, min_years: { type: "number", description: "Default 10." } } },
@@ -184,10 +224,15 @@ export const withLookupLinks = (rows) =>
 
 /**
  * Resolve a `place` argument to latitude/longitude before building SQL, so models never have to copy
- * coordinates between steps. `run(sql)` executes SQL and returns row objects.
+ * coordinates between steps, and embed the query text for semantic tools. `run(sql)` executes SQL and
+ * returns row objects; `embedQuery(text)` returns the query vector (runtimes pass embed.mjs).
  */
-export async function resolveArgs(name, args, run) {
+export async function resolveArgs(name, args, run, embedQuery) {
   const a = { ...args };
+  if (toolByName[name]?.needs_embedding) {
+    if (!embedQuery) throw new Error("semantic search needs an embedder in this runtime");
+    a._qvec = Array.from(await embedQuery(String(a.query ?? "")));
+  }
   const hasPoint = Number.isFinite(Number(a.latitude)) && Number.isFinite(Number(a.longitude)) && a.latitude !== "" && a.longitude !== "";
   if (name !== "resolve_place" && a.place && (!hasPoint || toolByName[name]?.input_schema.properties.place)) {
     let [hit] = await run(toolByName.resolve_place.sql({ name: a.place }));

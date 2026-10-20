@@ -67,6 +67,9 @@ await copy("owner_signals", "select * from owner_signals order by prop_id::bigin
 await copy("roofing_permits", `select * exclude (open_days) from permits where roofing_work is not null order by permit_key`);
 await copy("contractors", "select * exclude (phones, trades, tdlr_licenses), array_to_string(phones, ';') as phones, array_to_string(trades, ';') as trades, array_to_string(tdlr_licenses, ';') as tdlr_licenses from contractors order by contractor_key");
 await copy("businesses", "select * from businesses order by business_key");
+// Semantic retrieval vectors (int8, 384-d) keyed by permit; absent in builds made before embeddings.
+const hasEmb = (await c.runAndReadAll("select count(*) as n from information_schema.tables where table_name = 'permit_embeddings'")).getRowObjectsJson()[0].n > 0;
+if (hasEmb) await copy("permit_embeddings", "select * from permit_embeddings order by permit_key");
 await copy("licenses", "select * exclude (name_norm) from licenses order by license_type, license_number");
 
 // Full permit history, partitioned by issue year so a daily refresh only rewrites recent years.
