@@ -2,7 +2,7 @@
 
 **Live runtime:** https://travis-oracle.travis-oracle-web.workers.dev (public, no login)
 **Run history and manifests:** [`runs/`](runs/) · **CARs:** [GitHub Releases](https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases)
-**Discovery and readiness:** [`pipeline/docs/travis-county-findings.md`](pipeline/docs/travis-county-findings.md), [`pipeline/docs/travis-sources.yaml`](pipeline/docs/travis-sources.yaml) (kit readiness validator: PASS)
+**Data contract (tables, keys, enums, tools):** [`docs/data-contract.md`](docs/data-contract.md) · **Discovery and readiness:** [`pipeline/docs/travis-county-findings.md`](pipeline/docs/travis-county-findings.md), [`pipeline/docs/travis-sources.yaml`](pipeline/docs/travis-sources.yaml) (kit readiness validator: PASS)
 
 The pipeline loads all available Travis County property, permit, ownership, business, contractor, licensing and coordinate data. It reconciles them into roofing-lead signals and publishes each run as an immutable, CID-addressed snapshot on public IPFS. The data is queried in the browser with DuckDB-WASM, through an agent, and through an MCP server. **Oracle runs no database and no servers, and pays $0 a month.**
 
@@ -30,7 +30,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | `pipeline/src/build/` | `tcad-roll` builds properties; `permits` + shared `permit-sql` handle classification, status, deterministic parcel links and roof age; `derive` builds owner signals, contractors, businesses and licenses; `incremental` layers a window onto the previous snapshot |
 | `pipeline/src/publish/` | `export` (byte-stable Parquet, tiles, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest), `verify-gateways`, `fetch-snapshot` |
 | `pipeline/src/run-incremental.mjs` | One incremental run end to end (what CI runs) |
-| `packages/query-tools/` | One definition per roofing tool (JSON Schema + DuckDB SQL), shared by the UI, agent and MCP |
+| `packages/query-tools/` | One definition per roofing tool (JSON Schema + DuckDB SQL), shared by the UI, agent and MCP; `embed.mjs` is the shared embedder for semantic retrieval |
 | `apps/web/` | React UI + Worker (`wrangler.jsonc`) |
 | `mcp/` | stdio MCP server |
 | `.github/workflows/` | `refresh.yml` (daily incremental run), `verify-gateways.yml` (independent retrieval proof) |
@@ -59,7 +59,8 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | New CIDs on republish, prior CIDs immutable | Byte-deterministic export: unchanged files keep CIDs, changed files get new ones, nothing is ever unpinned. Both runs' CIDs remain in history | UI › Run history ("Check this snapshot still resolves") |
 | CARs for directories | Root, `tables/permits` and `tiles/leads` CARs attached to each run's GitHub Release, with their sha256 in the manifest | Releases |
 | Two independent public gateways | `verify-gateways` fetches every CID from **ipfs.orbitor.dev** and **dget.top** (independent operators, not our pinning vendors) and checks size + sha256; evidence committed per run. The UI re-verifies any file in your own browser. The README's examples, ipfs.io and dweb.link, **retired programmatic HTTP access on 2026-09-21** (service-worker-only; plain HTTP clients now get 429 with a notice pointing to gatewaychanges.ipfs.io). They still work in a browser via the service worker | `runs/<run>/gateway-verification.json`, UI › IPFS artifacts |
-| DuckDB / MCP-ready / agent access | DuckDB-WASM in the browser and DuckDB in the MCP server, over the same Parquet; MCP `tools/list`, `tools/call`, `run_sql` and resources | UI › MCP & SQL, `mcp/` |
+| DuckDB / MCP-ready / agent access | DuckDB-WASM in the browser and DuckDB in the MCP server, over the same Parquet; MCP `tools/list`, `tools/call`, `run_sql` and resources. A published **data contract** documents every table, key, enum and tool; each publish is gated on an exact schema match | UI › MCP & SQL, `mcp/`, `docs/data-contract.md` |
+| Agent: retrieval-augmented, source-backed | Two retrieval paths feed the model: structured tools (radius, roof age, permits, ownership) and **semantic retrieval**. Semantic retrieval embeds the 31,968 roofing permits with bge-small-en-v1.5 (vectors published as `permit_embeddings.parquet`) and ranks them by cosine similarity in DuckDB. Answers cite rows and source links | UI › Agent, Map › "Describe the work" |
 | UI | Hosted React app | Live runtime |
 | Roofing queries (radius, roof > N years, open permits, contractor + BBB, ownership > 10 years, out-of-area owners) | Six tools with source-backed rows; place names resolve via an in-data gazetteer | UI › Map, Agent |
 

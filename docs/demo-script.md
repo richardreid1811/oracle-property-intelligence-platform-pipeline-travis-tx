@@ -52,12 +52,20 @@ Lines in quotes are suggested narration; say them in your own words.
 - Set the type to **Open / never-finaled roofing permits** with a threshold of 3 years, place **78704** (or click the map near downtown), radius 3, then **Search**.
 - Show status, years open and contractor, then click **Check BBB ↗**. BBB's own site opens; the rating is looked up on demand, not stored.
 
+## 9b. Semantic search (45 s) — **Map search**
+- Set the type to **Describe the work (semantic search)** and type `hail damage roof repair`. Keep "only open" ticked and click **Search**.
+- The first search downloads the small embedding model into the browser (a few seconds).
+- Show the **Match** scores and descriptions that use different wording (e.g. "replace/repair hail/wind damaged roof").
+> "Retrieval by meaning over 32,000 roofing permit records, with vectors published on IPFS alongside the tables."
+
 ## 10. Agent (2 min) — tab **Agent**
 - Click the first example question (Pflugerville roofs older than 15 years). Expand the **Tool** line to show the SQL, then read the answer: total matches, basis and confidence, source links.
 - Click the second example question (downtown open permits plus contractor). Show years open, contractors, BBB links and the stated assumptions.
+- Type a semantic question, e.g. *"Find open permits for metal roof replacements on commercial buildings"*. The tool line shows `semantic_search_permits`.
 
 ## 11. MCP-ready (45 s) — tab **MCP & SQL**
 - Show `tools/list`, call `aged_roofs_near` with `{"place": "Hyde Park", "radius_miles": 1}`, and show the setup snippet.
+- Mention `docs/data-contract.md`: every table, key, enum and tool is documented, and each publish is checked against it.
 > "The same tool definitions back the UI, the agent and a stdio MCP server that loads the snapshot by CID. The roofing CRM's agent can use it without changing the data model."
 
 ## 12. Close (20 s)
