@@ -34,7 +34,8 @@ export type HistoryRun = {
   previous_run_id: string | null;
 };
 
-export type History = { county: string; state: string; runs: HistoryRun[] };
+export type HistoryCheck = { checked_at: string; source: string; window_since: string; rows: number; result: string; current_run_id: string };
+export type History = { county: string; state: string; runs: HistoryRun[]; checks?: HistoryCheck[] };
 
 export type RunSummary = {
   run_id: string;

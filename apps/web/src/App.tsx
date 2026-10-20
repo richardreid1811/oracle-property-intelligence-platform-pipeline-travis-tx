@@ -18,7 +18,15 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
+// Run history is read from the repository first (scheduled CI runs commit there), then from the copy
+// bundled at deploy time.
+const RUNS_BASES = [
+  "https://raw.githubusercontent.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/travis-pipeline/runs",
+  "/runs",
+];
+
 export type AppData = {
+  runsBase: string;
   history: History;
   manifest: Manifest;
   run: RunSummary | null;
@@ -51,12 +59,20 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const history = await fetchJson<History>("/runs/history.json");
+      let runsBase = "";
+      let history: History | null = null;
+      for (const base of RUNS_BASES) {
+        history = await fetchJson<History>(`${base}/history.json`);
+        if (history?.runs.length) {
+          runsBase = base;
+          break;
+        }
+      }
       if (!history?.runs.length) throw new Error("run history not found");
       const latest = history.runs.at(-1)!;
-      const manifest = await fetchJson<Manifest>(`/runs/${latest.run_id}/manifest.json`);
+      const manifest = await fetchJson<Manifest>(`${runsBase}/${latest.run_id}/manifest.json`);
       if (!manifest) throw new Error("manifest not found");
-      const verification = await fetchJson<GatewayReport>(`/runs/${latest.run_id}/gateway-verification.json`);
+      const verification = await fetchJson<GatewayReport>(`${runsBase}/${latest.run_id}/gateway-verification.json`);
       // run.json is read from IPFS by path under the run root CID, not from this site.
       let run: RunSummary | null = null;
       let runSource: string | null = null;
@@ -67,7 +83,7 @@ export default function App() {
           break;
         }
       }
-      const base: AppData = { history, manifest, run, runSource, verification, steps: [], dbReady: false, dbError: null };
+      const base: AppData = { runsBase, history, manifest, run, runSource, verification, steps: [], dbReady: false, dbError: null };
       setData(base);
       try {
         await initDb(manifest, (s) => setData((d) => (d ? { ...d, steps: [...d.steps, s] } : d)));

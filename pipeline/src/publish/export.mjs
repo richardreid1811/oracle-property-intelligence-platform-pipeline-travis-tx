@@ -35,9 +35,10 @@ create or replace temp table leads as
 with open_roof as (
   select prop_id,
          count(*) as open_roofing_permits,
-         max(open_days) as max_open_days,
-         arg_max(permit_number, open_days) as oldest_open_permit,
-         arg_max(contractor_company_name, open_days) as oldest_open_contractor
+         -- Dates, not day counts: published tables hold stable facts; queries compute duration as of today.
+         min(opened_date) as oldest_open_date,
+         arg_max(permit_number, struct_pack(d := open_days, k := permit_key)) as oldest_open_permit,
+         arg_max(contractor_company_name, struct_pack(d := open_days, k := permit_key)) as oldest_open_contractor
   from permits
   where prop_id is not null and roofing_work in ('roof_replacement', 'roof_repair')
     and status_bucket in ('open', 'expired_unfinaled')
@@ -50,7 +51,7 @@ select p.prop_id, p.geo_id, p.situs_address, p.situs_zip, p.jurisdiction,
        o.deed_date, o.years_since_deed,
        p.year_built, r.roof_year, r.roof_age_years, r.roof_age_basis, r.roof_age_confidence,
        r.evidence_permit_key, r.roof_covering, r.roof_style, r.permit_history_coverage,
-       coalesce(x.open_roofing_permits, 0) as open_roofing_permits, x.max_open_days,
+       coalesce(x.open_roofing_permits, 0) as open_roofing_permits, x.oldest_open_date,
        x.oldest_open_permit, x.oldest_open_contractor,
        p.market_val, p.imprv_state_cd, p.source_detail_url
 from properties p
@@ -63,7 +64,7 @@ await copy("leads", "select * from leads");
 await copy("properties", "select * from properties order by prop_id::bigint");
 await copy("roof_age", "select * from roof_age order by prop_id::bigint");
 await copy("owner_signals", "select * from owner_signals order by prop_id::bigint");
-await copy("roofing_permits", `select * from permits where roofing_work is not null order by permit_key`);
+await copy("roofing_permits", `select * exclude (open_days) from permits where roofing_work is not null order by permit_key`);
 await copy("contractors", "select * exclude (phones, trades, tdlr_licenses), array_to_string(phones, ';') as phones, array_to_string(trades, ';') as trades, array_to_string(tdlr_licenses, ';') as tdlr_licenses from contractors order by contractor_key");
 await copy("businesses", "select * from businesses order by business_key");
 await copy("licenses", "select * exclude (name_norm) from licenses order by license_type, license_number");
@@ -71,7 +72,7 @@ await copy("licenses", "select * exclude (name_norm) from licenses order by lice
 // Full permit history, partitioned by issue year so a daily refresh only rewrites recent years.
 {
   const t = Date.now();
-  await c.run(`copy (select *, coalesce(year(opened_date), 0) as year from permits order by permit_key)
+  await c.run(`copy (select * exclude (open_days), coalesce(year(opened_date), 0) as year from permits order by permit_key)
     to ${lit(join(runDir, "tables", "permits"))} (FORMAT parquet, COMPRESSION zstd, ROW_GROUP_SIZE 100000,
     PARTITION_BY (year), FILENAME_PATTERN 'part', OVERWRITE_OR_IGNORE)`);
   console.log(`tables/permits/year=*/ (${((Date.now() - t) / 1000).toFixed(1)}s)`);
@@ -84,10 +85,10 @@ const tileRows = await c.runAndReadAll(`
 select printf('%.2f_%.2f', floor(latitude / ${TILE_DEG}) * ${TILE_DEG}, floor(longitude / ${TILE_DEG}) * ${TILE_DEG}) as gh,
        list([prop_id, situs_address, round(latitude, 6)::varchar, round(longitude, 6)::varchar,
              roof_age_years::varchar, roof_age_basis, years_since_deed::varchar, owner_mail_region,
-             open_roofing_permits::varchar, max_open_days::varchar, oldest_open_contractor] order by prop_id::bigint) as rows
+             open_roofing_permits::varchar, oldest_open_date::varchar, oldest_open_contractor] order by prop_id::bigint) as rows
 from leads where latitude is not null group by 1 order by 1`);
 const TILE_COLUMNS = ["prop_id", "situs_address", "lat", "lon", "roof_age_years", "roof_age_basis",
-  "years_since_deed", "owner_mail_region", "open_roofing_permits", "max_open_days", "oldest_open_contractor"];
+  "years_since_deed", "owner_mail_region", "open_roofing_permits", "oldest_open_date", "oldest_open_contractor"];
 let tileCount = 0;
 for (const { gh, rows } of tileRows.getRowObjectsJson()) {
   await writeFile(join(runDir, "tiles/leads", `${gh}.json`), JSON.stringify({ columns: TILE_COLUMNS, rows }));
@@ -97,8 +98,8 @@ console.log(`tiles/leads: ${tileCount} grid tiles (${TILE_DEG} deg)`);
 
 for (const [name, sql] of [
   ["leads-roof-15y-plus", "select * from leads where roof_age_years >= 15 order by prop_id::bigint limit 200"],
-  ["roofing-permits-open", "select permit_number, status, opened_date, open_days, contractor_company_name, address, description, source_detail_url from permits where roofing_work is not null and status_bucket in ('open','expired_unfinaled') order by open_days desc limit 200"],
-  ["contractors-roofing", "select contractor_key, display_name, legal_name, identity_status, roofing_permit_count, bbb_status from contractors where roofing_permit_count > 0 order by roofing_permit_count desc limit 200"],
+  ["roofing-permits-open", "select permit_number, status, opened_date, contractor_company_name, address, description, source_detail_url from permits where roofing_work is not null and status_bucket in ('open','expired_unfinaled') order by opened_date, permit_key limit 200"],
+  ["contractors-roofing", "select contractor_key, display_name, legal_name, identity_status, roofing_permit_count, bbb_status from contractors where roofing_permit_count > 0 order by roofing_permit_count desc, contractor_key limit 200"],
 ]) {
   await c.run(`copy (${sql}) to ${lit(join(runDir, "samples", `${name}.csv`))} (HEADER, DELIMITER ',')`);
 }

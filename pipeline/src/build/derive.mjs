@@ -9,6 +9,7 @@
 // Usage: node src/build/derive.mjs <county.duckdb> <raw-dir>
 import { DuckDBInstance } from "@duckdb/node-api";
 import { join } from "node:path";
+import { contractorAggSql, normName, roofAgeSql } from "./permit-sql.mjs";
 
 const [dbPath, raw] = process.argv.slice(2);
 if (!dbPath || !raw) {
@@ -19,10 +20,6 @@ const lit = (s) => `'${String(s).replaceAll("'", "''")}'`;
 const nd = (p) => `read_json(${lit(join(raw, p))}, format='newline_delimited', union_by_name=true)`;
 // Austin–Round Rock–San Marcos MSA counties (Travis, Williamson, Hays, Bastrop, Caldwell).
 const METRO = ["48453", "48491", "48209", "48021", "48055"];
-// Business-name normalization shared by every entity match.
-const norm = (col) => `trim(regexp_replace(regexp_replace(upper(coalesce(${col}, '')), '[^A-Z0-9 ]', ' ', 'g'),
-  '\\b(LLC|L L C|INC|INCORPORATED|CO|COMPANY|CORP|CORPORATION|LTD|LP|LLP|PLLC|PC|THE|DBA)\\b', '', 'g'))`;
-const squash = (expr) => `regexp_replace(${expr}, '\\s+', ' ', 'g')`;
 
 const db = await DuckDBInstance.create(dbPath);
 const c = await db.connect();
@@ -32,47 +29,7 @@ const step = async (label, sql) => {
   console.log(`${label} (${((Date.now() - t) / 1000).toFixed(1)}s)`);
 };
 
-await step("roof_age", `
-create or replace table roof_age as
-with rp as (
-  select pm.prop_id, pm.permit_key, pm.status_bucket, pm.issued_date, pm.completed_date, pr.year_built
-  from permits pm join properties pr using (prop_id)
-  where pm.roofing_work = 'roof_replacement'
-    -- Ambiguous geo_id links (shared id, no address match) are queryable but are not roof evidence.
-    and pm.link_basis not like '%ambiguous%'
-    and (pr.year_built is null or year(coalesce(pm.completed_date, pm.issued_date)) >= pr.year_built)
-),
-final_roof as (
-  select prop_id, arg_max(permit_key, completed_date) as permit_key, max(completed_date) as d
-  from rp where status_bucket = 'closed' and completed_date is not null group by 1
-),
-unverified_roof as (
-  select prop_id, arg_max(permit_key, issued_date) as permit_key, max(issued_date) as d
-  from rp where status_bucket in ('open', 'expired_unfinaled') and issued_date is not null group by 1
-)
-select
-  p.prop_id,
-  case when f.d is not null then year(f.d)
-       when u.d is not null then year(u.d)
-       else p.year_built end as roof_year,
-  case when f.d is not null then 'permit_final_roof_replacement'
-       when u.d is not null then 'permit_issued_roof_replacement_unfinaled'
-       when p.year_built is not null then 'tcad_year_built_assumes_original_roof'
-       else 'unknown' end as roof_age_basis,
-  -- Year built is only a roof-age proxy; past ~50 years an unpermitted replacement is likely.
-  case when f.d is not null then 'high' when u.d is not null then 'medium'
-       when p.year_built is not null and year(current_date) - p.year_built > 50 then 'very_low'
-       when p.year_built is not null then 'low' else 'none' end as roof_age_confidence,
-  coalesce(f.permit_key, u.permit_key) as evidence_permit_key,
-  p.roof_covering, p.roof_style,
-  case when p.jurisdiction = 'CITY OF AUSTIN' then 'austin_permit_history_1978_plus'
-       when p.jurisdiction = 'TRAVIS COUNTY (UNINCORPORATED)' then 'no_county_building_permits_in_texas'
-       else 'municipal_permits_not_yet_ingested' end as permit_history_coverage
-from properties p
-left join final_roof f using (prop_id)
-left join unverified_roof u using (prop_id);
-alter table roof_age add column if not exists roof_age_years integer;
-update roof_age set roof_age_years = year(current_date) - roof_year where roof_year is not null`);
+await step("roof_age", roofAgeSql);
 
 await step("zip_region", `
 create or replace temp table zcta_county as
@@ -117,14 +74,14 @@ create or replace table licenses as
 select license_type, license_number, license_subtype, business_name, owner_name,
        business_address_line1, business_city_state_zip, business_county, business_telephone,
        license_expiration_date_mmddccyy as license_expiration, source_url, fetched_at,
-       ${squash(norm("business_name"))} as name_norm
+       ${normName("business_name")} as name_norm
 from ${nd("identity/tdlr-contractor-licenses.ndjson")};
 create or replace table franchise_taxpayers as
 select taxpayer_number, taxpayer_name, taxpayer_address, taxpayer_city, taxpayer_state, taxpayer_zip,
        taxpayer_county_code, taxpayer_organizational_type,
        secretary_of_state_sos_or_coa_file_number as sos_file_number, sos_charter_date, sos_status_code,
        right_to_transact_business_code, source_url, fetched_at,
-       ${squash(norm("taxpayer_name"))} as name_norm
+       ${normName("taxpayer_name")} as name_norm
 from ${nd("identity/tx-franchise-taxpayers.ndjson")}`);
 
 await step("businesses", `
@@ -154,34 +111,20 @@ where f.taxpayer_county_code = '227'
 
 await step("contractors", `
 create or replace table contractors as
-with pc as (
-  select contractor_company_name as name, contractor_phone as phone, contractor_trade as trade,
-         contractor_city as city, contractor_zip as zip, permit_key, roofing_work, opened_date,
-         ${squash(norm("contractor_company_name"))} as name_norm
-  from permits where contractor_company_name is not null
-),
-agg as (
-  select name_norm,
-         mode(name) as display_name,
-         list_distinct(list(phone) filter (phone is not null))[:5] as phones,
-         list_distinct(list(trade) filter (trade is not null)) as trades,
-         mode(city) as city, mode(zip) as zip,
-         count(*) as permit_count,
-         count(*) filter (roofing_work in ('roof_replacement', 'roof_repair')) as roofing_permit_count,
-         min(opened_date) as first_permit, max(opened_date) as last_permit
-  from pc where name_norm <> '' group by 1
-),
+with agg as (${contractorAggSql}),
 fx as (
-  select name_norm, count(*) as n, any_value(taxpayer_number) as taxpayer_number, any_value(sos_file_number) as sos_file_number,
-         any_value(taxpayer_name) as legal_name, any_value(right_to_transact_business_code) as right_to_transact
+  select name_norm, count(*) as n, min(taxpayer_number) as taxpayer_number,
+         arg_min(sos_file_number, taxpayer_number) as sos_file_number,
+         arg_min(taxpayer_name, taxpayer_number) as legal_name,
+         arg_min(right_to_transact_business_code, taxpayer_number) as right_to_transact
   from franchise_taxpayers group by 1
 ),
 lx as (
-  select name_norm, list_distinct(list(license_type || ' ' || license_number)) as tdlr_licenses
+  select name_norm, list_sort(list_distinct(list(license_type || ' ' || license_number))) as tdlr_licenses
   from licenses group by 1
 )
 select
-  'contractor:' || md5(a.name_norm) as contractor_key, a.*,
+  a.*,
   case when fx.n = 1 then fx.taxpayer_number end as taxpayer_number,
   case when fx.n = 1 then fx.sos_file_number end as sos_file_number,
   case when fx.n = 1 then fx.legal_name end as legal_name,
@@ -196,7 +139,7 @@ from agg a
 left join fx using (name_norm)
 left join lx using (name_norm);
 alter table permits add column if not exists contractor_key varchar;
-update permits p set contractor_key = 'contractor:' || md5(${squash(norm("p.contractor_company_name"))})
+update permits p set contractor_key = 'contractor:' || md5(${normName("p.contractor_company_name")})
 where p.contractor_company_name is not null`);
 
 const s = await c.runAndReadAll(`

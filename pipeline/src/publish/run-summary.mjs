@@ -2,14 +2,19 @@
 // Write run.json into the run directory: sources (with snapshot receipts), timings, counts and
 // documented source limitations. It is part of the published DAG, so the run summary itself is
 // content-addressed.
-// Usage: node src/publish/run-summary.mjs <run-dir> <run-id> <raw-dir> <mode: full|incremental> [started-at] [--note "<text>" ...]
+// Usage: node src/publish/run-summary.mjs <run-dir> <run-id> <raw-dir> <mode: full|incremental> [started-at]
+//          [--note "<text>" ...] [--prev-run <previous run.json>]
+// Sources not re-harvested in this run (e.g. a CI permit-window refresh) carry their receipt forward
+// from the previous run, marked carried_from.
 import { existsSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const argv = process.argv.slice(2);
+const flagged = new Set(["--note", "--prev-run"]);
 const notes = argv.flatMap((a, i) => (a === "--note" ? [argv[i + 1]] : []));
-const [runDir, runId, raw, mode, startedAt] = argv.filter((a, i) => a !== "--note" && argv[i - 1] !== "--note");
+const prevRunPath = argv.flatMap((a, i) => (a === "--prev-run" ? [argv[i + 1]] : []))[0];
+const [runDir, runId, raw, mode, startedAt] = argv.filter((a, i) => !flagged.has(a) && !flagged.has(argv[i - 1]));
 if (!runDir || !runId || !raw || !mode) {
   console.error("usage: run-summary.mjs <run-dir> <run-id> <raw-dir> <full|incremental> [started-at]");
   process.exit(2);
@@ -18,13 +23,13 @@ const readJson = async (p) => (existsSync(p) ? JSON.parse(await readFile(p, "utf
 const coverage = await readJson(join(runDir, "coverage.json"));
 // The TCAD snapshot actually used is the newest extracted export; permits list every harvest file.
 const tcadReceipts = [];
-for (const d of await readdir(join(raw, "tcad"))) {
+for (const d of existsSync(join(raw, "tcad")) ? await readdir(join(raw, "tcad")) : []) {
   const r = await readJson(join(raw, "tcad", d, "extracted", "receipt.json"));
   if (r && existsSync(join(raw, "tcad", d, "extracted", "PROP.TXT"))) tcadReceipts.push(r);
 }
 tcadReceipts.sort((a, b) => a.extracted_at.localeCompare(b.extracted_at));
 const permitReceipts = [];
-for (const f of (await readdir(join(raw, "permits/austin"))).filter((f) => f.endsWith(".receipt.json")).sort()) {
+for (const f of (existsSync(join(raw, "permits/austin")) ? await readdir(join(raw, "permits/austin")) : []).filter((f) => f.endsWith(".receipt.json")).sort()) {
   permitReceipts.push({ file: f.replace(".receipt.json", ""), ...(await readJson(join(raw, "permits/austin", f))) });
 }
 
@@ -58,6 +63,13 @@ const limitations = [
   "Contractor identity resolves to a Texas Comptroller entity only on an unambiguous exact normalized-name match (no fuzzy matching); Texas has no roofing contractor license.",
   "City of Austin rewrites Socrata :updated_at for every row nightly; incremental refreshes window on status/applied/issued/completed dates instead.",
 ];
+
+const prevRun = prevRunPath ? await readJson(prevRunPath) : null;
+for (const s of sources) {
+  const carried = prevRun?.sources?.find((x) => x.key === s.key);
+  if (!s.receipt && carried?.receipt) Object.assign(s, { receipt: carried.receipt, carried_from: carried.carried_from ?? prevRun.run_id });
+  if (s.key === "austin_permits" && carried?.harvests) s.harvests = [...carried.harvests.filter((h) => !s.harvests?.some((x) => x.file === h.file)), ...(s.harvests ?? [])];
+}
 
 const run = {
   run_id: runId, mode, started_at: startedAt ?? null, summarized_at: new Date().toISOString(),

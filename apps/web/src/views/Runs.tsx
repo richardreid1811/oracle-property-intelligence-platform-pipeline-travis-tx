@@ -12,7 +12,7 @@ export default function Runs({ data }: { data: AppData }) {
   async function checkRun(runId: string) {
     setChecks((c) => ({ ...c, [runId]: "checking…" }));
     try {
-      const m = (await (await fetch(`/runs/${runId}/manifest.json`)).json()) as Manifest;
+      const m = (await (await fetch(`${data.runsBase}/${runId}/manifest.json`)).json()) as Manifest;
       const cov = m.objects.find((o) => o.name === "coverage.json")!;
       const r = await verifyInBrowser(cov, "https://ipfs.io");
       setChecks((c) => ({ ...c, [runId]: `${r.state === "ok" ? "✓ resolves" : "✗"} coverage.json ${cov.cid.slice(0, 14)}… via ipfs.io: ${r.detail}` }));
@@ -30,6 +30,19 @@ export default function Runs({ data }: { data: AppData }) {
           partitions) keep their CIDs and are marked as reused.
         </p>
       </section>
+      {(data.history.checks?.length ?? 0) > 0 && (
+        <section className="card">
+          <h2>Ingestion checks without source changes</h2>
+          <table className="tbl small">
+            <thead><tr><th>Checked</th><th>Source</th><th>Window since</th><th>Result</th></tr></thead>
+            <tbody>
+              {[...(data.history.checks ?? [])].reverse().map((c) => (
+                <tr key={c.checked_at}><td>{when(c.checked_at)}</td><td>{c.source}</td><td>{c.window_since}</td><td>{c.result}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
       {runs.map((r, i) => (
         <section key={r.run_id} className="card">
           <div className="row-between">
@@ -40,7 +53,7 @@ export default function Runs({ data }: { data: AppData }) {
           <dl className="kv">
             <dt>Published</dt><dd>{when(r.published_at)}</dd>
             <dt>Root CID</dt><dd><code>{r.root_cid}</code></dd>
-            <dt>Manifest CID</dt><dd><code>{r.manifest_cid ?? "—"}</code> · <a href={`/runs/${r.run_id}/manifest.json`} target="_blank" rel="noreferrer">manifest</a></dd>
+            <dt>Manifest CID</dt><dd><code>{r.manifest_cid ?? "—"}</code> · <a href={`${data.runsBase}/${r.run_id}/manifest.json`} target="_blank" rel="noreferrer">manifest</a></dd>
             <dt>Previous run</dt><dd>{r.previous_run_id ?? "— (initial full load)"}</dd>
             <dt>Objects</dt><dd>{r.objects} listed, {r.new_objects} new in this run, {r.objects - r.new_objects} reused unchanged</dd>
           </dl>

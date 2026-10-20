@@ -61,7 +61,7 @@ export const tools = [
       return `
         select prop_id, situs_address, jurisdiction, round(${miles(lat, lon)}, 2) as distance_miles,
                roof_age_years, roof_year, roof_age_basis, roof_age_confidence, roof_covering, year_built,
-               open_roofing_permits, owner_mail_region, latitude, longitude, source_detail_url
+               open_roofing_permits, oldest_open_date, owner_mail_region, latitude, longitude, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
           and roof_age_years >= ${minAge} ${res}
@@ -85,8 +85,9 @@ export const tools = [
       const minDays = Math.round(num(a.min_open_years, { min: 0, max: 100, dflt: 0 }) * 365.25);
       const since = /^\d{4}-\d{2}-\d{2}$/.test(a.issued_since ?? "") ? `and opened_date >= date '${a.issued_since}'` : "";
       return `
-        select p.permit_number, p.status, p.status_bucket, p.roofing_work, p.opened_date, p.open_days,
-               round(p.open_days / 365.25, 1) as open_years, p.address, p.prop_id,
+        select p.permit_number, p.status, p.status_bucket, p.roofing_work, p.opened_date,
+               date_diff('day', p.opened_date, current_date) as open_days,
+               round(date_diff('day', p.opened_date, current_date) / 365.25, 1) as open_years, p.address, p.prop_id,
                round(${miles(lat, lon, "p.latitude", "p.longitude")}, 2) as distance_miles,
                p.contractor_company_name, c.legal_name as contractor_legal_name, c.identity_status as contractor_identity,
                c.bbb_rating, c.bbb_status, left(p.description, 160) as description,
@@ -95,8 +96,8 @@ export const tools = [
         where p.roofing_work in ('roof_replacement', 'roof_repair')
           and p.status_bucket in ('open', 'expired_unfinaled')
           and ${bbox(lat, lon, r, "p.latitude", "p.longitude")} and ${miles(lat, lon, "p.latitude", "p.longitude")} <= ${r}
-          and p.open_days >= ${minDays} ${since}
-        order by p.open_days desc
+          and date_diff('day', p.opened_date, current_date) >= ${minDays} ${since}
+        order by p.opened_date, p.permit_number
         limit ${LIMIT(a.limit)}`;
     },
     count_sql: (a) => {
@@ -106,7 +107,7 @@ export const tools = [
       return `select count(*) as matches, count(contractor_company_name) as with_contractor
               from roofing_permits
               where roofing_work in ('roof_replacement', 'roof_repair') and status_bucket in ('open', 'expired_unfinaled')
-                and ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and open_days >= ${minDays} ${since}`;
+                and ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and date_diff('day', opened_date, current_date) >= ${minDays} ${since}`;
     },
   },
   {

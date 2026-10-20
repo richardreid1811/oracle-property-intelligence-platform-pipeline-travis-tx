@@ -50,7 +50,7 @@ export default function Artifacts({ data }: { data: AppData }) {
       <section className="card">
         <div className="row-between">
           <h1>Artifact manifest · run {manifest.run_id}</h1>
-          <a href={`/runs/${manifest.run_id}/manifest.json`} target="_blank" rel="noreferrer">manifest.json</a>
+          <a href={`${data.runsBase}/${manifest.run_id}/manifest.json`} target="_blank" rel="noreferrer">manifest.json</a>
         </div>
         <p className="muted small">
           CIDs are the durable identity (CIDv1, base32; {manifest.unixfs_profile}). Gateway URLs are derived from CIDs. Files are pinned on Filebase and
