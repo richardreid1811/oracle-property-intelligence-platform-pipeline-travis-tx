@@ -75,6 +75,12 @@ const filebaseAdd = (path, name) =>
 const filebaseImportCar = (carPath) =>
   retry(`filebase dag/import ${carPath}`, async () =>
     (await formPost(`${FILEBASE_RPC}/dag/import?pin-roots=true`, { Authorization: `Bearer ${filebaseToken()}` }, carPath, { filename: "dag.car" })).Root.Cid["/"]);
+// Pinata stores a new entry per upload even for a CID it already holds (each costs one of the
+// free plan's 500 files), so a retried run checks first.
+const pinataHas = async (cid) => {
+  const res = await fetch(`https://api.pinata.cloud/v3/files/public?cid=${cid}&limit=1`, { headers: { Authorization: `Bearer ${env.PINATA_JWT}` } });
+  return res.ok && ((await res.json()).data?.files?.length ?? 0) > 0;
+};
 const pinataAdd = (path, name) =>
   retry(`pinata add ${name}`, async () =>
     (await formPost("https://uploads.pinata.cloud/v3/files", { Authorization: `Bearer ${env.PINATA_JWT}` }, path,
@@ -141,8 +147,10 @@ for (const o of uploadOrder) {
     const fb = await filebaseAdd(o.local_path, `${runId}/${o.name}`);
     if (fb !== o.cid) throw new Error(`filebase CID mismatch for ${o.name}: ${fb} != ${o.cid}`);
     o.pins.push({ provider: "filebase", method: "add", at: new Date().toISOString() });
-    const pn = await pinataAdd(o.local_path, `${runId}/${o.name}`);
-    if (pn !== o.cid) throw new Error(`pinata CID mismatch for ${o.name}: ${pn} != ${o.cid}`);
+    if (!(await pinataHas(o.cid))) {
+      const pn = await pinataAdd(o.local_path, `${runId}/${o.name}`);
+      if (pn !== o.cid) throw new Error(`pinata CID mismatch for ${o.name}: ${pn} != ${o.cid}`);
+    }
     o.pins.push({ provider: "pinata", method: "v3 files public", at: new Date().toISOString() });
   }
   process.stderr.write(`\rpinned ${uploadOrder.indexOf(o) + 1}/${uploadOrder.length}`);
@@ -176,8 +184,10 @@ await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 let manifestCid = null;
 if (!dryRun) {
   manifestCid = await filebaseAdd(manifestPath, `${runId}/manifest.json`);
-  const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
-  if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
+  if (!(await pinataHas(manifestCid))) {
+    const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
+    if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
+  }
 }
 
 const prevCounts = previous?.counts ?? null;
