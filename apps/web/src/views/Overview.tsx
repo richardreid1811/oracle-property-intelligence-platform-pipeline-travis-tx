@@ -26,7 +26,9 @@ function receiptLine(r: Record<string, unknown> | null): string {
   if (r.reported !== undefined) parts.push(`source reported ${fmt(r.reported)}`);
   const at = r.fetched_at ?? r.extracted_at ?? r.observed_at;
   if (at) parts.push(when(String(at)));
-  if (r.zip_sha256) parts.push(`sha256 ${String(r.zip_sha256).slice(0, 12)}…`);
+  const digest = r.zip_sha256 ?? r.sha256;
+  if (digest) parts.push(`sha256 ${String(digest).slice(0, 12)}…`);
+  if (!parts.length && r.url) parts.push(String(r.url).replace(/^https?:\/\//, "").slice(0, 60));
   if (r.status) parts.push(`HTTP ${r.status}`);
   return parts.join(" · ");
 }
@@ -110,7 +112,7 @@ export default function Overview({ data }: { data: AppData }) {
               <tr key={s.key}>
                 <td>{s.name}</td>
                 <td><span className={`tag ${s.kind === "blocked" ? "bad" : ""}`}>{s.kind}</span></td>
-                <td className="small">{receiptLine(s.receipt)}</td>
+                <td className="small">{receiptLine(s.receipt)}{(s as { carried_from?: string }).carried_from ? <span className="muted"> · carried from run {(s as { carried_from?: string }).carried_from}</span> : null}</td>
               </tr>
             ))}
           </tbody>
