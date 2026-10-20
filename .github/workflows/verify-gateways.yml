@@ -39,7 +39,15 @@ jobs:
             const fs = require('fs');
             const runs = require('./runs/history.json').runs.map((r) => r.run_id);
             const latest = runs.at(-1);
-            const todo = runs.filter((r) => r === latest || !fs.existsSync('runs/' + r + '/gateway-verification.json'));
+            const want = 'https://ipfs.orbitor.dev,https://dget.top';
+            // Re-verify the latest run, and any run whose evidence is missing, failed, or from other gateways.
+            const stale = (r) => {
+              const f = 'runs/' + r + '/gateway-verification.json';
+              if (!fs.existsSync(f)) return true;
+              const v = JSON.parse(fs.readFileSync(f, 'utf8'));
+              return !v.all_ok || v.gateways.join(',') !== want;
+            };
+            const todo = runs.filter((r) => r === latest || stale(r));
             console.log(todo.join(' '));")
           echo "runs=$RUNS" >> "$GITHUB_OUTPUT"
       - name: Verify on ipfs.orbitor.dev and dget.top
@@ -58,7 +66,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add runs/*/gateway-verification.json
           git commit -m "Gateway verification: ${{ steps.pick.outputs.runs }}" || echo "no change"
-          git pull --rebase && git push
+          # On a conflict with another writer, keep this job's fresh evidence for the files it produced.
+          git pull --rebase -X theirs && git push
       - name: Fail if any object failed
         if: steps.verify.outcome != 'success'
         run: exit 1

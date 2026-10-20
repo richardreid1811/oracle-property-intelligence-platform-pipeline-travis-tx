@@ -28,7 +28,7 @@ const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const SHA2_256 = 0x12;
 const FULL_CAR_MAX_BYTES = 80 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 120_000;
-const ATTEMPTS = 3;
+const ATTEMPTS = 5; // community gateways answer bursts with transient 403/429
 const CONCURRENCY = 2;
 const sha256hex = (b) => createHash("sha256").update(b).digest("hex");
 
@@ -46,7 +46,7 @@ async function fetchBytes(url, accept) {
     } catch (err) {
       last = err.name === "TimeoutError" ? `timeout after ${REQUEST_TIMEOUT_MS / 1000}s` : err.message;
     }
-    await new Promise((r) => setTimeout(r, 10_000 * attempt)); // gateways rate-limit shared runners
+    await new Promise((r) => setTimeout(r, 15_000 * attempt)); // gateways rate-limit shared runners
   }
   throw new Error(last);
 }
