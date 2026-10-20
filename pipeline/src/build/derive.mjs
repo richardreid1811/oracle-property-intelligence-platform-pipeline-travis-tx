@@ -38,6 +38,8 @@ with rp as (
   select pm.prop_id, pm.permit_key, pm.status_bucket, pm.issued_date, pm.completed_date, pr.year_built
   from permits pm join properties pr using (prop_id)
   where pm.roofing_work = 'roof_replacement'
+    -- Ambiguous geo_id links (shared id, no address match) are queryable but are not roof evidence.
+    and pm.link_basis not like '%ambiguous%'
     and (pr.year_built is null or year(coalesce(pm.completed_date, pm.issued_date)) >= pr.year_built)
 ),
 final_roof as (
@@ -57,7 +59,9 @@ select
        when u.d is not null then 'permit_issued_roof_replacement_unfinaled'
        when p.year_built is not null then 'tcad_year_built_assumes_original_roof'
        else 'unknown' end as roof_age_basis,
+  -- Year built is only a roof-age proxy; past ~50 years an unpermitted replacement is likely.
   case when f.d is not null then 'high' when u.d is not null then 'medium'
+       when p.year_built is not null and year(current_date) - p.year_built > 50 then 'very_low'
        when p.year_built is not null then 'low' else 'none' end as roof_age_confidence,
   coalesce(f.permit_key, u.permit_key) as evidence_permit_key,
   p.roof_covering, p.roof_style,
@@ -67,7 +71,7 @@ select
 from properties p
 left join final_roof f using (prop_id)
 left join unverified_roof u using (prop_id);
-alter table roof_age add column roof_age_years integer;
+alter table roof_age add column if not exists roof_age_years integer;
 update roof_age set roof_age_years = year(current_date) - roof_year where roof_year is not null`);
 
 await step("zip_region", `
@@ -191,7 +195,7 @@ select
 from agg a
 left join fx using (name_norm)
 left join lx using (name_norm);
-alter table permits add column contractor_key varchar;
+alter table permits add column if not exists contractor_key varchar;
 update permits p set contractor_key = 'contractor:' || md5(${squash(norm("p.contractor_company_name"))})
 where p.contractor_company_name is not null`);
 

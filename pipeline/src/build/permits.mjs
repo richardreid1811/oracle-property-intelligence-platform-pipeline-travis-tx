@@ -5,16 +5,18 @@
 // - Classifies roofing work from the description (Austin has no re-roof work class; the
 //   'Roof' work class is mostly electrical work on roofs).
 // - Buckets status and computes open duration so long-open permits can be queried.
-// Usage: node src/build/permits.mjs <permits.ndjson> <county.duckdb>
+// Usage: node src/build/permits.mjs <county.duckdb> <base.ndjson> [window.ndjson ...]
+// Later harvests win: each permit keeps the version from the most recent fetch (window refreshes
+// layered over the full pull), and every row records which harvest it came from.
 import { DuckDBInstance } from "@duckdb/node-api";
 import { readFile } from "node:fs/promises";
 
-const [ndjson, dbPath] = process.argv.slice(2);
-if (!ndjson || !dbPath) {
-  console.error("usage: permits.mjs <permits.ndjson> <county.duckdb>");
+const [dbPath, ...inputs] = process.argv.slice(2);
+if (!dbPath || !inputs.length) {
+  console.error("usage: permits.mjs <county.duckdb> <base.ndjson> [window.ndjson ...]");
   process.exit(2);
 }
-const receipt = JSON.parse(await readFile(`${ndjson}.receipt.json`, "utf8"));
+const receipts = await Promise.all(inputs.map(async (f) => ({ file: f, ...JSON.parse(await readFile(`${f}.receipt.json`, "utf8")) })));
 const lit = (s) => `'${String(s).replaceAll("'", "''")}'`;
 
 // Roofing taxonomy (applied to upper-cased description), Building Permits only: companion
@@ -32,7 +34,7 @@ const t0 = Date.now();
 
 await c.run(`
 create or replace temp table raw_permits as
-select * from read_json(${lit(ndjson)}, format='newline_delimited', union_by_name=true,
+select * from read_json([${inputs.map(lit).join(", ")}], format='newline_delimited', union_by_name=true, filename=true,
   columns={
     permittype:'VARCHAR', permit_type_desc:'VARCHAR', permit_number:'VARCHAR', permit_class_mapped:'VARCHAR',
     permit_class:'VARCHAR', work_class:'VARCHAR', description:'VARCHAR', tcad_id:'VARCHAR',
@@ -71,14 +73,14 @@ with base as (
     nullif(regexp_replace(coalesce(contractor_phone, ''), '[^0-9]', '', 'g'), '') as contractor_phone,
     nullif(trim(concat_ws(' ', contractor_address1, contractor_address2)), '') as contractor_address,
     contractor_city, contractor_zip,
-    link as source_detail_url, source_url, socrata_id, fetched_at,
+    link as source_detail_url, source_url, socrata_id, fetched_at, filename as harvest_file,
     upper(coalesce(description, '')) as d
   from raw_permits
 ),
 dedup as (
   -- One row per permit number; the harvest can see a row twice if it is edited mid-pull.
   select * exclude (rk) from (
-    select *, row_number() over (partition by permit_number order by status_date desc nulls last, socrata_id desc) as rk
+    select *, row_number() over (partition by permit_number order by fetched_at desc, status_date desc nulls last, socrata_id desc) as rk
     from base) where rk = 1
 )
 select
@@ -111,14 +113,30 @@ update permits set open_days = case
 end;
 alter table permits add column prop_id varchar;
 alter table permits add column link_basis varchar;
-update permits p set prop_id = pr.prop_id, link_basis = 'tcad_id=geo_id'
-from properties pr where pr.geo_id = p.tcad_id;
+-- geo_id is not unique in the roll (~10k shared ids), so link deterministically: unique geo_id
+-- first; when shared, the parcel whose situs address matches the permit address; else the lowest
+-- PROP_ID, flagged as ambiguous.
+create or replace temp table geo_link as
+with cand as (
+  select p.permit_key, pr.prop_id,
+         count(*) over (partition by p.permit_key) as n,
+         (upper(coalesce(pr.situs_address, '')) = upper(trim(coalesce(p.address, '')))) as addr_match
+  from permits p join properties pr on pr.geo_id = p.tcad_id
+)
+select permit_key, prop_id,
+       case when n = 1 then 'tcad_id=geo_id'
+            when addr_match then 'tcad_id=geo_id+address (' || n || ' parcels share geo_id)'
+            else 'tcad_id=geo_id (ambiguous ' || n || ', lowest prop_id)' end as link_basis
+from (select *, row_number() over (partition by permit_key order by addr_match desc, prop_id::bigint) as rk from cand)
+where rk = 1;
+update permits p set prop_id = g.prop_id, link_basis = g.link_basis from geo_link g where g.permit_key = p.permit_key;
 -- Older permits often record the 6-7 digit PROP_ID in tcad_id instead of the 10-char geo_id.
 update permits p set prop_id = pr.prop_id, link_basis = 'tcad_id=prop_id'
 from properties pr where p.prop_id is null and length(p.tcad_id) between 4 and 9
   and pr.prop_id = ltrim(p.tcad_id, '0');
 alter table permits add column window_source varchar;
-update permits set window_source = ${lit(receipt.window_since ? `window>${receipt.window_since}` : "full")};`);
+${receipts.map((r) => `update permits set window_source = ${lit(r.window_since ? `window>${r.window_since}` : "full")} where harvest_file = ${lit(r.file)};`).join("\n")}
+alter table permits drop column harvest_file;`);
 
 const s = await c.runAndReadAll(`
 select count(*) as permits,
@@ -129,4 +147,4 @@ select count(*) as permits,
        count(*) filter (roofing_work = 'roof_repair') as roof_repair,
        count(*) filter (roofing_work is not null and status_bucket in ('open','expired_unfinaled')) as roofing_open_or_unfinaled
 from permits`);
-console.log(JSON.stringify({ ...s.getRowObjectsJson()[0], harvest: receipt, seconds: Math.round((Date.now() - t0) / 1000) }));
+console.log(JSON.stringify({ ...s.getRowObjectsJson()[0], harvests: receipts.map((r) => ({ file: r.file, window_since: r.window_since, written: r.written })), seconds: Math.round((Date.now() - t0) / 1000) }));

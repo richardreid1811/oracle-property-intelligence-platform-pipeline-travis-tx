@@ -50,7 +50,10 @@ select
   try_cast(${f(1916, 15)} as bigint) as appraised_val,
   try_cast(${f(1946, 15)} as bigint) as assessed_val,
   ${f(1994, 20)} as deed_book, ${f(2014, 20)} as deed_page,
-  try_strptime(${f(2034, 25)}, '%m-%d-%Y')::date as deed_date,
+  ${f(2034, 25)} as deed_date_raw,
+  -- Texas statehood (1836) to today; anything else is a keying error in the source (e.g. 0201-07-14).
+  case when year(try_strptime(${f(2034, 25)}, '%m-%d-%Y')) between 1836 and year(current_date)
+       then try_strptime(${f(2034, 25)}, '%m-%d-%Y')::date end as deed_date,
   ${flag(2609)} as homestead_exempt, ${flag(2610)} as over65_exempt,
   ${f(2732, 10)} as imprv_state_cd, ${f(2742, 10)} as land_state_cd,
   row_number() over (partition by substr(l, 1, 12) order by ${flag(679)}) as owner_rank
@@ -120,7 +123,7 @@ select
   case when p.owner_confidential or p.owner_address_suppressed then null else p.mail_line3 end as mail_line3,
   case when p.owner_confidential or p.owner_address_suppressed then null else p.mail_city end as mail_city,
   p.mail_state, p.mail_zip, p.mail_country,
-  p.deed_date, p.deed_book, p.deed_page,
+  p.deed_date, p.deed_date_raw, p.deed_book, p.deed_page,
   p.homestead_exempt, p.over65_exempt, p.market_val, p.appraised_val, p.assessed_val,
   m.yr_built as year_built, m.basis as year_built_basis, m.area as main_area_sqft,
   r.roof_covering, r.roof_style,

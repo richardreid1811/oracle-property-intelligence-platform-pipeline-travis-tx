@@ -2,27 +2,40 @@
 // Write run.json into the run directory: sources (with snapshot receipts), timings, counts and
 // documented source limitations. It is part of the published DAG, so the run summary itself is
 // content-addressed.
-// Usage: node src/publish/run-summary.mjs <run-dir> <run-id> <raw-dir> <mode: full|incremental> [started-at]
+// Usage: node src/publish/run-summary.mjs <run-dir> <run-id> <raw-dir> <mode: full|incremental> [started-at] [--note "<text>" ...]
 import { existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const [runDir, runId, raw, mode, startedAt] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const notes = argv.flatMap((a, i) => (a === "--note" ? [argv[i + 1]] : []));
+const [runDir, runId, raw, mode, startedAt] = argv.filter((a, i) => a !== "--note" && argv[i - 1] !== "--note");
 if (!runDir || !runId || !raw || !mode) {
   console.error("usage: run-summary.mjs <run-dir> <run-id> <raw-dir> <full|incremental> [started-at]");
   process.exit(2);
 }
 const readJson = async (p) => (existsSync(p) ? JSON.parse(await readFile(p, "utf8")) : null);
 const coverage = await readJson(join(runDir, "coverage.json"));
+// The TCAD snapshot actually used is the newest extracted export; permits list every harvest file.
+const tcadReceipts = [];
+for (const d of await readdir(join(raw, "tcad"))) {
+  const r = await readJson(join(raw, "tcad", d, "extracted", "receipt.json"));
+  if (r && existsSync(join(raw, "tcad", d, "extracted", "PROP.TXT"))) tcadReceipts.push(r);
+}
+tcadReceipts.sort((a, b) => a.extracted_at.localeCompare(b.extracted_at));
+const permitReceipts = [];
+for (const f of (await readdir(join(raw, "permits/austin"))).filter((f) => f.endsWith(".receipt.json")).sort()) {
+  permitReceipts.push({ file: f.replace(".receipt.json", ""), ...(await readJson(join(raw, "permits/austin", f))) });
+}
 
 const sources = [
-  { key: "tcad_appraisal_roll", name: "Travis Central Appraisal District certified appraisal export (2026, Legacy 8.0.33)",
-    kind: "bulk_download", receipt: await readJson(join(raw, "tcad/certified-2026/extracted/receipt.json")) },
+  { key: "tcad_appraisal_roll", name: "Travis Central Appraisal District appraisal export (2026, Legacy 8.0.33)",
+    kind: "bulk_download", receipt: tcadReceipts.at(-1) ?? null },
   { key: "tcad_parcel_centroids", name: "TCAD parcel layer (City of Austin-hosted ArcGIS FeatureServer), centroids",
     kind: "arcgis_paging", receipt: { url: "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0", features: 386682 } },
   { key: "austin_permits", name: "City of Austin Issued Construction Permits (Socrata 3syk-w9eu)",
-    kind: mode === "full" ? "full_pull" : "business_date_window",
-    receipt: await readJson(join(raw, "permits/austin/current.receipt.json")) ?? await readJson(join(raw, "permits/austin/full-2026-10-20.ndjson.receipt.json")) },
+    kind: mode === "full" ? "full_pull" : "full_pull + business_date_windows",
+    receipt: permitReceipts.at(-1) ?? null, harvests: permitReceipts },
   { key: "tx_sales_tax_outlets", name: "Texas Comptroller Active Sales Tax Permit Holders (Travis, county 227)",
     kind: "socrata", receipt: await readJson(join(raw, "identity/tx-sales-tax-travis.ndjson.receipt.json")) },
   { key: "tx_franchise_taxpayers", name: "Texas Comptroller Active Franchise Taxpayers (statewide, identity resolution)",
@@ -49,7 +62,7 @@ const limitations = [
 const run = {
   run_id: runId, mode, started_at: startedAt ?? null, summarized_at: new Date().toISOString(),
   county: "travis", state: "TX", fips: "48453",
-  sources, counts: coverage?.counts ?? null, limitations,
+  sources, counts: coverage?.counts ?? null, corrections: notes, record_deltas: await readJson(join(runDir, "deltas.json")), limitations,
 };
 await writeFile(join(runDir, "run.json"), JSON.stringify(run, null, 2) + "\n");
 console.log(JSON.stringify({ run_id: runId, sources: sources.length, limitations: limitations.length }));
