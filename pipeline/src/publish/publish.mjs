@@ -62,11 +62,15 @@ async function formPost(url, headers, path, fields = {}) {
   const res = await fetch(url, { method: "POST", headers, body: form, signal: AbortSignal.timeout(600_000) });
   const text = await res.text();
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 300)}`);
-  return JSON.parse(text.trim().split("\n").pop());
+  // Kubo-style endpoints stream one JSON object per line; prefer the line for our filename.
+  const lines = text.trim().split("\n").map((l) => JSON.parse(l));
+  return lines.find((l) => l.Name === fields.filename) ?? lines.at(-1);
 }
+// Upload names must be flat: a '/' makes Kubo wrap the file in a directory and report that instead.
+const flat = (name) => name.replaceAll("/", "__");
 const filebaseAdd = (path, name) =>
   retry(`filebase add ${name}`, async () =>
-    (await formPost(`${FILEBASE_RPC}/add?cid-version=1&pin=true`, { Authorization: `Bearer ${filebaseToken()}` }, path, { filename: name })).Hash);
+    (await formPost(`${FILEBASE_RPC}/add?cid-version=1&pin=true`, { Authorization: `Bearer ${filebaseToken()}` }, path, { filename: flat(name) })).Hash);
 const filebaseImportCar = (carPath) =>
   retry(`filebase dag/import ${carPath}`, async () =>
     (await formPost(`${FILEBASE_RPC}/dag/import?pin-roots=true`, { Authorization: `Bearer ${filebaseToken()}` }, carPath, { filename: "dag.car" })).Root.Cid["/"]);

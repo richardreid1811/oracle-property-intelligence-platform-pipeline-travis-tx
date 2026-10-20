@@ -1,0 +1,1681 @@
+{
+  "schema": "travis-oracle/artifact-manifest@1",
+  "run_id": "20261020T180000Z",
+  "created_at": "2026-10-20T18:19:37.998Z",
+  "county": "travis",
+  "state": "TX",
+  "fips": "48453",
+  "root": {
+    "cid": "bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq",
+    "car": {
+      "file": "20261020T180000Z/root.car",
+      "bytes": 282302803,
+      "sha256": "3fc8549a73fcf3439d10b0b8502ca137b44beacc0f52ab93f6ae703696af95c2",
+      "blocks": 1370,
+      "release_asset": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-20261020T180000Z/root.car"
+    }
+  },
+  "unixfs_profile": "unixfs cidv1 raw-leaves chunker=size-262144 layout=balanced max-links=174 (kubo default)",
+  "cid_version": 1,
+  "multibase": "base32",
+  "previous_run": null,
+  "ipns": null,
+  "gateway_urls_note": "Gateway URLs are derived from CIDs and are convenience locators only; the CID is the artifact.",
+  "objects": [
+    {
+      "name": ".",
+      "cid": "bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq",
+      "codec": "directory",
+      "size": 282249589,
+      "sha256": null,
+      "car": {
+        "file": "20261020T180000Z/root.car",
+        "bytes": 282302803,
+        "sha256": "3fc8549a73fcf3439d10b0b8502ca137b44beacc0f52ab93f6ae703696af95c2",
+        "blocks": 1370,
+        "release_asset": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-20261020T180000Z/root.car"
+      },
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "dag/import",
+          "at": "2026-10-20T18:16:01.728Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq",
+        "https://dweb.link/ipfs/bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq"
+      ]
+    },
+    {
+      "name": "tables/permits",
+      "cid": "bafybeift3qhh7o62er7z5nlnyq43lmifaysfrbezvphvzfch3q24aqm7pe",
+      "codec": "directory",
+      "size": 156275573,
+      "sha256": null,
+      "car": {
+        "file": "20261020T180000Z/tables_permits.car",
+        "bytes": 156303777,
+        "sha256": "65bcb71c1dbf0bb2c6a06571129c71f79f8da2d59d6aadb9969e6f6f42dc385e",
+        "blocks": 726,
+        "release_asset": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-20261020T180000Z/tables_permits.car"
+      },
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "dag/import",
+          "at": "2026-10-20T18:16:33.626Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeift3qhh7o62er7z5nlnyq43lmifaysfrbezvphvzfch3q24aqm7pe",
+        "https://dweb.link/ipfs/bafybeift3qhh7o62er7z5nlnyq43lmifaysfrbezvphvzfch3q24aqm7pe"
+      ]
+    },
+    {
+      "name": "tiles/leads",
+      "cid": "bafybeicej6lybo7zv7nzehk56nx7fk62pdro5kpibb3r6jx4m23l5eecri",
+      "codec": "directory",
+      "size": 56670550,
+      "sha256": null,
+      "car": {
+        "file": "20261020T180000Z/tiles_leads.car",
+        "bytes": 56684519,
+        "sha256": "c41faba8e87f59d2064ba5e6acf5664b391c9bf1135fa5bc4645af1a3b4680b1",
+        "blocks": 359,
+        "release_asset": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-20261020T180000Z/tiles_leads.car"
+      },
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "dag/import",
+          "at": "2026-10-20T18:16:45.128Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicej6lybo7zv7nzehk56nx7fk62pdro5kpibb3r6jx4m23l5eecri",
+        "https://dweb.link/ipfs/bafybeicej6lybo7zv7nzehk56nx7fk62pdro5kpibb3r6jx4m23l5eecri"
+      ]
+    },
+    {
+      "name": "coverage.json",
+      "cid": "bafkreihxhlwq6gopo6rkwj4tzm5vzn5gbe55iesupftkalscsdja7tbjlm",
+      "codec": "file",
+      "size": 550,
+      "sha256": "f73aed0f19cf77a2ab2793cb3b5cb7a6093bd412547966a02e4290d20fcc295b",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:45.185Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:46.165Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreihxhlwq6gopo6rkwj4tzm5vzn5gbe55iesupftkalscsdja7tbjlm",
+        "https://dweb.link/ipfs/bafkreihxhlwq6gopo6rkwj4tzm5vzn5gbe55iesupftkalscsdja7tbjlm"
+      ]
+    },
+    {
+      "name": "run.json",
+      "cid": "bafkreigzv4tkl4jzfzxuqqteqr6nzoebertjhiznabhshdrf6dl4q77224",
+      "codec": "file",
+      "size": 6735,
+      "sha256": "d9af26a5f1392e6f484264847cdcb881246693a32d004f238e25f0d7c87ffad7",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:46.232Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:46.791Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreigzv4tkl4jzfzxuqqteqr6nzoebertjhiznabhshdrf6dl4q77224",
+        "https://dweb.link/ipfs/bafkreigzv4tkl4jzfzxuqqteqr6nzoebertjhiznabhshdrf6dl4q77224"
+      ]
+    },
+    {
+      "name": "samples/contractors-roofing.csv",
+      "cid": "bafkreiebirc5ulk2rn6sbzycb62kkmnp4soatbz6his3vrw4jwcxej3use",
+      "codec": "file",
+      "size": 28475,
+      "sha256": "814445da2d5a8b7d20e7020fb4a531afe49c09873e3a25bac6dc4d8572277491",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:46.864Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:47.441Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreiebirc5ulk2rn6sbzycb62kkmnp4soatbz6his3vrw4jwcxej3use",
+        "https://dweb.link/ipfs/bafkreiebirc5ulk2rn6sbzycb62kkmnp4soatbz6his3vrw4jwcxej3use"
+      ]
+    },
+    {
+      "name": "samples/leads-roof-15y-plus.csv",
+      "cid": "bafkreie4tiu5xqlgexlskmbzofczxb7dk7ofv3x25qfkjahsc5c2vysove",
+      "codec": "file",
+      "size": 70344,
+      "sha256": "9c9a29dbc16625d725303971459b87e357dc5aeefaec0aa480f21745aae24ea9",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:47.508Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:47.992Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreie4tiu5xqlgexlskmbzofczxb7dk7ofv3x25qfkjahsc5c2vysove",
+        "https://dweb.link/ipfs/bafkreie4tiu5xqlgexlskmbzofczxb7dk7ofv3x25qfkjahsc5c2vysove"
+      ]
+    },
+    {
+      "name": "samples/roofing-permits-open.csv",
+      "cid": "bafkreiamm3cfhcsd5gfyxysm62sa24hvqkbvzjyy5kk5yuggif4qzhkssq",
+      "codec": "file",
+      "size": 45736,
+      "sha256": "0c66c4538a43e98b8be24cf6a40d70f582835ca718ea95dc50c641790c9d5294",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:48.054Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:48.649Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreiamm3cfhcsd5gfyxysm62sa24hvqkbvzjyy5kk5yuggif4qzhkssq",
+        "https://dweb.link/ipfs/bafkreiamm3cfhcsd5gfyxysm62sa24hvqkbvzjyy5kk5yuggif4qzhkssq"
+      ]
+    },
+    {
+      "name": "tables/businesses.parquet",
+      "cid": "bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+      "codec": "file",
+      "size": 14609775,
+      "sha256": "bb0f2f24cdfdb698a02f73226eabec27e4f356d4fbb0b657387745e9f9c9a7eb",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:53.433Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:57.418Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+        "https://dweb.link/ipfs/bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4"
+      ]
+    },
+    {
+      "name": "tables/contractors.parquet",
+      "cid": "bafybeifbc24sdduwn5isbh6obpq55c7l27dz5imn22qa6b6cv323wazvvy",
+      "codec": "file",
+      "size": 1935402,
+      "sha256": "c486cfca0aab6c54043600eb93649d55467481a8fb01017fa74f450873e8e560",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:16:58.149Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:16:58.886Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifbc24sdduwn5isbh6obpq55c7l27dz5imn22qa6b6cv323wazvvy",
+        "https://dweb.link/ipfs/bafybeifbc24sdduwn5isbh6obpq55c7l27dz5imn22qa6b6cv323wazvvy"
+      ]
+    },
+    {
+      "name": "tables/leads.parquet",
+      "cid": "bafybeifi3dzifyjh2kcama7bpyrcdmo7smg53udmm3qiidvcylxcwqkv3m",
+      "codec": "file",
+      "size": 17624949,
+      "sha256": "7eef1adf832d2ace6f338527a93edbfb82e67d467e10d14c57bbfaa75f5541ff",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:05.299Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:10.315Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifi3dzifyjh2kcama7bpyrcdmo7smg53udmm3qiidvcylxcwqkv3m",
+        "https://dweb.link/ipfs/bafybeifi3dzifyjh2kcama7bpyrcdmo7smg53udmm3qiidvcylxcwqkv3m"
+      ]
+    },
+    {
+      "name": "tables/licenses.parquet",
+      "cid": "bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
+      "codec": "file",
+      "size": 1499654,
+      "sha256": "f07d7cbab5cc454f1f5b9dc7ad8e145c71e043d1fb387ddd39061a34a454eed1",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:11.032Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:11.757Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
+        "https://dweb.link/ipfs/bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e"
+      ]
+    },
+    {
+      "name": "tables/owner_signals.parquet",
+      "cid": "bafybeiaylyliwx65kwr7fb4r3mf6zb4gxhqtdlee4hzjwseuuye2ilhhve",
+      "codec": "file",
+      "size": 2062867,
+      "sha256": "404143476fcc3a966fd84076f92c813c5f5671bc465b0ce062053efb7a035294",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:12.567Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:13.611Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiaylyliwx65kwr7fb4r3mf6zb4gxhqtdlee4hzjwseuuye2ilhhve",
+        "https://dweb.link/ipfs/bafybeiaylyliwx65kwr7fb4r3mf6zb4gxhqtdlee4hzjwseuuye2ilhhve"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1921/part0.parquet",
+      "cid": "bafkreiewvc7kr3xw7shwgwnuypv4m4qc7zcdgdgpujle53h4q66n3jk5wi",
+      "codec": "file",
+      "size": 11164,
+      "sha256": "96a8bea8eef6fc8f6359b4c3ebc67202fe44330ccfa2564eecfc87bcdda55db2",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:13.706Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:14.308Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreiewvc7kr3xw7shwgwnuypv4m4qc7zcdgdgpujle53h4q66n3jk5wi",
+        "https://dweb.link/ipfs/bafkreiewvc7kr3xw7shwgwnuypv4m4qc7zcdgdgpujle53h4q66n3jk5wi"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1969/part0.parquet",
+      "cid": "bafkreicub62oenlkt2lbq6sow4lvi46mv66q6apv25eqhopmrmswybzmui",
+      "codec": "file",
+      "size": 8973,
+      "sha256": "540fb4e2356a9e96187a4eb7175473ccafbd0f01f5d74903b9ec8b256c072ca2",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:14.363Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:14.894Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreicub62oenlkt2lbq6sow4lvi46mv66q6apv25eqhopmrmswybzmui",
+        "https://dweb.link/ipfs/bafkreicub62oenlkt2lbq6sow4lvi46mv66q6apv25eqhopmrmswybzmui"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1970/part0.parquet",
+      "cid": "bafkreiadvxbwutuzt6dxvxctl4htwpe2sgkmtkkrhuxuv3r75gmhhrmliy",
+      "codec": "file",
+      "size": 10425,
+      "sha256": "03adc36a4e999f877adc535f0f3b3c9a9194c9a9513d2f4aee3fe99873c58b46",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:14.962Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:15.559Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreiadvxbwutuzt6dxvxctl4htwpe2sgkmtkkrhuxuv3r75gmhhrmliy",
+        "https://dweb.link/ipfs/bafkreiadvxbwutuzt6dxvxctl4htwpe2sgkmtkkrhuxuv3r75gmhhrmliy"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1971/part0.parquet",
+      "cid": "bafkreiejltqhzf5bif7hlppo7e4p3t5c2arpwz36mowki5amudpy6wls2m",
+      "codec": "file",
+      "size": 10430,
+      "sha256": "895ce07c97a1417e75bdeef938fdcfa2d022fb677e63aca4740ca0df8f5972d3",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:15.625Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:16.210Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreiejltqhzf5bif7hlppo7e4p3t5c2arpwz36mowki5amudpy6wls2m",
+        "https://dweb.link/ipfs/bafkreiejltqhzf5bif7hlppo7e4p3t5c2arpwz36mowki5amudpy6wls2m"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1976/part0.parquet",
+      "cid": "bafkreihteepvono7wupl2y76c4kb2y2utqz4c3wj6etgrj3rjvhqrw6nta",
+      "codec": "file",
+      "size": 8735,
+      "sha256": "f3211f5735dfb51ebd63fe17141d63549c33c16ec9f12668a7714d4f08dbcd98",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:16.268Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:16.833Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreihteepvono7wupl2y76c4kb2y2utqz4c3wj6etgrj3rjvhqrw6nta",
+        "https://dweb.link/ipfs/bafkreihteepvono7wupl2y76c4kb2y2utqz4c3wj6etgrj3rjvhqrw6nta"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1977/part0.parquet",
+      "cid": "bafkreibxuew772i32xjleu52xvao4drzy2ca5mbt7zpvflcvvrqigb7ije",
+      "codec": "file",
+      "size": 13782,
+      "sha256": "37a12dffe91bd5d2b253babd40ee0e39c6840eb033fe5f52ac55ac608307e849",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:16.908Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:17.607Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreibxuew772i32xjleu52xvao4drzy2ca5mbt7zpvflcvvrqigb7ije",
+        "https://dweb.link/ipfs/bafkreibxuew772i32xjleu52xvao4drzy2ca5mbt7zpvflcvvrqigb7ije"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1978/part0.parquet",
+      "cid": "bafkreichdq6sqqpelnlrnwqjqaqkixhuvizicfepmfvkq4hjk7dfll63ui",
+      "codec": "file",
+      "size": 37286,
+      "sha256": "471c3d2841e45b5716da098020a45cf4aa3281148f616aa870e957c655afdba2",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:17.692Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:18.321Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreichdq6sqqpelnlrnwqjqaqkixhuvizicfepmfvkq4hjk7dfll63ui",
+        "https://dweb.link/ipfs/bafkreichdq6sqqpelnlrnwqjqaqkixhuvizicfepmfvkq4hjk7dfll63ui"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1979/part0.parquet",
+      "cid": "bafkreihhhwiv3qie2nfg4ljfd2jxtmms7dp2kwc6roqrlzioopk7dew7c4",
+      "codec": "file",
+      "size": 87600,
+      "sha256": "e73d915dc104d34a6e2d251e9379b192f8dfa5585e8ba115e50e73d5f192df17",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:18.410Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:19.198Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafkreihhhwiv3qie2nfg4ljfd2jxtmms7dp2kwc6roqrlzioopk7dew7c4",
+        "https://dweb.link/ipfs/bafkreihhhwiv3qie2nfg4ljfd2jxtmms7dp2kwc6roqrlzioopk7dew7c4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1980/part0.parquet",
+      "cid": "bafybeicfwrn33bbjg3j3h57ln625je7h2wgmwyfqgefihvtbi2oezq6rlu",
+      "codec": "file",
+      "size": 761296,
+      "sha256": "337673c104a09ee2c8258969f48976463ba5127264ba0160708b196d3eed68d0",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:19.443Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:20.091Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicfwrn33bbjg3j3h57ln625je7h2wgmwyfqgefihvtbi2oezq6rlu",
+        "https://dweb.link/ipfs/bafybeicfwrn33bbjg3j3h57ln625je7h2wgmwyfqgefihvtbi2oezq6rlu"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1981/part0.parquet",
+      "cid": "bafybeierlyp466y6wjzsrati5sjixuo3cv5smgseytbmzhnc6sfqd7lksm",
+      "codec": "file",
+      "size": 1747754,
+      "sha256": "40ab8885919cfdad6a2f504f18265c48c3c6dedc53eb5ee68df3055844afd058",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:20.620Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:21.579Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeierlyp466y6wjzsrati5sjixuo3cv5smgseytbmzhnc6sfqd7lksm",
+        "https://dweb.link/ipfs/bafybeierlyp466y6wjzsrati5sjixuo3cv5smgseytbmzhnc6sfqd7lksm"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1982/part0.parquet",
+      "cid": "bafybeidz3krfaaiax34ld3aha4vvel5pc6xvo43gzj2nukjavguzgx6ope",
+      "codec": "file",
+      "size": 2084561,
+      "sha256": "f3f8e7f5afe9775939e65cb5135819c970984a284292a795cd25512bb8f26123",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:22.182Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:23.160Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeidz3krfaaiax34ld3aha4vvel5pc6xvo43gzj2nukjavguzgx6ope",
+        "https://dweb.link/ipfs/bafybeidz3krfaaiax34ld3aha4vvel5pc6xvo43gzj2nukjavguzgx6ope"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1983/part0.parquet",
+      "cid": "bafybeibjmtt5zaqmzumlzvrt3gwebyhnmy2k6wc4werlorujdvn7gkch2u",
+      "codec": "file",
+      "size": 2588555,
+      "sha256": "c10402752df03c24f48e44572dda3362608e0b2343ea8bc97983219060bc1917",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:24.044Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:24.956Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeibjmtt5zaqmzumlzvrt3gwebyhnmy2k6wc4werlorujdvn7gkch2u",
+        "https://dweb.link/ipfs/bafybeibjmtt5zaqmzumlzvrt3gwebyhnmy2k6wc4werlorujdvn7gkch2u"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1984/part0.parquet",
+      "cid": "bafybeifhxonx4iv7lxghdpxlscm5wvgmi6r4dkmfnxdfn57vqda5xbs2ou",
+      "codec": "file",
+      "size": 3135810,
+      "sha256": "8625cca8e73bf6d701afad4c9c7404da0ecf596cc81df4a73aef4ce5fa9a9d69",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:25.984Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:27.082Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifhxonx4iv7lxghdpxlscm5wvgmi6r4dkmfnxdfn57vqda5xbs2ou",
+        "https://dweb.link/ipfs/bafybeifhxonx4iv7lxghdpxlscm5wvgmi6r4dkmfnxdfn57vqda5xbs2ou"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1985/part0.parquet",
+      "cid": "bafybeihc3spdqvm6kryr7wxpjhqh6lf676dcokluh4g6r25ja2gotr3ggu",
+      "codec": "file",
+      "size": 3103713,
+      "sha256": "4582595b160a25ece21d85219b9b2880682cd6bde509719e36b02f734b69c46b",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:27.975Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:29.052Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeihc3spdqvm6kryr7wxpjhqh6lf676dcokluh4g6r25ja2gotr3ggu",
+        "https://dweb.link/ipfs/bafybeihc3spdqvm6kryr7wxpjhqh6lf676dcokluh4g6r25ja2gotr3ggu"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1986/part0.parquet",
+      "cid": "bafybeigrbb6qpuc3mrfdyiyijytnzlc4d7qkfwrt2m4iz4mrvmhgsnwdke",
+      "codec": "file",
+      "size": 2686700,
+      "sha256": "72ae87962aed3fd9df38dca105f8947cda826aed75f20aa8646c506cb4af56e2",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:30.290Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:31.161Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigrbb6qpuc3mrfdyiyijytnzlc4d7qkfwrt2m4iz4mrvmhgsnwdke",
+        "https://dweb.link/ipfs/bafybeigrbb6qpuc3mrfdyiyijytnzlc4d7qkfwrt2m4iz4mrvmhgsnwdke"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1987/part0.parquet",
+      "cid": "bafybeiclv5vqxqlw4fmcwwaq5tsbzdldd5w5qb5euqlp6vx2s7tdx7e7xe",
+      "codec": "file",
+      "size": 2186894,
+      "sha256": "fe065c8c976cb1868fa03e5d335efdecab400f65dbb78e02f2d2fc993a016abe",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:31.832Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:32.924Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiclv5vqxqlw4fmcwwaq5tsbzdldd5w5qb5euqlp6vx2s7tdx7e7xe",
+        "https://dweb.link/ipfs/bafybeiclv5vqxqlw4fmcwwaq5tsbzdldd5w5qb5euqlp6vx2s7tdx7e7xe"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1988/part0.parquet",
+      "cid": "bafybeiebieci3ktw5rbqzgq5uviw57zrwosduemskggifu5vcv7mnure6y",
+      "codec": "file",
+      "size": 1814768,
+      "sha256": "885d9e9531ba2fe2e1e4e9d47c16629fc76cb713bcc1543fa9bb76995a4c9647",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:33.439Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:34.469Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiebieci3ktw5rbqzgq5uviw57zrwosduemskggifu5vcv7mnure6y",
+        "https://dweb.link/ipfs/bafybeiebieci3ktw5rbqzgq5uviw57zrwosduemskggifu5vcv7mnure6y"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1989/part0.parquet",
+      "cid": "bafybeifvsxidoq7gg4v5ahunvn4myx6gv7tdjncfeyxpanoapdiqgqj55i",
+      "codec": "file",
+      "size": 1671281,
+      "sha256": "84817fb0657fbdb54536d287d266b68a7d403efc6dbdba88496c22258ce41f15",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:34.992Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:35.854Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifvsxidoq7gg4v5ahunvn4myx6gv7tdjncfeyxpanoapdiqgqj55i",
+        "https://dweb.link/ipfs/bafybeifvsxidoq7gg4v5ahunvn4myx6gv7tdjncfeyxpanoapdiqgqj55i"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1990/part0.parquet",
+      "cid": "bafybeieeblhldljud63crj2d4xpffvqz2ggqhkhvjidmpqanybvgosflky",
+      "codec": "file",
+      "size": 1587656,
+      "sha256": "9576e44e666b2d952265e0fa022b8370b9a86962a9f0920fbabc12eaaf942a75",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:36.382Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:37.565Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeieeblhldljud63crj2d4xpffvqz2ggqhkhvjidmpqanybvgosflky",
+        "https://dweb.link/ipfs/bafybeieeblhldljud63crj2d4xpffvqz2ggqhkhvjidmpqanybvgosflky"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1991/part0.parquet",
+      "cid": "bafybeifsidppryf32ogenss2ovt42uo233pqeowvdkwekzndbwqflihklm",
+      "codec": "file",
+      "size": 1538497,
+      "sha256": "12bf07556cbb50f736bd9c4e0b00c746073c9d122a358e48d4db1fac6782a029",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:38.102Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:38.963Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifsidppryf32ogenss2ovt42uo233pqeowvdkwekzndbwqflihklm",
+        "https://dweb.link/ipfs/bafybeifsidppryf32ogenss2ovt42uo233pqeowvdkwekzndbwqflihklm"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1992/part0.parquet",
+      "cid": "bafybeiexku3tio3ualfiedwkslm7nokedocnnjawzn54gekhwlksvgnxwu",
+      "codec": "file",
+      "size": 1678355,
+      "sha256": "23e542d49dcd30d6e6c3b267b8e38e881bc051d5ac5ce3290b0e0f569d8265b1",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:39.572Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:40.475Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiexku3tio3ualfiedwkslm7nokedocnnjawzn54gekhwlksvgnxwu",
+        "https://dweb.link/ipfs/bafybeiexku3tio3ualfiedwkslm7nokedocnnjawzn54gekhwlksvgnxwu"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1993/part0.parquet",
+      "cid": "bafybeibjszhc7zixqkyxiaqm4unxfzvmg3exn52j373ejyzyzo4idtvt6q",
+      "codec": "file",
+      "size": 1800824,
+      "sha256": "9f41ada1a0b21b54b1f3b617642f960760e8b6c7c0bdcd4c3c1ef5e3563fef68",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:41.001Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:42.357Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeibjszhc7zixqkyxiaqm4unxfzvmg3exn52j373ejyzyzo4idtvt6q",
+        "https://dweb.link/ipfs/bafybeibjszhc7zixqkyxiaqm4unxfzvmg3exn52j373ejyzyzo4idtvt6q"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1994/part0.parquet",
+      "cid": "bafybeiclzzokrqekb4upp7cacpwz33cx4qw76xxssww3zbtct7lxnckdnq",
+      "codec": "file",
+      "size": 1807016,
+      "sha256": "d18322559e1ce4a04bf59b2a98bc878395f78d16a52ff9165fa0beb85270dc59",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:42.955Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:44.413Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiclzzokrqekb4upp7cacpwz33cx4qw76xxssww3zbtct7lxnckdnq",
+        "https://dweb.link/ipfs/bafybeiclzzokrqekb4upp7cacpwz33cx4qw76xxssww3zbtct7lxnckdnq"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1995/part0.parquet",
+      "cid": "bafybeicpeqezbybgoszgv6caror3onsnclis6lybqvmm3rk4hwn2uaxwmm",
+      "codec": "file",
+      "size": 1841837,
+      "sha256": "107e270f9d93670e96cdb35cf373acf9edeb0c0ed27f9ccf7db50ef2dad552c7",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:45.218Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:46.104Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicpeqezbybgoszgv6caror3onsnclis6lybqvmm3rk4hwn2uaxwmm",
+        "https://dweb.link/ipfs/bafybeicpeqezbybgoszgv6caror3onsnclis6lybqvmm3rk4hwn2uaxwmm"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1996/part0.parquet",
+      "cid": "bafybeiaezpqzbcvqvyknry3gi3oo4cm7sjtdk7zynilk4acj32bb2f4cle",
+      "codec": "file",
+      "size": 2048006,
+      "sha256": "99173a82d72b8ffca3eb387828ae1cb7e632512aecb3bc889cbfb4af556f8ca8",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:46.834Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:48.213Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiaezpqzbcvqvyknry3gi3oo4cm7sjtdk7zynilk4acj32bb2f4cle",
+        "https://dweb.link/ipfs/bafybeiaezpqzbcvqvyknry3gi3oo4cm7sjtdk7zynilk4acj32bb2f4cle"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1997/part0.parquet",
+      "cid": "bafybeiazi2u75suyyinfpwktypp4aq5dvlmhqoez4dhsydvzbjb3py2iq4",
+      "codec": "file",
+      "size": 1863516,
+      "sha256": "7ebd73a194c81008c3e2fe34dfd9a514009e69a8a598ae9f7a609ddacee9ee18",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:48.918Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:49.865Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiazi2u75suyyinfpwktypp4aq5dvlmhqoez4dhsydvzbjb3py2iq4",
+        "https://dweb.link/ipfs/bafybeiazi2u75suyyinfpwktypp4aq5dvlmhqoez4dhsydvzbjb3py2iq4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1998/part0.parquet",
+      "cid": "bafybeielkrdguvasroc26kzq7e26f63wl6gz6i6yagm7imxv6sqyzheduy",
+      "codec": "file",
+      "size": 2020830,
+      "sha256": "afd93ebda670396b2ee95bc7de8f19e47ed8064514afffd6f41440abca383887",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:50.575Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:51.361Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeielkrdguvasroc26kzq7e26f63wl6gz6i6yagm7imxv6sqyzheduy",
+        "https://dweb.link/ipfs/bafybeielkrdguvasroc26kzq7e26f63wl6gz6i6yagm7imxv6sqyzheduy"
+      ]
+    },
+    {
+      "name": "tables/permits/year=1999/part0.parquet",
+      "cid": "bafybeichvm4yvrrnpb6kmeubmkxmgqi2gnm4mxg37mudtwp3jipk525yim",
+      "codec": "file",
+      "size": 2020602,
+      "sha256": "a1804e49e653d6e2b90b103003fbe622ee21e5155683dfebb9078ee102b35e7c",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:51.994Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:52.945Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeichvm4yvrrnpb6kmeubmkxmgqi2gnm4mxg37mudtwp3jipk525yim",
+        "https://dweb.link/ipfs/bafybeichvm4yvrrnpb6kmeubmkxmgqi2gnm4mxg37mudtwp3jipk525yim"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2000/part0.parquet",
+      "cid": "bafybeieoovbn6znuvwu4fsjbuzdbtppmzwddbdc7hv6sdoy4tljoczue4a",
+      "codec": "file",
+      "size": 2624723,
+      "sha256": "e1e47857930c7a21608cfdbf15d084ea5b5e1d95e87b24f91f179bbedc32bb6e",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:53.736Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:54.975Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeieoovbn6znuvwu4fsjbuzdbtppmzwddbdc7hv6sdoy4tljoczue4a",
+        "https://dweb.link/ipfs/bafybeieoovbn6znuvwu4fsjbuzdbtppmzwddbdc7hv6sdoy4tljoczue4a"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2001/part0.parquet",
+      "cid": "bafybeidre6jxgkigalmfigz4caloo5qunxsqjtdeqr4eomup6auhvzposq",
+      "codec": "file",
+      "size": 2401512,
+      "sha256": "bb779f192556e2d6469753b556b8b1d439632be16b8a19b266cec63f7db81db8",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:55.778Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:56.748Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeidre6jxgkigalmfigz4caloo5qunxsqjtdeqr4eomup6auhvzposq",
+        "https://dweb.link/ipfs/bafybeidre6jxgkigalmfigz4caloo5qunxsqjtdeqr4eomup6auhvzposq"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2002/part0.parquet",
+      "cid": "bafybeicgs4xp2mkn6zbg73xpqnipdawxhcywz5az5mlzv43oizzl4mqxye",
+      "codec": "file",
+      "size": 2608474,
+      "sha256": "4f1c833eaf9c3fd60d415045c109e55e63a134068774793613b5eed6c13d1889",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:57.577Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:17:58.834Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicgs4xp2mkn6zbg73xpqnipdawxhcywz5az5mlzv43oizzl4mqxye",
+        "https://dweb.link/ipfs/bafybeicgs4xp2mkn6zbg73xpqnipdawxhcywz5az5mlzv43oizzl4mqxye"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2003/part0.parquet",
+      "cid": "bafybeigtbuu7w2hazxylb4qrleaxjynagkzukmexnsomgv6efedkdjmcqe",
+      "codec": "file",
+      "size": 2708090,
+      "sha256": "7a3e3dee6e2ba48e10a679aac30c25b6b6808a52609345582be1b3b7e748b01e",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:17:59.672Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:00.697Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigtbuu7w2hazxylb4qrleaxjynagkzukmexnsomgv6efedkdjmcqe",
+        "https://dweb.link/ipfs/bafybeigtbuu7w2hazxylb4qrleaxjynagkzukmexnsomgv6efedkdjmcqe"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2004/part0.parquet",
+      "cid": "bafybeiezvc6olnle4wf7wfah22eynus5yhdiu4beieuxmiihkabwrdr3fe",
+      "codec": "file",
+      "size": 2884353,
+      "sha256": "15eef2a972f2f8c559cd46abf354947a41ae2f3fc3036af1d1befda029412c12",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:01.719Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:02.743Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiezvc6olnle4wf7wfah22eynus5yhdiu4beieuxmiihkabwrdr3fe",
+        "https://dweb.link/ipfs/bafybeiezvc6olnle4wf7wfah22eynus5yhdiu4beieuxmiihkabwrdr3fe"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2005/part0.parquet",
+      "cid": "bafybeiatg4gk7mlz7nidm462w52ua7apqizy3lkwn3vryvjfapuwwutmzq",
+      "codec": "file",
+      "size": 3443979,
+      "sha256": "ec330e04e478ab0ceabb9ea8f84e283d5a1fd9a7e0c0892e6197c58172329f1b",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:04.074Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:05.334Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiatg4gk7mlz7nidm462w52ua7apqizy3lkwn3vryvjfapuwwutmzq",
+        "https://dweb.link/ipfs/bafybeiatg4gk7mlz7nidm462w52ua7apqizy3lkwn3vryvjfapuwwutmzq"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2006/part0.parquet",
+      "cid": "bafybeifrooqdeypejicro2sov2jtxtsen7nejnl7clsrqp6ot7athuicla",
+      "codec": "file",
+      "size": 3915503,
+      "sha256": "626c0d65aae9d8086f7b15ce83d0611f1c47fe53563341fb82fbdfa81ff6c4ff",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:06.566Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:08.184Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifrooqdeypejicro2sov2jtxtsen7nejnl7clsrqp6ot7athuicla",
+        "https://dweb.link/ipfs/bafybeifrooqdeypejicro2sov2jtxtsen7nejnl7clsrqp6ot7athuicla"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2007/part0.parquet",
+      "cid": "bafybeiabyr6ovquu23xr2hjozvtdourneelmo55rxzg2way357qof7wj5y",
+      "codec": "file",
+      "size": 3679409,
+      "sha256": "3803dabb8fdc1d26a41924f53311466a28adce533168e7c6b50ab1db5df029dd",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:09.391Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:10.832Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiabyr6ovquu23xr2hjozvtdourneelmo55rxzg2way357qof7wj5y",
+        "https://dweb.link/ipfs/bafybeiabyr6ovquu23xr2hjozvtdourneelmo55rxzg2way357qof7wj5y"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2008/part0.parquet",
+      "cid": "bafybeifx2mw6zbp37ng5om7hehhwtfaa6rclv55s4usjxs6a2jxnwnkmnu",
+      "codec": "file",
+      "size": 3832530,
+      "sha256": "36a04d2fee1bdd2377934b2b1cd5ce2e130566e016430bf775cbcd846c68c32f",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:12.143Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:13.408Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifx2mw6zbp37ng5om7hehhwtfaa6rclv55s4usjxs6a2jxnwnkmnu",
+        "https://dweb.link/ipfs/bafybeifx2mw6zbp37ng5om7hehhwtfaa6rclv55s4usjxs6a2jxnwnkmnu"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2009/part0.parquet",
+      "cid": "bafybeigdybs5gfkk2vc5xfk3jes427fdq2gfsrxo4qjgedzexa6qbz5ue4",
+      "codec": "file",
+      "size": 3654122,
+      "sha256": "7aef1389387143d59f4697ef0e6d34c027fb0760655a1a4965bfca7e9b194ea2",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:14.596Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:15.850Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigdybs5gfkk2vc5xfk3jes427fdq2gfsrxo4qjgedzexa6qbz5ue4",
+        "https://dweb.link/ipfs/bafybeigdybs5gfkk2vc5xfk3jes427fdq2gfsrxo4qjgedzexa6qbz5ue4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2010/part0.parquet",
+      "cid": "bafybeigngpi7fhyb7kqqomd5gcqghyzr4erdkbbm35oqqf4bkpewuwe37y",
+      "codec": "file",
+      "size": 4022484,
+      "sha256": "7022157e32d554c6c0025b7ecdcbffd8a45f2c92cc39f1a0de0b02f0ffeda0b9",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:17.488Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:18.656Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigngpi7fhyb7kqqomd5gcqghyzr4erdkbbm35oqqf4bkpewuwe37y",
+        "https://dweb.link/ipfs/bafybeigngpi7fhyb7kqqomd5gcqghyzr4erdkbbm35oqqf4bkpewuwe37y"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2011/part0.parquet",
+      "cid": "bafybeia52duhuxh5jyp4yljnculwdqkq2265iq7r3f4folusjpyv4fte3e",
+      "codec": "file",
+      "size": 4170330,
+      "sha256": "e832687de3f96313b085f9e83a0663f16b4f96584566ce6f6bb6769df9d516a6",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:19.946Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:21.481Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeia52duhuxh5jyp4yljnculwdqkq2265iq7r3f4folusjpyv4fte3e",
+        "https://dweb.link/ipfs/bafybeia52duhuxh5jyp4yljnculwdqkq2265iq7r3f4folusjpyv4fte3e"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2012/part0.parquet",
+      "cid": "bafybeigdqaridvjpjknjdtac47b5ivvc2tjgm2xjingbuwf2clbufg5usq",
+      "codec": "file",
+      "size": 4432781,
+      "sha256": "3c92eea757da65cdf4ab83ae21db8388d10f7ef6fcfcb0bed8ceaa2e48c27c65",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:22.915Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:24.378Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigdqaridvjpjknjdtac47b5ivvc2tjgm2xjingbuwf2clbufg5usq",
+        "https://dweb.link/ipfs/bafybeigdqaridvjpjknjdtac47b5ivvc2tjgm2xjingbuwf2clbufg5usq"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2013/part0.parquet",
+      "cid": "bafybeicjib5c7ijupr24nu3brbhxsr524xmsppmdpdthcgkjjzfiupazt4",
+      "codec": "file",
+      "size": 4815374,
+      "sha256": "25c6f46c4398ddc53a0896a15a5ce4225502492dc17dac3952edd3b5475a4789",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:26.031Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:27.342Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicjib5c7ijupr24nu3brbhxsr524xmsppmdpdthcgkjjzfiupazt4",
+        "https://dweb.link/ipfs/bafybeicjib5c7ijupr24nu3brbhxsr524xmsppmdpdthcgkjjzfiupazt4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2014/part0.parquet",
+      "cid": "bafybeidmi6insl2r55yflfaahsujfiiabvt77ggjvscfrjbdufs2jew4ky",
+      "codec": "file",
+      "size": 4852955,
+      "sha256": "2ca42debd62a7a1d26fc99eedce83a284547a1b87c81071bf62e995789934e2f",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:28.829Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:30.464Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeidmi6insl2r55yflfaahsujfiiabvt77ggjvscfrjbdufs2jew4ky",
+        "https://dweb.link/ipfs/bafybeidmi6insl2r55yflfaahsujfiiabvt77ggjvscfrjbdufs2jew4ky"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2015/part0.parquet",
+      "cid": "bafybeibq7bqbxvtbe3ul6aftibnj4m4l2lwvnualqw7x2bynpa2isrvvde",
+      "codec": "file",
+      "size": 4955772,
+      "sha256": "9b9613b6f2be2c6a3aafe6b968cc45decd93c3714ec5b81b000eecb68810c898",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:32.131Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:33.790Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeibq7bqbxvtbe3ul6aftibnj4m4l2lwvnualqw7x2bynpa2isrvvde",
+        "https://dweb.link/ipfs/bafybeibq7bqbxvtbe3ul6aftibnj4m4l2lwvnualqw7x2bynpa2isrvvde"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2016/part0.parquet",
+      "cid": "bafybeiesldkrrgg6lzfvvb5ujiqv3qvriy2qfrt72hiffajcu3xzwd3dsq",
+      "codec": "file",
+      "size": 5172199,
+      "sha256": "bff03d9852bb52360a0e3f159538d465ff865f74cfc613fb2dc0c72d4dc09cf6",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:35.510Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:36.947Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiesldkrrgg6lzfvvb5ujiqv3qvriy2qfrt72hiffajcu3xzwd3dsq",
+        "https://dweb.link/ipfs/bafybeiesldkrrgg6lzfvvb5ujiqv3qvriy2qfrt72hiffajcu3xzwd3dsq"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2017/part0.parquet",
+      "cid": "bafybeidkbqz2y5aysn37ksa4lteffk2aro4cgv2mrvvvos53enti45wu3e",
+      "codec": "file",
+      "size": 5292832,
+      "sha256": "b89e711bfc730205e38fae55896488338024e76cb6a9351c1d80ee7f66085c28",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:38.580Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:40.718Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeidkbqz2y5aysn37ksa4lteffk2aro4cgv2mrvvvos53enti45wu3e",
+        "https://dweb.link/ipfs/bafybeidkbqz2y5aysn37ksa4lteffk2aro4cgv2mrvvvos53enti45wu3e"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2018/part0.parquet",
+      "cid": "bafybeifgaukp7kxyk6phmlpy2bzpuys25i2eryzw65xyxlfobjv53zabpi",
+      "codec": "file",
+      "size": 5330172,
+      "sha256": "a2c1f64ab5313fd6dc29755cc79ba35eb62a70e850e60e41bc67dae276ec2a80",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:42.377Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:44.324Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifgaukp7kxyk6phmlpy2bzpuys25i2eryzw65xyxlfobjv53zabpi",
+        "https://dweb.link/ipfs/bafybeifgaukp7kxyk6phmlpy2bzpuys25i2eryzw65xyxlfobjv53zabpi"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2019/part0.parquet",
+      "cid": "bafybeiaxrpwbufv4fu6ymwvtt6jmdgzmqqrp2vux7ojruviolt32rw2kfi",
+      "codec": "file",
+      "size": 5855454,
+      "sha256": "5677632ea930e379af3a741a03de9aa099b05d9b6e614fcb959827d2fe77e349",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:46.366Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:48.188Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiaxrpwbufv4fu6ymwvtt6jmdgzmqqrp2vux7ojruviolt32rw2kfi",
+        "https://dweb.link/ipfs/bafybeiaxrpwbufv4fu6ymwvtt6jmdgzmqqrp2vux7ojruviolt32rw2kfi"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2020/part0.parquet",
+      "cid": "bafybeihzgpuysq2xzcytjyvn42wa6f4ycwykynouontj2hssezk4wmubkm",
+      "codec": "file",
+      "size": 5337234,
+      "sha256": "5bb742a73fa4d517a161e54447cc8fae37f7deed4ebad98f4c787de577a5813b",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:50.022Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:52.012Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeihzgpuysq2xzcytjyvn42wa6f4ycwykynouontj2hssezk4wmubkm",
+        "https://dweb.link/ipfs/bafybeihzgpuysq2xzcytjyvn42wa6f4ycwykynouontj2hssezk4wmubkm"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2021/part0.parquet",
+      "cid": "bafybeiesus5zhhwwz43frelv2uowmbudxcw6gwul7ovksyxu2rdp3upgk4",
+      "codec": "file",
+      "size": 5986566,
+      "sha256": "b80981f654a3b28791353aeaea1f7279c393c9f5e5f4d96764ea62dbff434d3d",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:53.878Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:18:55.902Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiesus5zhhwwz43frelv2uowmbudxcw6gwul7ovksyxu2rdp3upgk4",
+        "https://dweb.link/ipfs/bafybeiesus5zhhwwz43frelv2uowmbudxcw6gwul7ovksyxu2rdp3upgk4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2022/part0.parquet",
+      "cid": "bafybeietqg6uqbaeyvatihbcufvdqmuqiybggvsditggjdrevqe3ebqwre",
+      "codec": "file",
+      "size": 5732471,
+      "sha256": "2925c79729ba1a86e9058298a2a10316ad871aa96b6f35c443eb40502948ab38",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:18:58.374Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:00.269Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeietqg6uqbaeyvatihbcufvdqmuqiybggvsditggjdrevqe3ebqwre",
+        "https://dweb.link/ipfs/bafybeietqg6uqbaeyvatihbcufvdqmuqiybggvsditggjdrevqe3ebqwre"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2023/part0.parquet",
+      "cid": "bafybeifigoovimbt7taeccecwiinkficd66lpufwbihjs4ja67vibq5klm",
+      "codec": "file",
+      "size": 5092017,
+      "sha256": "88b3a4a891d4b565a4091848ae2290f19e71854e3ad13ba131d6dda2e106b52f",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:01.935Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:03.618Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeifigoovimbt7taeccecwiinkficd66lpufwbihjs4ja67vibq5klm",
+        "https://dweb.link/ipfs/bafybeifigoovimbt7taeccecwiinkficd66lpufwbihjs4ja67vibq5klm"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2024/part0.parquet",
+      "cid": "bafybeid5qkelpkh5x7c365flupmeaf6trew3wpm4qseethkuvoatnuium4",
+      "codec": "file",
+      "size": 4689179,
+      "sha256": "4a15ce31f6fe9635d1210a57aec90feca4f7ba25d5300e35bac61ea42989d31d",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:05.107Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:06.862Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeid5qkelpkh5x7c365flupmeaf6trew3wpm4qseethkuvoatnuium4",
+        "https://dweb.link/ipfs/bafybeid5qkelpkh5x7c365flupmeaf6trew3wpm4qseethkuvoatnuium4"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2025/part0.parquet",
+      "cid": "bafybeigrkuel7zm2byp6gyeyyhoqrtnysv4zrwpelqz5qoqqxielhx4zry",
+      "codec": "file",
+      "size": 4658147,
+      "sha256": "01202f30d318aca27872bcaf9d3f98bad40d98797ce5c3502cf478453676432d",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:08.345Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:10.227Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigrkuel7zm2byp6gyeyyhoqrtnysv4zrwpelqz5qoqqxielhx4zry",
+        "https://dweb.link/ipfs/bafybeigrkuel7zm2byp6gyeyyhoqrtnysv4zrwpelqz5qoqqxielhx4zry"
+      ]
+    },
+    {
+      "name": "tables/permits/year=2026/part0.parquet",
+      "cid": "bafybeiaq47aeivx32tf222wxun3eswpw62gebxr6oa4k7h6i6mua2ssg64",
+      "codec": "file",
+      "size": 3912351,
+      "sha256": "ec3b873672f7388767f9da9ff2b33aa4a9597ef7a19f10425062e067a952e65a",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:11.416Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:12.724Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiaq47aeivx32tf222wxun3eswpw62gebxr6oa4k7h6i6mua2ssg64",
+        "https://dweb.link/ipfs/bafybeiaq47aeivx32tf222wxun3eswpw62gebxr6oa4k7h6i6mua2ssg64"
+      ]
+    },
+    {
+      "name": "tables/properties.parquet",
+      "cid": "bafybeicursackdscvi2cwtpkik2uavjmumuymleiwglos6ws3cfzbbhfwq",
+      "codec": "file",
+      "size": 27091665,
+      "sha256": "bb5e0d42628991da72877217a04b06ae77a1e9eeaea7d50f8828edc4d26362ea",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:18.010Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:34.809Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeicursackdscvi2cwtpkik2uavjmumuymleiwglos6ws3cfzbbhfwq",
+        "https://dweb.link/ipfs/bafybeicursackdscvi2cwtpkik2uavjmumuymleiwglos6ws3cfzbbhfwq"
+      ]
+    },
+    {
+      "name": "tables/roof_age.parquet",
+      "cid": "bafybeigj2xcxmenzz63unu3muhnuumatfgpxpa5ymucn2eclwcseefnmpa",
+      "codec": "file",
+      "size": 1330787,
+      "sha256": "6a318f461286c67cf80e27533d834c0dcb396a5bda7b6e359262f33e771735b0",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:35.449Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:36.131Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeigj2xcxmenzz63unu3muhnuumatfgpxpa5ymucn2eclwcseefnmpa",
+        "https://dweb.link/ipfs/bafybeigj2xcxmenzz63unu3muhnuumatfgpxpa5ymucn2eclwcseefnmpa"
+      ]
+    },
+    {
+      "name": "tables/roofing_permits.parquet",
+      "cid": "bafybeiczkmtho2467ah3w2agpspilno5qkamt22p6p3ekji63l432ajfyy",
+      "codec": "file",
+      "size": 2981941,
+      "sha256": "c20466655a2067ec1202762a3cc066517ad85ae4aacc7217f04905187f123095",
+      "pins": [
+        {
+          "provider": "filebase",
+          "method": "add",
+          "at": "2026-10-20T18:19:37.168Z"
+        },
+        {
+          "provider": "pinata",
+          "method": "v3 files public",
+          "at": "2026-10-20T18:19:37.980Z"
+        }
+      ],
+      "gateway_urls": [
+        "https://ipfs.io/ipfs/bafybeiczkmtho2467ah3w2agpspilno5qkamt22p6p3ekji63l432ajfyy",
+        "https://dweb.link/ipfs/bafybeiczkmtho2467ah3w2agpspilno5qkamt22p6p3ekji63l432ajfyy"
+      ]
+    }
+  ],
+  "counts": {
+    "properties": "441961",
+    "properties_with_coordinates": "430750",
+    "permits": "2380939",
+    "permits_linked_to_parcel": "2017584",
+    "roofing_permits": "31968",
+    "roofing_permits_open_or_unfinaled": "1726",
+    "contractors": "32467",
+    "contractors_resolved": "10745",
+    "contractors_with_bbb": "0",
+    "businesses": "367843",
+    "licenses": "54784",
+    "roof_15y_plus": "280150",
+    "deed_over_10y": "159529",
+    "owner_out_of_state": "26766"
+  }
+}

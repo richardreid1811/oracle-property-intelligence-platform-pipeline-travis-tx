@@ -1,0 +1,48 @@
+{
+  "county": "travis",
+  "state": "TX",
+  "runs": [
+    {
+      "run_id": "20261020T180000Z",
+      "published_at": "2026-10-20T18:19:37.998Z",
+      "root_cid": "bafybeiayzen3k5l5v5pscptqeson7ykdp6l6hjwdui5d7tquwrr6yvl5jq",
+      "manifest_cid": "bafkreialtjdqkzhh25xe36g737lywvjjln7lkgopahblv2ew6wembi5fom",
+      "manifest_path": "runs/20261020T180000Z/manifest.json",
+      "objects": 71,
+      "new_objects": 71,
+      "counts": {
+        "properties": "441961",
+        "properties_with_coordinates": "430750",
+        "permits": "2380939",
+        "permits_linked_to_parcel": "2017584",
+        "roofing_permits": "31968",
+        "roofing_permits_open_or_unfinaled": "1726",
+        "contractors": "32467",
+        "contractors_resolved": "10745",
+        "contractors_with_bbb": "0",
+        "businesses": "367843",
+        "licenses": "54784",
+        "roof_15y_plus": "280150",
+        "deed_over_10y": "159529",
+        "owner_out_of_state": "26766"
+      },
+      "deltas_vs_previous": {
+        "properties": 441961,
+        "properties_with_coordinates": 430750,
+        "permits": 2380939,
+        "permits_linked_to_parcel": 2017584,
+        "roofing_permits": 31968,
+        "roofing_permits_open_or_unfinaled": 1726,
+        "contractors": 32467,
+        "contractors_resolved": 10745,
+        "contractors_with_bbb": 0,
+        "businesses": 367843,
+        "licenses": 54784,
+        "roof_15y_plus": 280150,
+        "deed_over_10y": 159529,
+        "owner_out_of_state": 26766
+      },
+      "previous_run_id": null
+    }
+  ]
+}
