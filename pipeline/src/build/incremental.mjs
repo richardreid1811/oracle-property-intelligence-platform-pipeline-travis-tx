@@ -86,7 +86,7 @@ select a.contractor_key, a.name_norm, a.display_name, a.phones, a.trades, a.city
        p.taxpayer_number, p.sos_file_number, p.legal_name, p.right_to_transact_business,
        coalesce(p.identity_status, 'pending_registry_refresh') as identity_status,
        case when p.tdlr_licenses is null or p.tdlr_licenses = '' then null else list_sort(string_split(p.tdlr_licenses, ';')) end as tdlr_licenses,
-       p.bbb_rating, coalesce(p.bbb_status, 'blocked_http_403_pending_bbb_api') as bbb_status
+       p.bbb_rating, case when p.bbb_rating is not null then p.bbb_status else 'excluded_no_public_api_http_403' end as bbb_status
 from agg a left join prev_contractors p using (contractor_key)`);
 // export.mjs expects the build's list/derived columns.
 await step("shape for export", `

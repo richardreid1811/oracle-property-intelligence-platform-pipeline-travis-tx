@@ -54,7 +54,7 @@ const sources = [
 ];
 
 const limitations = [
-  "BBB ratings unavailable: bbb.org returned HTTP 403 and robots.txt disallows search/pagination; official BBB API access requested. Contractors carry bbb_status instead of a rating.",
+  "BBB ratings excluded from automated ingestion: bbb.org returned HTTP 403 to automated requests, robots.txt disallows search and pagination, and BBB offers no public API. Contractors carry bbb_status instead of a rating rather than data obtained by circumventing those controls.",
   "Permit history is automated for the City of Austin (56.2% of parcels). Unincorporated Travis County (25.2%) has no county building permits under Texas law, so roof age there is year-built based. Pflugerville and Lakeway adapters are planned; 19 other municipalities require Texas Public Information Act requests.",
   "Roof age basis: finaled re-roof permit (high), issued-but-unfinaled re-roof permit (medium), TCAD year built assuming original roof (low). The basis and confidence are recorded per property.",
   "Texas is a non-disclosure state: no sale prices. Ownership age is derived from the TCAD deed date.",

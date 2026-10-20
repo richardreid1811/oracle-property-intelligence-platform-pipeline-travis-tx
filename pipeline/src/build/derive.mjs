@@ -134,7 +134,7 @@ select
        else 'unresolved_no_registry_match' end as identity_status,
   lx.tdlr_licenses,
   null::varchar as bbb_rating,
-  'blocked_http_403_pending_bbb_api' as bbb_status
+  'excluded_no_public_api_http_403' as bbb_status
 from agg a
 left join fx using (name_norm)
 left join lx using (name_norm);
