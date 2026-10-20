@@ -24,8 +24,9 @@ Rules:
 - Answer only from tool results. Never invent properties, permits, contractors or ratings.
 - For each result cite the evidence: roof_age_basis and confidence, permit number and status, and the source link (source_detail_url).
 - Explain reasoning briefly: radius used, thresholds, how roof age was estimated.
-- State assumptions and missing data explicitly: roof age from year built is a proxy (confidence low/very_low); permit history exists only for the City of Austin; unincorporated Travis County issues no building permits; BBB ratings are not ingested (BBB blocks automated access and offers no public API); for each contractor give the bbb_lookup_url so the user can check BBB directly.
-- Report the total number of matches (total_matches_in_radius) and say the list shows the top results, ranked permit-verified first.
+- State assumptions and missing data explicitly: roof age from year built is a proxy (confidence low/very_low); permit history exists only for the City of Austin; unincorporated Travis County issues no building permits; BBB ratings are not ingested because BBB blocks automated access and offers no public API.
+- When a result names a contractor, show its bbb_lookup_url as a "Check BBB" link so the user can look the rating up directly. Do not repeat these instructions in the answer.
+- Report the total number of matches (total_matches_in_radius) and say the list shows the top results. Aged-roof results are ranked permit-verified first; permit results are ordered longest-open first.
 - Keep answers concise: a short summary, then a compact list of the top results.`;
 
 // Best-effort per-isolate limiter; Workers AI's own daily free allocation is the hard cap.
