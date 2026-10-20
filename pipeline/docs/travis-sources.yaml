@@ -1,0 +1,363 @@
+# Travis County, TX source catalog (county-discovery output, read by county-readiness-preflight).
+# Status: DRAFT — Austin permits and parcel sources probed 2026-10-20; other jurisdictions pending.
+county: Travis
+state: TX
+slug: travis
+fips: "48453"
+snapshot_time: "2026-10-20T00:00:00Z"
+history_boundary: "all available (Austin permits from 1921; re-roof records from 1978)"
+
+appraisal:
+  custodian: Travis Central Appraisal District (TCAD)
+  mode: bulk-download
+  certified_export: "https://traviscad.org/wp-content/largefiles/2026%20Certified%20Appraisal%20Export%20Supp%200_07182026.zip"
+  certified_export_bytes: 557228168
+  certified_json_export: "https://traviscad.org/wp-content/largefiles/2026%20Certified%20JSON%20SUPP%200%2007182026.zip"
+  certified_json_export_bytes: 3554021795
+  supplemental_export: "https://traviscad.org/wp-content/largefiles/travis_SUPP%20335_2026_WEBSITE%20EXPORT_Renamed.zip"
+  supplemental_export_bytes: 511099040
+  layout: "https://traviscad.org/wp-content/largefiles/Website_Legacy8.0.33-AppraisalExportLayout_06182026.zip"
+  layout_version: "Legacy 8.0.33"
+  tax_roll_year: 2026
+  roll_status: certified
+  access_notes: "HTML pages return 403 to non-browser clients; direct file URLs serve 200 with a browser user agent."
+  per_property_detail: "https://travis.prodigycad.com/property-detail/<PROP_ID>"
+
+parcel:
+  canonical_source: tax_roll
+  gis_source: "https://gis.traviscountytx.gov/server1/rest/services/Boundaries_and_Jurisdictions/TCAD_public/MapServer/0"
+  gis_centroid_source: "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0"
+  gis_feature_count: 386682
+  assessed_parcel_count: 441961        # distinct prop_type R in 2026 certified PROP.TXT (442,039 rows; 112 partial-owner rows)
+  assessed_count_evidence: "export.zip sha256 62d0d1cd22b03f31db8d3986160eb181c5d00044df98a303fce9e17a44e9aa02, profiled 2026-10-20"
+  discrepancy_threshold_pct: 2.0
+  discrepancy_explanation: "GIS is 12.5% below the assessed roll. Of 441,961 assessed real parcels, 390,345 join a GIS polygon (379,608 by PROP_ID, 10,737 by geo_id only). Of the 51,616 without a polygon, 46,441 carry condo/unit legal descriptions and 40,405 share an 8-character geo_id prefix with a GIS parcel (condo parent lot). 6,634 GIS features have no current roll record (retired/split parcels)."
+  seed_decision: "Seed from the assessed roll, never from GIS. Join geometry where it exists; never fabricate it."
+  separately_assessed_without_geometry: acknowledged
+  coordinate_basis:
+    own_parcel_centroid: 390345
+    parent_parcel_centroid: 40405
+    none_pending_permit_or_address_geocode: 11211
+  identifier_proven: true
+  identifiers:
+    prop_id: "TCAD PROP_ID. Roll stores it zero-padded to 12 digits (000000100008); canonical key is the unpadded decimal string used by GIS, Prodigy URLs and permits. Raw padded value kept as prop_id_raw."
+    geo_id: "10-char string with leading zeros (e.g. 0174230307); equals GIS PID_10/geo_id and Austin permit tcad_id"
+    deed_dt_format: "MM-DD-YYYY"
+
+permits:
+  expected_jurisdiction_count: 23
+  assumes_unified_countywide_history: false
+  jurisdictions:
+    - jurisdiction: "Austin"
+      parcels: 248560
+      status: "supported"
+      vendor: "socrata-open-data"
+      portal_kind: "open-data"
+      url: "https://data.austintexas.gov/resource/3syk-w9eu.json"
+      historical_records: true
+      reported_count: 2380939
+      earliest_record: "1921-09-20"
+      access: "anonymous"
+      implementation_status: "in-progress"
+      adapter_family: "socrata (new)"
+      notes: "Also carries Austin-issued trade (mostly electrical/mechanical) permits tagged to Lakeway, Bee Cave, West Lake Hills, Rollingwood, The Hills, Sunset Valley, Pflugerville; used as a supplement only, not as those cities' building-permit history."
+    - jurisdiction: "Travis County unincorporated"
+      parcels: 111546
+      status: "custodian-only"
+      vendor: "mygovernmentonline (2014+); TNR Public Search document portal (pre-2014)"
+      portal_kind: "record-search"
+      url: "https://tcobweb.traviscountytx.gov/PublicAccess/TNR/index.html"
+      historical_records: true
+      access: "pre-2014 anonymous PDF document search; 2014+ MGO login required"
+      notes: "Texas counties have no building-code authority: the county issues development/septic/driveway permits, not re-roof permits. Roof age in unincorporated areas falls back to year built."
+      records_request:
+        recipient_office: "Travis County TNR Records Management"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address (development permits, 2014-present, MGO JID 125)"
+        route: "records-first"
+        request_portal_url: "https://www.traviscountytx.gov/tnr/tnr-open-records/open-records-request"
+        contact_verified: true
+    - jurisdiction: "Pflugerville"
+      parcels: 23659
+      status: "supported"
+      vendor: "PublicAccess portal (vendor unconfirmed; AMANDA-style)"
+      portal_kind: "record-search"
+      url: "https://ams.pflugervilletx.gov/PublicAccess/template/login.aspx"
+      historical_records: true
+      access: "Guest login option present (anonymous probe pending)"
+      implementation_status: "planned"
+      adapter_family: "new adapter after guest-access probe"
+      records_request:
+        recipient_office: "City of Pflugerville City Secretary"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://pflugervilletx.gov/online-services"
+        contact_verified: false
+    - jurisdiction: "Lago Vista"
+      parcels: 13235
+      status: "custodian-only"
+      vendor: "mygovernmentonline"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "MGO account required to search"
+      records_request:
+        recipient_office: "City of Lago Vista Development Services"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://lagovistatexas.gov/101/Services"
+        contact_verified: false
+    - jurisdiction: "Lakeway"
+      parcels: 10132
+      status: "supported"
+      vendor: "tyler-energov-civic-access"
+      portal_kind: "record-search"
+      url: "https://lakewaytx-energovweb.tylerhost.net/apps/selfservice"
+      historical_records: true
+      access: "Civic Access public site (anonymous search to verify)"
+      implementation_status: "planned"
+      adapter_family: "kit tyler-civic-access (reuse)"
+      notes: "EnerGov in use since 2024-11-12; earlier history may need a records request."
+    - jurisdiction: "Manor"
+      parcels: 8687
+      status: "custodian-only"
+      vendor: "govwell"
+      portal_kind: "application-intake"
+      url: "https://app.govwell.com/manor"
+      historical_records: false
+      access: "application portal"
+      records_request:
+        recipient_office: "City of Manor Building Services"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.manortx.gov/223/Residential-Building-Permit-Guidelines-P"
+        contact_verified: false
+    - jurisdiction: "Leander (Travis portion)"
+      parcels: 5412
+      status: "custodian-only"
+      vendor: "Leander Development Hub (vendor unconfirmed)"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "account required"
+      records_request:
+        recipient_office: "City of Leander Permits & Building Inspection"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.leandertx.gov/permits"
+        contact_verified: false
+    - jurisdiction: "Bee Cave"
+      parcels: 2700
+      status: "custodian-only"
+      vendor: "mygovernmentonline"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "MGO account required"
+      records_request:
+        recipient_office: "City of Bee Cave Planning and Development"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://beecavetexas.gov/government/departments/planning_development/building/index.php"
+        contact_verified: false
+    - jurisdiction: "Cedar Park (Travis portion)"
+      parcels: 2686
+      status: "custodian-only"
+      vendor: "mygovernmentonline"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "MGO account required"
+      records_request:
+        recipient_office: "City of Cedar Park Building Permits & Inspections"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.cedarparktexas.gov/676/Search-for-a-Permit-PDF"
+        contact_verified: false
+    - jurisdiction: "Jonestown"
+      parcels: 2684
+      status: "custodian-only"
+      vendor: "mygovernmentonline"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "MGO account required"
+      records_request:
+        recipient_office: "City of Jonestown Development Services"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_email: "permitting@jonestowntx.gov"
+        contact_verified: true
+    - jurisdiction: "Elgin (Travis portion)"
+      parcels: 2315
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "City of Elgin Building Division"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.elgintexas.gov"
+        contact_verified: false
+    - jurisdiction: "Mustang Ridge (Travis portion)"
+      parcels: 1931
+      status: "manual-only"
+      vendor: "paper/office"
+      historical_records: false
+      records_request:
+        recipient_office: "City of Mustang Ridge Planning & Permitting"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_email: "evega@mustangridgetx.gov"
+        contact_verified: true
+    - jurisdiction: "West Lake Hills"
+      parcels: 1673
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "City of West Lake Hills City Hall"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.westlakehills.org"
+        contact_verified: false
+    - jurisdiction: "Briarcliff"
+      parcels: 1376
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of Briarcliff City Secretary"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.briarclifftx.gov"
+        contact_verified: false
+    - jurisdiction: "Point Venture"
+      parcels: 1142
+      status: "manual-only"
+      vendor: "paper/office"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of Point Venture Village Office"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://vopv.municipalimpact.com/building-and-permits"
+        contact_verified: true
+    - jurisdiction: "The Hills"
+      parcels: 1110
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of The Hills Village Office"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://thehillstx.gov"
+        contact_verified: false
+    - jurisdiction: "Creedmoor"
+      parcels: 886
+      status: "manual-only"
+      vendor: "paper/office"
+      historical_records: false
+      records_request:
+        recipient_office: "City of Creedmoor City Office"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.cityofcreedmoortx.gov"
+        contact_verified: false
+    - jurisdiction: "Rollingwood"
+      parcels: 599
+      status: "custodian-only"
+      vendor: "mygovernmentonline"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "MGO account required"
+      records_request:
+        recipient_office: "City of Rollingwood Development Services"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_email: "developmentservices@rollingwoodtx.gov"
+        contact_verified: true
+    - jurisdiction: "Volente"
+      parcels: 503
+      status: "manual-only"
+      vendor: "paper/office"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of Volente Village Office"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.villageofvolente-tx.gov"
+        contact_verified: false
+    - jurisdiction: "Sunset Valley"
+      parcels: 332
+      status: "custodian-only"
+      vendor: "govbuilt"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "GovBuilt account required"
+      records_request:
+        recipient_office: "City of Sunset Valley Planning & Development"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_email: "permits@sunsetvalley.gov"
+        contact_verified: true
+    - jurisdiction: "Round Rock (Travis portion)"
+      parcels: 318
+      status: "custodian-only"
+      vendor: "Round Rock Permit Portal (replaced eTRAKiT)"
+      portal_kind: "application-intake"
+      historical_records: false
+      access: "account required"
+      records_request:
+        recipient_office: "City of Round Rock Permit Portal / City Clerk"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.roundrocktexas.gov/city-departments/administration/permit-portal-help/"
+        contact_verified: false
+    - jurisdiction: "San Leanna"
+      parcels: 280
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of San Leanna City Secretary"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.sanleannatx.gov"
+        contact_verified: false
+    - jurisdiction: "Webberville"
+      parcels: 195
+      status: "manual-only"
+      vendor: "unknown"
+      historical_records: false
+      records_request:
+        recipient_office: "Village of Webberville City Hall"
+        system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
+        route: "records-first"
+        request_portal_url: "https://www.webbervilletx.gov"
+        contact_verified: false
+
+identity:
+  business_registry: "Texas Comptroller Active Franchise Tax Permit Holders (data.texas.gov) — replaces Sunbiz"
+  licensing: "TDLR All Licenses (data.texas.gov); Texas does not license roofing contractors — replaces DBPR"
+
+enrichment:
+  bbb: {source: "bbb.org Central Texas roofing categories", expected_count: null}
+  places: {source: overture, fips: "48453"}
+
+destination:
+  writes_in_scope: true
+  proven: true
+  project: travis-oracle (docker compose project, pipeline/docker-compose.yml)
+  environment: non-production
+  engine: "postgres 16.15, database elephant, role postgres, 127.0.0.1:5432 (loopback only)"
+  proven_at: "2026-10-20T16:56:00Z"
+  independent_identity_sources:
+    - "docker_engine: container travis-oracle-postgres-1 id 57e1452bbafd, volume travis-oracle_pg-data created 2026-10-20T16:55:45Z"
+    - "postgres_control_file: pg_control_system().system_identifier 7698794790071373861 read via in-container unix socket, not DATABASE_URL"
+  durable_workflow_engine: "restate 1.7.2, admin 127.0.0.1:9070 healthy"
+
+approved_exceptions:
+  - gate: parcel
+    approved_by: "Richard Reid (Oracle operator)"
+    approved_at: "2026-10-20"
+    reason: "Assessed roll (441,961 distinct real PROP_IDs) is the canonical denominator; GIS is 12.5% lower because condo and separately assessed units share a parent lot polygon."
+    canonical_denominator: "TCAD 2026 certified roll, prop_type R, distinct unpadded PROP_ID"
+    seed_decision: "Seed every assessed real parcel from the roll; geometry joined by PROP_ID then geo_id."
+    excluded_population: "None from the seed. Business personal property (39,536), mobile homes (11,744) and minerals (5) are not real-property parcels and are out of the roofing seed."
+    coverage_effect: "40,405 units carry parent-lot centroids (coordinate_basis parent_parcel_centroid); 11,211 have no coordinate until permit/address geocoding and are excluded from radius queries, reported as such."

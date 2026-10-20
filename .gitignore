@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+# raw county data, archives, and intermediates never get committed (kit rule)
+pipeline/data/
+*.zip
+*.parquet
+*.duckdb
+*.car
+downloads/
+.wrangler/
+dist/

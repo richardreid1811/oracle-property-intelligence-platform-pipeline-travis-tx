@@ -1,0 +1,7 @@
+{
+  "name": "oracle-travis-tx",
+  "private": true,
+  "type": "module",
+  "workspaces": ["pipeline", "packages/*", "apps/*", "mcp"],
+  "engines": { "node": ">=22.18.0" }
+}
