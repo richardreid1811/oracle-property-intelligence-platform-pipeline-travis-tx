@@ -293,6 +293,65 @@
         "resolved_cid": "bafybeifs5vqpu27piy4aoag3r7w5mafzgtxj6xvac7a3jfgd37jnl2pcva"
       },
       "manifest_pin_note": "manifest pinned on Filebase and committed to the repository; Pinata refused it: pinata add 20261021T150751Z/manifest.json: HTTP 403: {\"error\":{\"code\":403,\"message\":\"Unable to perform this action due to account surpassing plan limits\"}}"
+    },
+    {
+      "run_id": "20261021T154604Z",
+      "published_at": "2026-10-21T15:48:10.307Z",
+      "root_cid": "bafybeiadohmaew3etddhljqkc7zh2d7ikwymljdebqc2w7542zuen42oku",
+      "manifest_cid": "bafkreieaodq5xbdata2g6qzobwogq4by5sfpet4jyqcyozbbsbf6lzh3hy",
+      "manifest_path": "runs/20261021T154604Z/manifest.json",
+      "objects": 75,
+      "new_objects": 10,
+      "counts": {
+        "properties": "441972",
+        "properties_with_coordinates": "430761",
+        "permits": "2381226",
+        "permits_linked_to_parcel": "2017804",
+        "roofing_permits": "31970",
+        "roofing_permits_open_or_unfinaled": "1724",
+        "contractors": "32470",
+        "contractors_resolved": "10745",
+        "contractors_with_bbb": "0",
+        "businesses": "367843",
+        "licenses": "54784",
+        "roof_15y_plus": "280256",
+        "deed_over_10y": "170146",
+        "owners": "376634",
+        "multi_property_owners": "21793",
+        "owner_out_of_state": "26231",
+        "permits_lakeway": "0",
+        "business_locations": "93331",
+        "business_locations_linked_to_parcel": "37916",
+        "business_locations_linked_to_registry": "8686"
+      },
+      "deltas_vs_previous": {
+        "properties": 0,
+        "properties_with_coordinates": 0,
+        "permits": 0,
+        "permits_linked_to_parcel": 0,
+        "roofing_permits": 0,
+        "roofing_permits_open_or_unfinaled": 0,
+        "contractors": 0,
+        "contractors_resolved": 0,
+        "contractors_with_bbb": 0,
+        "businesses": 0,
+        "licenses": 0,
+        "roof_15y_plus": 0,
+        "deed_over_10y": 0,
+        "owners": 0,
+        "multi_property_owners": 0,
+        "owner_out_of_state": 0,
+        "permits_lakeway": 0,
+        "business_locations": 0,
+        "business_locations_linked_to_parcel": 0,
+        "business_locations_linked_to_registry": 0
+      },
+      "previous_run_id": "20261021T150751Z",
+      "ipns": {
+        "name": "k51qzi5uqu5dme32gxohimdgqm9s09u1dzud92xhdp7fpg38xz201064yq8noj",
+        "label": "oracle-open-data-travis",
+        "resolved_cid": "bafybeiadohmaew3etddhljqkc7zh2d7ikwymljdebqc2w7542zuen42oku"
+      }
     }
   ],
   "retention": {
