@@ -15,7 +15,7 @@ Lines in quotes are suggested narration; say them in your own words.
 > "I'll show that the Oracle pipeline has loaded the available Travis County, Texas dataset, that it's queryable through DuckDB, that artifacts are published on IPFS as content-addressed snapshots, and that the UI and an agent answer roofing-lead questions. I acted as both Oracle and builder."
 
 ## 2. Pipeline run summary (1.5 min) — tab **Run summary**
-- Point at: run ID (run 6), published time, the number of runs in history, mode, the gateway-verification badge, and the root and manifest CIDs.
+- Point at: run ID (run 7, the latest), published time, the number of runs in history, mode, the gateway-verification badge, and the root and manifest CIDs.
 - Scroll to **Sources and provenance**. Each source shows a snapshot receipt: record counts, source-reported counts, collection timestamps and SHA-256. Point at the new source **Overture Maps places** (release 2026-09-23.1) and at the two blocked sources: BBB and **Pflugerville**, whose permit portal requires a login. Mention that City of Lakeway permits are being harvested from its public portal and join in the next run.
 - Scroll to **Source limitations** and read one or two: BBB, and municipal permit coverage (Austin plus Austin's ETJ cover 66% of parcels).
 
@@ -44,8 +44,8 @@ Lines in quotes are suggested narration; say them in your own words.
 
 ## 7. Incremental publish = new CID, old CID still resolves (2 min) — tab **Run history**
 - Show the runs with different root CIDs, "new vs reused" object counts, and deltas.
-- Point at run 6: the IPNS name now resolves to run 6's root CID, not run 5's.
-- On **run 5**, click **Check this snapshot still resolves**; it should resolve with a SHA-256 match. Do the same on the **oldest** run.
+- Point at the latest run (run 7): the IPNS name now resolves to its root CID. Run 6 was the first run whose manifest records IPNS; the name moved from run 6 to run 7.
+- On **run 6** (or run 5), click **Check this snapshot still resolves**; it should resolve with a SHA-256 match. Do the same on the **oldest** run.
 > "Republishing moved the IPNS pointer to the new CID. The old CID is immutable and still resolves."
 - Switch to the GitHub tab: the Releases page has one release per run, each with CARs.
 - Show a `refresh` workflow run that published a run with no laptop involved.
