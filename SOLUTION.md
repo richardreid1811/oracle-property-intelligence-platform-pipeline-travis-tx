@@ -30,13 +30,14 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 |---|---|
 | `pipeline/src/sources/` | Harvesters: TCAD export extract with receipt, ArcGIS centroids, Austin permits (full pull or business-date window), Lakeway permits (`tyler-permits`, Tyler EnerGov portal), Overture places (`overture-places`), generic Socrata, BBB sitemap reader (stopped on 403) |
 | `pipeline/src/build/` | `tcad-roll` builds properties; `permits` + shared `permit-sql` handle classification, status, deterministic parcel links and roof age; `derive` builds owner signals, contractors, businesses and licenses; `incremental` layers a window onto the previous snapshot |
-| `pipeline/src/publish/` | `export` (byte-stable Parquet, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest + IPNS re-point), `ipns` (Filebase names API), `verify-gateways`, `fetch-snapshot`, `check-contract`, `prune-pins` |
+| `pipeline/src/publish/` | `export` (byte-stable Parquet, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest + IPNS re-point), `ipns` (Filebase names API), `verify-gateways`, `fetch-snapshot`, `rebuild-from-cids`, `check-contract`, `prune-pins` |
+| `pipeline/test/` | `node --test` unit tests (`npm test`): roofing classifier, status buckets, reclassification and roof age; incremental upsert, hail merge and contractor carry-over; `check-contract` pass/fail; query-tool SQL; all on tiny in-memory DuckDB fixtures, no network |
 | `pipeline/src/lexicon/` | `transform` (Travis records → Elephant Lexicon, one ZIP per property), `publish-group` (elephant-cli validate → hash → CAR validate → export-tables → upload) |
 | `pipeline/src/run-incremental.mjs` | One incremental run end to end (what CI runs) |
 | `packages/query-tools/` | One definition per roofing tool (JSON Schema + DuckDB SQL), shared by the UI, agent and MCP; `embed.mjs` is the shared embedder for semantic retrieval |
 | `apps/web/` | React UI + Worker (`wrangler.jsonc`) |
 | `mcp/` | stdio MCP server |
-| `.github/workflows/` | `refresh.yml` (weekly incremental run, Mondays 07:40 UTC, plus on-demand `workflow_dispatch`; retention), `verify-gateways.yml` (independent retrieval proof) |
+| `.github/workflows/` | `refresh.yml` (weekly incremental run, Mondays 07:40 UTC, plus on-demand `workflow_dispatch`; retention), `verify-gateways.yml` (independent retrieval proof), `test.yml` (unit tests on every push and pull request), `rebuild-from-cids.yml` (latest run rebuilt from its CIDs: on manifest push, weekly, on demand) |
 
 ## Acceptance criteria → evidence
 
@@ -64,6 +65,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | New CIDs on republish, prior CIDs immutable | Byte-deterministic export: unchanged files keep CIDs, changed files get new ones. Every run's CIDs remain in history and still resolve. The only unpinning so far: run 1's files that no later run uses were released from Pinata (free-plan storage limit) and stay pinned on Filebase and archived in run 1's CAR release (see [Cost](#cost)) | UI › Run history ("Check this snapshot still resolves") |
 | CARs for directories | Every run in `runs/history.json` has a GitHub Release `run-<run_id>` with its root and `tables/permits` CARs, whose sha256 is in the manifest (runs 1–3 also include the since-retired `tiles/leads` CAR). The `refresh` workflow attaches the CARs for CI runs; for runs published from the operator's machine (runs 1, 2, 6, 7, 8) the operator creates the release. The Lexicon CARs are in a separate release, `lexicon-property_improvement` (archive and tables CARs) | Releases |
 | Two independent public gateways | `verify-gateways` fetches every CID from **ipfs.orbitor.dev** and **dget.top** (independent operators, not our pinning vendors) and checks size + sha256; when a run's manifest lists the Lexicon archive and tables roots, each root block is fetched as a CAR (`dag-scope=block`) and re-hashed against its CID; evidence committed per run. Run 8's first check asked for the whole Lexicon DAGs (`dag-scope=all`) and failed all four Lexicon checks (three 120 s timeouts and one 403 on a 146,207-block archive and the tables root); the re-run at 17:41 UTC with `dag-scope=block` passed 77/77. Every Lexicon block is proven by elephant-cli's CAR validation and by the CARs in the `lexicon-property_improvement` release ([`pipeline/docs/lexicon-publication.md`](pipeline/docs/lexicon-publication.md)). The UI re-verifies any file in your own browser. The README's examples, ipfs.io and dweb.link, **retired programmatic HTTP access on 2026-09-21** (service-worker-only; plain HTTP clients now get 429 with a notice pointing to gatewaychanges.ipfs.io). They still work in a browser via the service worker | `runs/<run>/gateway-verification.json`, UI › IPFS artifacts |
+| Rebuildable from CIDs alone | `rebuild-from-cids` starts from `runs/history.json` and the latest manifest only: checks the manifest bytes against its manifest CID, downloads every file by CID from ipfs.orbitor.dev and dget.top, checks size + sha256, re-imports the tree with the publishing UnixFS profile (every file, directory and root CID must match), then opens the Parquet tables in DuckDB and recomputes the snapshot counts against `manifest.counts` and `coverage.json` (date-dependent counts excluded) | `runs/<run>/rebuild-from-cids.json` |
 | DuckDB / MCP-ready / agent access | DuckDB-WASM in the browser and DuckDB in the MCP server, over the same Parquet; MCP `tools/list`, `tools/call`, `run_sql` and resources. A published **data contract** documents every table, key, enum and tool; each publish is gated on an exact schema match | UI › MCP & SQL, `mcp/`, `docs/data-contract.md` |
 | Agent: retrieval-augmented, source-backed | Two retrieval paths feed the model: structured tools (radius, roof age, permits, ownership) and **semantic retrieval**. Semantic retrieval embeds every row of `roofing_permits` (31,970 in run 8) with bge-small-en-v1.5 (vectors published as `permit_embeddings.parquet`) and ranks them by cosine similarity in DuckDB. Answers cite rows and source links | UI › Agent, Map › "Describe the work" |
 | UI | Hosted React app | Live runtime |
@@ -133,8 +135,11 @@ node src/lexicon/transform.mjs <build.duckdb> <lexicon-dir> --group property_imp
 node src/lexicon/publish-group.mjs <lexicon-dir> --group property_improvement --upload
 # incremental (what CI runs weekly / on demand)
 node src/run-incremental.mjs --runs ../runs
-# rebuild any published run from CIDs alone
+# rebuild any published run from CIDs alone (download only, or download + CID/row-count proof)
 node src/publish/fetch-snapshot.mjs ../runs/<run>/manifest.json <dir>
+node src/publish/rebuild-from-cids.mjs ../runs/<run>/manifest.json <dir> --history ../runs/history.json
+# unit tests (< 5 s, no network)
+npm test
 # hosted UI
 cd apps/web && npm run deploy
 ```

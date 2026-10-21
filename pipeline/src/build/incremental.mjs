@@ -15,7 +15,7 @@ import { DuckDBInstance } from "@duckdb/node-api";
 import { existsSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { businessLocationsSql, contractorAggSql, hailExposureSql, lakewayPermitsSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
+import { businessLocationsSql, contractorsCarrySql, hailEventsMergeSql, hailExposureSql, lakewayPermitsSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, upsertByKeySql, windowSourceSql } from "./permit-sql.mjs";
 
 const [out, prevManifestPath, windowFile, ...rest] = process.argv.slice(2);
 const opt = (n) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : null);
@@ -73,9 +73,7 @@ update permits_window set contractor_key = 'contractor:' || md5(${normName("cont
 const win = (await c.runAndReadAll(`
   select count(*) as window_rows, count(*) filter (permit_key in (select permit_key from permits)) as updated_existing
   from permits_window`)).getRowObjectsJson()[0];
-await step("upsert", `
-delete from permits where permit_key in (select permit_key from permits_window);
-insert into permits by name select * from permits_window;`);
+await step("upsert", upsertByKeySql("permits", "permits_window"));
 // City of Lakeway permits (Tyler EnerGov harvest): same columns and rules, upserted by permit_key.
 const lakewayFile = opt("--lakeway");
 await step("permits source_request_json", "alter table permits add column if not exists source_request_json varchar");
@@ -87,9 +85,7 @@ if (lakewayFile) {
 alter table lakeway_window add column if not exists latitude double;
 alter table lakeway_window add column if not exists longitude double;
 update lakeway_window w set latitude = pr.latitude, longitude = pr.longitude from properties pr where pr.prop_id = w.prop_id;`);
-  await step("lakeway upsert", `
-delete from permits where permit_key in (select permit_key from lakeway_window);
-insert into permits by name select * from lakeway_window;`);
+  await step("lakeway upsert", upsertByKeySql("permits", "lakeway_window"));
 }
 await step("open days (all)", openDaysSql("permits"));
 
@@ -99,11 +95,7 @@ await step("roof_age", roofAgeSql);
 const hailRecent = opt("--hail");
 const prevHail = (() => { try { return source("tables/hail_events.parquet"); } catch { return null; } })();
 const hailParts = [prevHail && `select * from read_parquet(${prevHail})`, hailRecent && `select * from read_parquet(${lit(hailRecent)})`].filter(Boolean);
-await step("hail", (hailParts.length
-  ? `create or replace table hail_events as select * exclude (rk) from (
-       select *, row_number() over (partition by event_id order by source_url desc) as rk from (${hailParts.join(" union all by name ")})
-     ) where rk = 1 order by event_date, event_id;\n`
-  : `create or replace table hail_events (event_id varchar, episode_id varchar, event_date date, latitude double, longitude double, hail_inches double, county_zone varchar, report_source varchar, source_url varchar);\n`) + hailExposureSql);
+await step("hail", hailEventsMergeSql(hailParts) + ";\n" + hailExposureSql);
 // Overture places: rebuilt from a fresh extract (--places), else carried from the previous snapshot.
 // Overture releases are monthly and the extract scans S3, so the weekly run normally carries them.
 const placesFile = opt("--places");
@@ -116,17 +108,7 @@ await step("owners", ownersSql + `;
 alter table owner_signals add column if not exists owner_key varchar;
 update owner_signals o set owner_key = po.owner_key from prop_owner po where po.prop_id = o.prop_id`);
 
-await step("contractors", `
-create or replace temp table prev_contractors as select * from contractors;
-create or replace table contractors as
-with agg as (${contractorAggSql})
-select a.contractor_key, a.name_norm, a.display_name, a.phones, a.trades, a.city, a.zip, a.permit_count, a.roofing_permit_count,
-       a.first_permit, a.last_permit,
-       p.taxpayer_number, p.sos_file_number, p.legal_name, p.right_to_transact_business,
-       coalesce(p.identity_status, 'pending_registry_refresh') as identity_status,
-       case when p.tdlr_licenses is null or p.tdlr_licenses = '' then null else list_sort(string_split(p.tdlr_licenses, ';')) end as tdlr_licenses,
-       p.bbb_rating, case when p.bbb_rating is not null then p.bbb_status else 'excluded_no_public_api_http_403' end as bbb_status
-from agg a left join prev_contractors p using (contractor_key)`);
+await step("contractors", contractorsCarrySql);
 // export.mjs expects the build's list/derived columns.
 await step("shape for export", `
 alter table licenses add column if not exists name_norm varchar;

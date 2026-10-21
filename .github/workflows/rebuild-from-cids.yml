@@ -1,0 +1,58 @@
+# Reproducibility proof: rebuild the latest run from its CIDs alone. Starting from runs/history.json
+# and that run's manifest only, download every file object by CID from independent public gateways
+# (the same ones verify-gateways.yml uses), check bytes against the manifest, recompute the UnixFS
+# file/directory/root CIDs, open the Parquet tables in DuckDB and recompute the snapshot counts.
+# Evidence is committed to runs/<id>/rebuild-from-cids.json.
+name: rebuild-from-cids
+
+on:
+  push:
+    branches: [travis-pipeline, main]
+    paths:
+      - "runs/*/manifest.json"
+      - ".github/workflows/rebuild-from-cids.yml"
+      - "pipeline/src/publish/rebuild-from-cids.mjs"
+      - "pipeline/src/publish/fetch-snapshot.mjs"
+  schedule:
+    - cron: "43 8 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-from-cids
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --workspace pipeline --include-workspace-root=false --ignore-scripts
+      - name: Pick latest run
+        id: pick
+        run: echo "run=$(node -e "console.log(require('./runs/history.json').runs.at(-1).run_id)")" >> "$GITHUB_OUTPUT"
+      - name: Rebuild from CIDs on ipfs.orbitor.dev and dget.top
+        id: rebuild
+        continue-on-error: true
+        timeout-minutes: 75
+        run: |
+          node pipeline/src/publish/rebuild-from-cids.mjs runs/${{ steps.pick.outputs.run }}/manifest.json "$RUNNER_TEMP/snapshot" \
+            --history runs/history.json --gateways https://ipfs.orbitor.dev,https://dget.top --fetch-timeout-min 60
+      - name: Commit rebuild evidence
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add runs/*/rebuild-from-cids.json
+          git commit -m "Rebuild from CIDs: ${{ steps.pick.outputs.run }}" || echo "no change"
+          # On a conflict with another writer, keep this job's fresh evidence for the files it produced.
+          git pull --rebase -X theirs && git push
+      - name: Fail if the rebuild did not match
+        if: steps.rebuild.outcome != 'success'
+        run: exit 1

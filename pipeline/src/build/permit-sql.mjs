@@ -397,3 +397,33 @@ select pl.gers_id, pl.overture_version, pl.name_primary as name, pl.taxonomy_pri
        'https://docs.overturemaps.org/attribution/' as license_url
 from pl left join parcel using (gers_id) left join biz using (gers_id)
 order by pl.gers_id`;
+
+// Incremental merge steps (incremental.mjs), kept here so they can be unit-tested on fixtures.
+
+/** Upsert by permit_key: rows in `src` replace their previous versions in `target`. */
+export const upsertByKeySql = (target, src) => `
+delete from ${target} where permit_key in (select permit_key from ${src});
+insert into ${target} by name select * from ${src};`;
+
+/** hail_events from the previous snapshot's reports plus a recent harvest (newer rows win by event_id). */
+export const hailEventsMergeSql = (parts) => (parts.length
+  ? `create or replace table hail_events as select * exclude (rk) from (
+       select *, row_number() over (partition by event_id order by source_url desc) as rk from (${parts.join(" union all by name ")})
+     ) where rk = 1 order by event_date, event_id`
+  : `create or replace table hail_events (event_id varchar, episode_id varchar, event_date date, latitude double, longitude double, hail_inches double, county_zone varchar, report_source varchar, source_url varchar)`);
+
+/**
+ * Contractors re-aggregated from permits; registry identity carried over by contractor key, new
+ * contractors marked pending_registry_refresh until the next full identity refresh.
+ */
+export const contractorsCarrySql = `
+create or replace temp table prev_contractors as select * from contractors;
+create or replace table contractors as
+with agg as (${contractorAggSql})
+select a.contractor_key, a.name_norm, a.display_name, a.phones, a.trades, a.city, a.zip, a.permit_count, a.roofing_permit_count,
+       a.first_permit, a.last_permit,
+       p.taxpayer_number, p.sos_file_number, p.legal_name, p.right_to_transact_business,
+       coalesce(p.identity_status, 'pending_registry_refresh') as identity_status,
+       case when p.tdlr_licenses is null or p.tdlr_licenses = '' then null else list_sort(string_split(p.tdlr_licenses, ';')) end as tdlr_licenses,
+       p.bbb_rating, case when p.bbb_rating is not null then p.bbb_status else 'excluded_no_public_api_http_403' end as bbb_status
+from agg a left join prev_contractors p using (contractor_key)`;

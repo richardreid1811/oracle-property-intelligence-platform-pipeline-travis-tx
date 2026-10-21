@@ -1,0 +1,26 @@
+# Unit tests on every push and pull request: roofing classifier, status buckets and roof age
+# (permit-sql.mjs), the incremental merge steps, the data-contract check, and the query tools the
+# explorer and MCP server run, all on tiny in-memory DuckDB fixtures (no network, no data download).
+name: test
+
+on:
+  push:
+    branches: [travis-pipeline, main]
+  pull_request:
+    branches: [travis-pipeline, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --workspace pipeline --include-workspace-root=false --ignore-scripts
+      - run: npm test --workspace pipeline
