@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Hugging Face's CDN answers 404 (without CORS headers) to model requests whose Referer is a
+         *.workers.dev page, which breaks in-browser embeddings; send no Referer. -->
+    <meta name="referrer" content="no-referrer" />
     <meta name="description" content="Travis County, TX property and roofing-lead intelligence over a content-addressed IPFS snapshot, queried in the browser with DuckDB." />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 16 16 6l12 10v10H4z' fill='%230969da'/></svg>" />
     <title>Travis Oracle</title>

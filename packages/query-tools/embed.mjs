@@ -19,7 +19,11 @@ async function getExtractor() {
     // Variable specifier so web bundlers do not pull the Node package (and its WASM) into the bundle.
     const nodePkg = "@huggingface/transformers";
     const lib = await import(/* @vite-ignore */ isBrowser ? BROWSER_URL : nodePkg);
-    extractor = lib.pipeline("feature-extraction", EMBED_MODEL, { dtype: EMBED_DTYPE });
+    // A failed load (network, CDN) is not cached, so the next search tries again.
+    extractor = lib.pipeline("feature-extraction", EMBED_MODEL, { dtype: EMBED_DTYPE }).catch((e) => {
+      extractor = null;
+      throw e;
+    });
   }
   return extractor;
 }
