@@ -222,11 +222,20 @@ const manifestPath = join(runOut, "manifest.json");
 await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
 let manifestCid = null;
+let manifestPinNote = null;
 if (!dryRun) {
   manifestCid = await filebaseAdd(manifestPath, `${runId}/manifest.json`);
-  if (!(await pinataHas(manifestCid))) {
-    const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
-    if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
+  // The manifest is also committed to the repository; a Pinata plan limit on this one small file is
+  // recorded in the run history rather than failing a run whose data files are pinned on both vendors.
+  try {
+    if (!(await pinataHas(manifestCid))) {
+      const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
+      if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
+    }
+  } catch (e) {
+    if (/CID mismatch/.test(e.message)) throw e;
+    manifestPinNote = `manifest pinned on Filebase and committed to the repository; Pinata refused it: ${e.message.slice(0, 200)}`;
+    console.error(`warning: ${manifestPinNote}`);
   }
 }
 
@@ -244,6 +253,7 @@ history.runs.push({
   deltas_vs_previous: deltas,
   previous_run_id: previous?.run_id ?? null,
   ipns: ipns ? { name: ipns.name, label: ipns.label, resolved_cid: ipns.resolved_cid } : null,
+  ...(manifestPinNote ? { manifest_pin_note: manifestPinNote } : {}),
 });
 if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
 console.log(JSON.stringify({ run_id: runId, root: manifest.root.cid, manifest_cid: manifestCid, objects: manifest.objects.length, dry_run: dryRun }));

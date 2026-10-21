@@ -2,9 +2,9 @@
 
 **Live runtime:** https://travis-oracle.travis-oracle-web.workers.dev (public, no login)
 **Run history and manifests:** [`runs/`](runs/) · **CARs:** [GitHub Releases](https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases)
-**Data contract (tables, keys, enums, tools):** [`docs/data-contract.md`](docs/data-contract.md) · **Discovery and readiness:** [`pipeline/docs/travis-county-findings.md`](pipeline/docs/travis-county-findings.md), [`pipeline/docs/travis-sources.yaml`](pipeline/docs/travis-sources.yaml) (kit readiness validator: PASS)
+**Data contract (tables, keys, enums, tools):** [`docs/data-contract.md`](docs/data-contract.md) · **Elephant publication (Lexicon, elephant-cli, IPNS):** [`pipeline/docs/lexicon-publication.md`](pipeline/docs/lexicon-publication.md) · **Discovery and readiness:** [`pipeline/docs/travis-county-findings.md`](pipeline/docs/travis-county-findings.md), [`pipeline/docs/travis-sources.yaml`](pipeline/docs/travis-sources.yaml) (kit readiness validator: PASS)
 
-The pipeline loads all available Travis County property, permit, ownership, business, contractor, licensing and coordinate data. It reconciles them into roofing-lead signals and publishes each run as an immutable, CID-addressed snapshot on public IPFS. The data is queried in the browser with DuckDB-WASM, through an agent, and through an MCP server. **Oracle runs no database and no servers, and pays $0 a month.**
+The pipeline loads all available Travis County property, permit, ownership, business, contractor, licensing and coordinate data. It reconciles them into roofing-lead signals and publishes each run as an immutable, CID-addressed snapshot on public IPFS, with an IPNS name that points at the latest run. Eligible records are also published as Elephant Lexicon archives built with elephant-cli. The data is queried in the browser with DuckDB-WASM, through an agent, and through an MCP server. **Oracle runs no database and no servers, and pays $0 a month.**
 
 ## Architecture
 
@@ -13,8 +13,10 @@ Sources ──► pipeline/ (Node + DuckDB) ──► deterministic Parquet + ru
   TCAD appraisal roll (bulk export)        roll build · permit build · derive          pinned on Filebase + Pinata
   TCAD parcel centroids (ArcGIS)           export · deltas · publish                   CARs → GitHub Releases
   City of Austin permits (Socrata)                                                     manifest + history → runs/
-  TX Comptroller, TDLR (Socrata)
-  US Census ZCTA→county                         ▲ scheduled incremental refresh
+  City of Lakeway permits (Tyler EnerGov)                                              IPNS oracle-open-data-travis → latest root
+  TX Comptroller, TDLR (Socrata)            lexicon/ transform ──► elephant-cli ──► Lexicon CARs on Filebase
+  Overture Maps places (pinned release)                                                evidence → runs/lexicon/
+  NOAA Storm Events, US Census ZCTA→county      ▲ scheduled incremental refresh
                                                 │ (GitHub Actions, free) reads the previous
                                                 │ snapshot back by CID
                                                 │
@@ -26,9 +28,10 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 
 | Path | Purpose |
 |---|---|
-| `pipeline/src/sources/` | Harvesters: TCAD export extract with receipt, ArcGIS centroids, Austin permits (full pull or business-date window), generic Socrata, BBB sitemap reader (stopped on 403) |
+| `pipeline/src/sources/` | Harvesters: TCAD export extract with receipt, ArcGIS centroids, Austin permits (full pull or business-date window), Lakeway permits (`tyler-permits`, Tyler EnerGov portal), Overture places (`overture-places`), generic Socrata, BBB sitemap reader (stopped on 403) |
 | `pipeline/src/build/` | `tcad-roll` builds properties; `permits` + shared `permit-sql` handle classification, status, deterministic parcel links and roof age; `derive` builds owner signals, contractors, businesses and licenses; `incremental` layers a window onto the previous snapshot |
-| `pipeline/src/publish/` | `export` (byte-stable Parquet, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest), `verify-gateways`, `fetch-snapshot`, `check-contract`, `prune-pins` |
+| `pipeline/src/publish/` | `export` (byte-stable Parquet, samples, coverage), `deltas`, `run-summary`, `unixfs` (Kubo-profile CIDs + CARs), `publish` (pins + manifest + IPNS re-point), `ipns` (Filebase names API), `verify-gateways`, `fetch-snapshot`, `check-contract`, `prune-pins` |
+| `pipeline/src/lexicon/` | `transform` (Travis records → Elephant Lexicon, one ZIP per property), `publish-group` (elephant-cli validate → hash → CAR validate → export-tables → upload) |
 | `pipeline/src/run-incremental.mjs` | One incremental run end to end (what CI runs) |
 | `packages/query-tools/` | One definition per roofing tool (JSON Schema + DuckDB SQL), shared by the UI, agent and MCP; `embed.mjs` is the shared embedder for semantic retrieval |
 | `apps/web/` | React UI + Worker (`wrangler.jsonc`) |
@@ -41,24 +44,26 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 |---|---|---|
 | Travis County as primary county | All sources scoped to Travis (FIPS 48453); 23 jurisdictions enumerated from TCAD taxing entities | Findings §4 |
 | Load all available property records | 441,972 assessed real parcels (TCAD 2026, supplement 335) | UI › Run summary |
-| Permits, roofing emphasis | 2,380,939 City of Austin permits; 31,968 roofing (23,403 re-roof building permits, classifier on Building Permits only) | UI › Run summary, Map |
+| Permits, roofing emphasis | 2,380,939 City of Austin permits; 31,968 roofing (23,403 re-roof building permits, classifier on Building Permits only). City of Lakeway: harvest of its public Tyler EnerGov portal in progress (42,764 permits indexed, 1995 to date; contractor lookups for roofing permits running), loaded with the same classifier and status buckets in the next run. Pflugerville is blocked: its Cityworks portal requires a login | UI › Run summary, Map |
 | Permit status, open/close dates, duration | `status`, `status_bucket` (open / expired_unfinaled / closed / void), applied/issued/completed dates; days open computed as of today | Map › open roofing permits |
 | Ownership | Owner name and mailing address from the roll; deed date (424k parcels) | `stale_ownership_near`, `absentee_owners_near` |
 | Contractors | 32,467 contractors deduplicated across permits; 10,745 resolved to a Texas Comptroller entity on an unambiguous exact match | Agent and Map answers |
 | BBB ratings where available | **Excluded from automated ingestion.** bbb.org returned HTTP 403, robots.txt bars search and pagination, and BBB offers no public API. Per the kit, the block is not circumvented. Instead, BBB lookup is **ad hoc and viewer-initiated**: every contractor row carries `bbb_lookup_url`, which opens BBB's own search for that contractor in the user's browser (UI link, agent answer, MCP field). The pipeline never fetches BBB | Map › open roofing permits › Check BBB |
-| Businesses | 367,843 Travis County businesses (sales-tax outlets + franchise taxpayers) | Run summary |
-| Coordinates | 430,761 parcels with coordinates (390k own centroid, 40k parent lot for condos), labelled by basis | Map |
-| Roof age / proxies, configurable threshold | Per-property roof year with basis and confidence: finaled re-roof permit (high), unfinaled (medium), year built (low; very_low if more than 50 years). Threshold is a parameter, default 15. Each parcel carries `permit_history_coverage`, so a year-built estimate is never mistaken for a missing permit search (unincorporated parcels with Austin ETJ/limited-purpose permits are labelled separately) | `aged_roofs_near` |
-| Reconcile duplicate entities | Parcels keyed on PROP_ID (padding normalized); permits deduplicated by number; deterministic geo_id links with ambiguity flagged; contractors deduplicated by normalized name and resolved to the Comptroller registry; **owners reconciled across properties** (normalized name + mailing address → `owners`, 376k entities, 21.8k multi-property portfolios) and linked to the business registry; businesses deduplicated by taxpayer number | `owners`, `link_basis`, `identity_status`, `registry_link` |
-| Source provenance | Every row carries its source URL or record link; every source has a receipt (URL, digest, counts, timestamp) in `run.json` | UI › Run summary › Sources |
+| Businesses | 367,843 Travis County businesses (sales-tax outlets + franchise taxpayers). 93,331 business and point-of-interest locations from Overture Maps places (release 2026-09-23.1, clipped to the Travis County boundary) in `business_locations` | Run summary, `business_locations` |
+| Coordinates | 430,761 parcels with coordinates (390k own centroid, 40k parent lot for condos), labelled by basis. Lakeway permits take their linked parcel's centroid (the portal has no coordinates). Every Overture place has its own point | Map |
+| Roof age / proxies, configurable threshold | Per-property roof year with basis and confidence: finaled re-roof permit (high), unfinaled (medium), year built (low; very_low if more than 50 years). Threshold is a parameter, default 15. Each parcel carries `permit_history_coverage`, so a year-built estimate is never mistaken for a missing permit search (unincorporated parcels with Austin ETJ/limited-purpose permits and Lakeway parcels are labelled separately) | `aged_roofs_near` |
+| Reconcile duplicate entities | Parcels keyed on PROP_ID (padding normalized); permits deduplicated by number; deterministic geo_id links with ambiguity flagged; contractors deduplicated by normalized name and resolved to the Comptroller registry; **owners reconciled across properties** (normalized name + mailing address → `owners`, 376k entities, 21.8k multi-property portfolios) and linked to the business registry; businesses deduplicated by taxpayer number; Lakeway permits linked to TCAD through the portal's main parcel (geo_id or prop_id); Overture places linked to a parcel only on an exact, unique situs-address match and to a Comptroller business only on an exact, unique name + address match | `owners`, `link_basis`, `identity_status`, `registry_link`, `parcel_link_basis`, `business_link_basis` |
+| Source provenance | Every row carries its source URL or record link; Lakeway rows also carry the exact portal search request (`source_request_json`). Every source has a receipt (URL, digest, counts, collection timestamp) in `run.json`, including parcel centroids (fetched 2026-10-20T16:37:24Z) and the Census ZCTA file (2026-10-20T17:29:58Z) | UI › Run summary › Sources |
 | Continuous / incremental | Business-date windows (Socrata `:updated_at` is rewritten nightly), idempotent upserts, carried records re-classified under current rules, record-level deltas, **weekly** scheduled CI refresh plus on-demand runs, no-change checks recorded. Published tables hold only stable facts (durations and tenure are computed at query time), so unchanged data never creates new pins | `runs/history.json`, UI › Run history |
 | Visible run history | Timestamps, sources, counts, deltas, limitations and CIDs per run | UI › Run history |
 | Performance / slow sources / limits | See [Speed and source constraints](#speed-and-source-constraints) | |
 | No ongoing Oracle infrastructure cost | Cloudflare free plan (no card), free pinning tiers, GitHub Actions on a public repo, browser-side DuckDB | [Cost](#cost) |
-| IPFS: CIDv1, public, manifest fields | Kubo-default UnixFS profile; locally computed CIDs must equal the Filebase and Pinata CIDs or publication fails. Manifest lists cid, name, size, codec, sha256, pins and CARs | `runs/<run>/manifest.json`, UI › IPFS artifacts |
+| IPFS: CIDv1, public, manifest fields | Kubo-default UnixFS profile; locally computed CIDs must equal the Filebase and Pinata CIDs or publication fails. Manifest lists cid, name, size, codec, sha256, pins and CARs, and also the Lexicon archive and tables roots (codec `dag-json`, size and sha256 of each CAR) | `runs/<run>/manifest.json`, UI › IPFS artifacts |
+| Elephant Lexicon / elephant-cli | Travis records are transformed to the Elephant Lexicon (live manifest `https://lexicon.elephant.xyz/api/manifest`). elephant-cli (GitHub `main` at `44bb182b`, in `tools/elephant-cli`) validates every property, hashes one CAR per county per data group, validates the CAR (integrity, root, index, graph, lexicon, orphans), runs `export-tables` with the Atlas page entry, and uploads to Filebase over Kubo RPC with gateway readback. Two groups: `county` (all 441,972 TCAD properties: property, address, parcel, geometry, structure with roof fields, tax, sales history, deed, owners, mailing address) and `property_improvement` (16,217 properties with linked Austin roofing permits; contractor company only when it resolves to exactly one Comptroller taxpayer). **Status:** `property_improvement` is being validated and uploaded; `county` validation is in progress (about 64%) and the archive is published in a later run. Bulk PII upload has a recorded human approval. Atlas registration is prepared but not opened (on hold by operator decision) | `runs/lexicon/<group>.json`, `atlas/counties/TX/travis.json`, `runs/publication-approval.json`, UI › IPFS artifacts › Elephant Lexicon archives |
+| IPNS | Filebase names API, label `oracle-open-data-travis`, name `k51qzi5uqu5dme32gxohimdgqm9s09u1dzud92xhdp7fpg38xz201064yq8noj`. `publish` re-points it at each new run's root CID and checks the resolved root via `x-ipfs-roots`. The manifest records `ipns` (name, label, target and resolved CID, resolve time, `query_table_path` `/ipns/<name>/tables/leads.parquet`). The free plan allows one IPNS name, so the query table is addressed by path under it instead of a second label (`oracle-query-table-travis` in the `elephant-xyz/skills` convention). Run 5 predates IPNS (its IPNS record is in `runs/history.json`); run 6 is the first manifest with `ipns` | `runs/<run>/manifest.json`, `runs/history.json`, UI › IPFS artifacts › IPNS pointer |
 | New CIDs on republish, prior CIDs immutable | Byte-deterministic export: unchanged files keep CIDs, changed files get new ones, nothing is ever unpinned. Both runs' CIDs remain in history | UI › Run history ("Check this snapshot still resolves") |
 | CARs for directories | Root and `tables/permits` CARs attached to each run's GitHub Release, with their sha256 in the manifest (runs 1–3 also include the since-retired `tiles/leads` CAR) | Releases |
-| Two independent public gateways | `verify-gateways` fetches every CID from **ipfs.orbitor.dev** and **dget.top** (independent operators, not our pinning vendors) and checks size + sha256; evidence committed per run. The UI re-verifies any file in your own browser. The README's examples, ipfs.io and dweb.link, **retired programmatic HTTP access on 2026-09-21** (service-worker-only; plain HTTP clients now get 429 with a notice pointing to gatewaychanges.ipfs.io). They still work in a browser via the service worker | `runs/<run>/gateway-verification.json`, UI › IPFS artifacts |
+| Two independent public gateways | `verify-gateways` fetches every CID from **ipfs.orbitor.dev** and **dget.top** (independent operators, not our pinning vendors) and checks size + sha256; the Lexicon archive and tables roots are fetched as CARs and every block is re-hashed; evidence committed per run. The UI re-verifies any file in your own browser. The README's examples, ipfs.io and dweb.link, **retired programmatic HTTP access on 2026-09-21** (service-worker-only; plain HTTP clients now get 429 with a notice pointing to gatewaychanges.ipfs.io). They still work in a browser via the service worker | `runs/<run>/gateway-verification.json`, UI › IPFS artifacts |
 | DuckDB / MCP-ready / agent access | DuckDB-WASM in the browser and DuckDB in the MCP server, over the same Parquet; MCP `tools/list`, `tools/call`, `run_sql` and resources. A published **data contract** documents every table, key, enum and tool; each publish is gated on an exact schema match | UI › MCP & SQL, `mcp/`, `docs/data-contract.md` |
 | Agent: retrieval-augmented, source-backed | Two retrieval paths feed the model: structured tools (radius, roof age, permits, ownership) and **semantic retrieval**. Semantic retrieval embeds the 31,968 roofing permits with bge-small-en-v1.5 (vectors published as `permit_embeddings.parquet`) and ranks them by cosine similarity in DuckDB. Answers cite rows and source links | UI › Agent, Map › "Describe the work" |
 | UI | Hosted React app | Live runtime |
@@ -72,9 +77,10 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 - **Appraisal export.** The appraisal-district export replaces Florida DOR NAL rolls. PROP_ID is digits-only by design and is keyed as a string; `geo_id` is the permit join key.
 - **No sale prices.** Texas is a non-disclosure state, so ownership age comes from deed dates.
 - **No county building permits.** Texas counties have no building-code authority, so unincorporated Travis County has no re-roof permits and its roof age is year-built based.
-- **Permit vendors.** Austin uses Socrata open data, a new adapter. Suburbs use MGO, GovWell, GovBuilt or Tyler; these are classified, with Texas Public Information Act request routes (not sent).
+- **Permit vendors.** Austin uses Socrata open data, a new adapter. Lakeway uses a public Tyler EnerGov Civic Self Service portal; its adapter captures the portal's search request with headless Chrome, as the kit's `tyler-civic-access` adapter does, then replays it politely. Pflugerville's Cityworks portal requires a login, so it is blocked. Other suburbs use MGO, GovWell, GovBuilt or Tyler; these are classified, with Texas Public Information Act request routes (not sent).
+- **Lexicon county enum.** Travis is not yet in the lexicon's county enums (lexicon PR elephant-xyz/lexicon#194, not merged). `county_name` is optional, so it is omitted rather than guessed.
 - **Infrastructure.** The kit's AWS BBB execution and Neon destination are replaced by local DuckDB and Docker Postgres at $0. Restate was not needed: every source is bulk or API, the slowest is about 20 minutes, and steps are idempotent scripts.
-- **Atlas.** Registration in `elephant-xyz/atlas` was not attempted. The README's manifest-and-gateway requirements are met independently, and the lexicon CAR path remains future work.
+- **Atlas.** Lexicon CARs are built and uploaded with elephant-cli, and `export-tables` writes the Atlas page entry `atlas/counties/TX/travis.json`. The registration pull request to `elephant-xyz/atlas` is prepared but not opened (on hold by operator decision).
 
 ## Speed and source constraints
 
@@ -85,12 +91,16 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 | TCAD centroids | 386,682 features | 2 m 19 s | ArcGIS 2,000-feature pages, concurrency 2 |
 | Austin permits full pull | 2,380,939 | 19 m 42 s | Socrata 50k pages; `:updated_at` unusable for change detection |
 | Austin permit window | tens to thousands of rows | seconds | Business-date filters |
+| Lakeway permits (Tyler EnerGov) | 42,764 permits indexed (842 search requests, about 21 min) | full history once, then weekly windows | Search request captured with headless Chrome; 1.5 s between requests; full history from 1995, then weekly windows on issue, apply, final and expiry dates |
+| Overture places | 93,331 places in Travis County | ~21 min (S3 scan) | Release pinned from the STAC catalog; bbox prune then `ST_Within` the TIGER/Line 2024 county polygon; licence gate (no OpenStreetMap rows). Too slow for the weekly run, so places are carried forward and refreshed per Overture release |
 | NOAA hail (Storm Events) | 31 yearly national files, 1,093 local reports | ~1 min first run, then the last 2 years weekly | A few national rows have malformed quotes; rejects are checked so no Texas hail row is dropped |
 | Franchise taxpayers (statewide) | 3,487,662 | 9 m 18 s | Needed for contractor identity |
 | Permit build / derive / export | 2.4M permits | ~4 m / 25 s / ~2 m | |
 | Publish (pins + verification) | 72 objects, ~240 MB | ~4–5 min | Free-plan Pinata accepts no CAR or pin-by-CID, so files are uploaded and CIDs compared |
 | Incremental run end to end | | ~2–3 min | Previous snapshot fetched by CID and sha256-verified |
+| elephant-cli directory validation | 441,972 properties (`county`), 16,217 (`property_improvement`) | ~0.4 s per property per process | The CLI recompiles the lexicon schema for each property; run as a pool of validator processes over shards (the kit's scaling note). The `county` archive takes many hours even with the pool, so it is published in a later run |
 | BBB | | excluded | HTTP 403, robots.txt, no public API |
+| Pflugerville permits | 23,659 parcels (5.4%) | blocked | Cityworks PublicAccess requires a login (`window.Environment.allowGuest = false`; every route redirects to `/PublicAccess/login`). The pipeline does not create accounts; a Texas Public Information Act request is the route |
 | Other municipalities | 17 jurisdictions, ~11% of parcels | n/a | Account-gated portals; records-request routes cataloged |
 
 ## Cost
@@ -99,7 +109,7 @@ MCP server (mcp/, stdio) ── loads the same snapshot by CID into DuckDB; same
 |---|---|---|
 | UI + agent relay | Cloudflare Workers free plan, no card on file (over-limit requests fail rather than bill) | $0 |
 | LLM | Workers AI free daily allocation | $0 |
-| IPFS pinning | Filebase free + Pinata free (500 pinned files and 1–5 GB each). Kept inside the quotas by directory-node-only directory pins, stable published facts, a weekly cadence, and retention (initial run + latest 7 pinned on both vendors; older runs stay in history and in their release CARs) | $0 |
+| IPFS pinning | Filebase free (5 GB storage, 500 pinned files, 1 IPNS name, 10 GB IPFS egress a month) + Pinata free (500 pinned files, 1 GB). Kept inside the quotas by directory-node-only directory pins, stable published facts, a weekly cadence, and retention (initial run + latest 7 pinned on both vendors; older runs stay in history and in their release CARs) | $0 |
 | Scheduled refresh + verification | GitHub Actions on a public repository | $0 |
 | Query engine | DuckDB in the user's browser / MCP host | $0 |
 
@@ -114,8 +124,13 @@ node src/sources/tcad-extract.mjs <export.zip> data/raw/tcad/<snap>/extracted <u
 node src/sources/tcad-gis-centroids.mjs data/raw/gis/tcad-centroids.ndjson
 node src/sources/austin-permits.mjs data/raw/permits/austin/full.ndjson
 node src/sources/socrata.mjs ...         # Comptroller / TDLR (see pipeline/docs)
+node src/sources/tyler-permits.mjs <out-dir> --jurisdiction lakeway --from-year 1995
+node src/sources/overture-places.mjs <out-dir> --release 2026-09-23.1
 node src/build/tcad-roll.mjs ... && node src/build/permits.mjs ... && node src/build/derive.mjs ...
 node src/publish/export.mjs ... && node src/publish/run-summary.mjs ... && node src/publish/publish.mjs ...
+# Elephant Lexicon archives (per group: county | property_improvement)
+node src/lexicon/transform.mjs <build.duckdb> <lexicon-dir> --group property_improvement
+node src/lexicon/publish-group.mjs <lexicon-dir> --group property_improvement --upload
 # incremental (what CI runs weekly / on demand)
 node src/run-incremental.mjs --runs ../runs
 # rebuild any published run from CIDs alone
@@ -143,10 +158,15 @@ Every acceptance criterion and module was reviewed against real output; fixes we
 
 ## Known limitations (accepted)
 
-- **Permit coverage:** automated permit history covers the City of Austin (56% of parcels). Unincorporated Travis County (25%) has no county building permits under Texas law. Pflugerville and Lakeway adapters are designed but not built (about 8% of parcels). 19 small municipalities need Texas Public Information Act requests, which are cataloged and not sent.
+- **Permit coverage:** automated permit history covers 66.0% of parcels today: the City of Austin (56.2%) and unincorporated parcels in Austin's ETJ or limited-purpose area (9.8%). The City of Lakeway (2.3%, 10,131 parcels) is being harvested and joins in the next run (68.3%). Unincorporated Travis County outside those areas has no county building permits under Texas law. Pflugerville (23,659 parcels, 5.4%) is blocked: its Cityworks portal requires a login, the pipeline does not create accounts, and a Texas Public Information Act request is the route. 19 small municipalities need Texas Public Information Act requests, which are cataloged and not sent.
 - **BBB:** excluded from ingestion (403, robots.txt, no public API). Lookup is viewer-initiated through `bbb_lookup_url`.
 - **Contractor identity:** a contractor counts as resolved on an exact, unique normalized-name match in the statewide registry. There is no fuzzy matching, so common names stay unresolved rather than mis-linked.
 - **Roof age outside Austin** relies on TCAD year built (confidence `low`/`very_low`) because no permit history exists there. Unincorporated parcels in Austin's ETJ or limited-purpose area have partial Austin permit history and are labelled `austin_etj_or_limited_purpose_permits`.
 - **Hail** reports are NOAA point observations (spotter, public, radar-confirmed), not swaths. Exposure is a lead signal, not evidence of damage, and parcels without a roof year get none.
 - **Free-tier quotas:** pinning is 500 files per vendor (handled by retention and a weekly cadence). Gateway egress is about 10 GB/month per vendor; the UI falls back to independent public gateways, and browsers cache CID responses as immutable.
-- **Kit conformance:** Restate was not needed (all sources are bulk or API with idempotent script steps). Atlas registration and lexicon CARs were not attempted; the README's manifest-and-gateway publication requirements are met independently.
+- **Elephant Lexicon status:** the `property_improvement` archive is being validated and uploaded. The `county` archive's directory validation is in progress (about 64%); it is hashed, validated and uploaded in a later run. Until then only `property_improvement` evidence exists in `runs/lexicon/`.
+- **Atlas registration:** the pull request to `elephant-xyz/atlas` is prepared but not opened (on hold by operator decision), so the archives are on Filebase but not yet listed in Atlas.
+- **Travis county enum:** Travis is not in the lexicon's county enums until lexicon PR elephant-xyz/lexicon#194 is merged, so `county_name` is omitted from Lexicon addresses.
+- **Places not in the Lexicon:** Overture places are published only in the query layer (`business_locations`). The Lexicon Business_Location group allows one place per property record, and only 6,752 parcels hold exactly one place (most places share parcels: malls, office buildings). Elephant's own places archive design is not public. This is a documented gap.
+- **IPNS:** Filebase's free plan allows one IPNS name, so the query table is reached by path under the run's name rather than its own label. Run 5 predates IPNS; run 6 is the first manifest with an `ipns` record.
+- **Kit conformance:** Restate was not needed (all sources are bulk or API with idempotent script steps).

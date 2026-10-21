@@ -13,8 +13,8 @@ const MAX_STEPS = 6;
 const MAX_TOOL_ROUNDS = 1;
 const MAX_ROWS_TO_MODEL = 15;
 const EXAMPLES = [
-  "Which properties in Travis County within five miles of Pflugerville have roofs older than 15 years?",
-  "Which properties near downtown Austin have open roofing permits that have been open for many years, and who is the listed contractor?",
+  "Which properties in Travis County within five miles of Sunset Valley have roofs older than 15 years?",
+  "Which properties near Sunset Valley have open roofing permits that have been open for many years, and who is the listed contractor?",
   "Within 3 miles of 78704, which owners have not sold in over 10 years and mail their tax bills out of state?",
 ];
 

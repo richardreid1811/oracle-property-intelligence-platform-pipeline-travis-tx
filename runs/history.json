@@ -218,7 +218,74 @@
         "multi_property_owners": 0,
         "owner_out_of_state": 0
       },
-      "previous_run_id": "20261020T223321Z"
+      "previous_run_id": "20261020T223321Z",
+      "ipns": {
+        "name": "k51qzi5uqu5dme32gxohimdgqm9s09u1dzud92xhdp7fpg38xz201064yq8noj",
+        "label": "oracle-open-data-travis",
+        "resolved_cid": "bafybeihilmsi337ys6drdvtsyuf7wss3dj2qgie2egj6txkx6yzcvg22wy",
+        "resolved_at": "2026-10-21T04:01:29.013Z",
+        "note": "IPNS created after this run was published; recorded here because the run manifest is immutable. Later runs record IPNS in their manifest."
+      }
+    },
+    {
+      "run_id": "20261021T150751Z",
+      "published_at": "2026-10-21T15:32:39.608Z",
+      "root_cid": "bafybeifs5vqpu27piy4aoag3r7w5mafzgtxj6xvac7a3jfgd37jnl2pcva",
+      "manifest_cid": "bafkreigj7327lkmjfv37crmpykiz76ygmpluzyqhbuttzv6voyuwwcnbpa",
+      "manifest_path": "runs/20261021T150751Z/manifest.json",
+      "objects": 75,
+      "new_objects": 67,
+      "counts": {
+        "properties": "441972",
+        "properties_with_coordinates": "430761",
+        "permits": "2381226",
+        "permits_linked_to_parcel": "2017804",
+        "roofing_permits": "31970",
+        "roofing_permits_open_or_unfinaled": "1724",
+        "contractors": "32470",
+        "contractors_resolved": "10745",
+        "contractors_with_bbb": "0",
+        "businesses": "367843",
+        "licenses": "54784",
+        "roof_15y_plus": "280256",
+        "deed_over_10y": "170146",
+        "owners": "376634",
+        "multi_property_owners": "21793",
+        "owner_out_of_state": "26231",
+        "permits_lakeway": "0",
+        "business_locations": "93331",
+        "business_locations_linked_to_parcel": "37916",
+        "business_locations_linked_to_registry": "8686"
+      },
+      "deltas_vs_previous": {
+        "properties": 0,
+        "properties_with_coordinates": 0,
+        "permits": 287,
+        "permits_linked_to_parcel": 251,
+        "roofing_permits": 2,
+        "roofing_permits_open_or_unfinaled": 0,
+        "contractors": 3,
+        "contractors_resolved": 0,
+        "contractors_with_bbb": 0,
+        "businesses": 0,
+        "licenses": 0,
+        "roof_15y_plus": -2,
+        "deed_over_10y": 143,
+        "owners": 0,
+        "multi_property_owners": 0,
+        "owner_out_of_state": 0,
+        "permits_lakeway": 0,
+        "business_locations": 93331,
+        "business_locations_linked_to_parcel": 37916,
+        "business_locations_linked_to_registry": 8686
+      },
+      "previous_run_id": "20261020T225920Z",
+      "ipns": {
+        "name": "k51qzi5uqu5dme32gxohimdgqm9s09u1dzud92xhdp7fpg38xz201064yq8noj",
+        "label": "oracle-open-data-travis",
+        "resolved_cid": "bafybeifs5vqpu27piy4aoag3r7w5mafzgtxj6xvac7a3jfgd37jnl2pcva"
+      },
+      "manifest_pin_note": "manifest pinned on Filebase and committed to the repository; Pinata refused it: pinata add 20261021T150751Z/manifest.json: HTTP 403: {\"error\":{\"code\":403,\"message\":\"Unable to perform this action due to account surpassing plan limits\"}}"
     }
   ],
   "retention": {
