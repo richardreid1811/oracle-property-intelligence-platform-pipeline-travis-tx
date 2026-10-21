@@ -113,5 +113,11 @@
       "not_approved": "Opening the Atlas registration pull request (on hold by the operator)."
     }
   },
-  "finished_at": "2026-10-21T15:51:47.415Z"
+  "finished_at": "2026-10-21T15:51:47.415Z",
+  "release": {
+    "tag": "lexicon-property_improvement",
+    "archive_car": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/lexicon-property_improvement/travis-property_improvement.car",
+    "tables_car": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/lexicon-property_improvement/travis-property_improvement-tables.car",
+    "created_at": "2026-10-21T17:50:00Z"
+  }
 }

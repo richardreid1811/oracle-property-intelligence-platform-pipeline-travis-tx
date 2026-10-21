@@ -6,6 +6,10 @@
 //                must equal the published CAR). Large roots use dag-scope=entity (root node plus its
 //                directory listing): their data files are each verified byte-for-byte as manifest
 //                file objects, so the full DAG is still covered.
+//   Lexicon archive/tables roots (dag-json): dag-scope=block (the root block, re-hashed against its
+//                CID). Their every-block proof is elephant-cli's CAR validation (runs/lexicon/<group>.json)
+//                plus the CAR in a GitHub Release; a bitswap crawl of a 146k-block archive, or of the
+//                Parquet parts a tables root links to, does not fit a gateway request.
 // Bounded: per-request timeout, few retries, overall time budget; always writes its report so the
 // evidence is committed even when a gateway is slow. Exit 1 if anything failed or was not attempted.
 // Usage: node src/publish/verify-gateways.mjs <manifest.json> [--gateways a,b] [--budget-min 50]
@@ -52,8 +56,8 @@ async function fetchBytes(url, accept) {
 }
 
 async function verifyDirectory(gateway, o) {
-  const full = (o.car?.bytes ?? Infinity) <= FULL_CAR_MAX_BYTES;
-  const scope = full ? "all" : "entity";
+  const full = o.codec !== "dag-json" && (o.car?.bytes ?? Infinity) <= FULL_CAR_MAX_BYTES;
+  const scope = o.codec === "dag-json" ? "block" : full ? "all" : "entity";
   const { bytes, finalUrl } = await fetchBytes(`${gateway}/ipfs/${o.cid}?format=car&dag-scope=${scope}`, "application/vnd.ipld.car");
   const it = await CarBlockIterator.fromBytes(bytes);
   const roots = (await it.getRoots()).map(String);
@@ -108,7 +112,7 @@ const report = {
   verified_at: new Date().toISOString(),
   verifier: process.env.GITHUB_ACTIONS ? `github-actions run ${process.env.GITHUB_RUN_ID ?? ""}`.trim() : "local",
   gateways,
-  method: "files: full GET + sha256; directories and Lexicon archive roots (dag-json): CAR with every block re-hashed against its CID, dag-scope=all when the CAR is <= 80 MB, else entity (directory: data files verified individually; archive: root block)",
+  method: "files: full GET + sha256; directories: CAR with every block re-hashed against its CID, dag-scope=all when the CAR is <= 80 MB, else entity (data files verified individually); Lexicon roots (dag-json): dag-scope=block, root block re-hashed (every-block proof: elephant-cli CAR validation + release CAR)",
   objects: results.length,
   failures,
   all_ok: failures === 0,

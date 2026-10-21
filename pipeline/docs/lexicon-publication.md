@@ -62,6 +62,16 @@ A run's manifest lists the Lexicon archive and tables roots (`lexicon/<group>/ar
 (`20261021T150751Z`, `20261021T154604Z`) predate the `property_improvement` upload, so their
 manifests do not list it.
 
+Second copy and gateway checks. Both CARs are attached to the GitHub Release
+`lexicon-property_improvement` (`runs/lexicon/property_improvement.json` › `release`), so anyone can
+`ipfs dag import` them and get the same roots. Run 8's gateway check (`20261021T162552Z`) asked the
+independent gateways for the whole DAG (`dag-scope=all`) and failed on all four Lexicon checks
+(two roots on each of two gateways): two timeouts at 120 s on ipfs.orbitor.dev, and on dget.top
+one 403 and one timeout. A 146,207-block archive, or a tables root and the Parquet parts it links
+to, cannot be crawled within one gateway request. The checks now fetch each root block
+(`dag-scope=block`) and re-hash it against its CID. elephant-cli's CAR validation and the release
+CAR are what prove every block.
+
 ### Provenance
 
 Every entity carries the exact request its data came from, never a reconstructed one:

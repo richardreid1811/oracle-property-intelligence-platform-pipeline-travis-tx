@@ -184,11 +184,11 @@ for (const f of existsSync(lexiconDir) ? (await readdir(lexiconDir)).filter((x) 
   const lexicon = { group: ev.group, schema: ev.atlas_entry?.schema ?? null, properties: ev.properties, cli_commit: ev.cli?.commit, evidence: `runs/lexicon/${f}` };
   lexiconObjects.push(
     { name: `lexicon/${ev.group}/archive`, cid: ev.hash.root, codec: "dag-json", size: ev.hash.car.bytes, sha256: ev.hash.car.sha256,
-      car: { file: `travis-${ev.group}.car`, bytes: ev.hash.car.bytes, sha256: ev.hash.car.sha256, blocks: ev.hash.blocks, release_asset: null },
+      car: { file: `travis-${ev.group}.car`, bytes: ev.hash.car.bytes, sha256: ev.hash.car.sha256, blocks: ev.hash.blocks, release_asset: ev.release?.archive_car ?? null },
       pins: [{ provider: "filebase", method: "elephant-cli upload (Kubo RPC dag/import, gateway readback)", at }],
       lexicon: { ...lexicon, role: "archive (CountyIndex root)" } },
     { name: `lexicon/${ev.group}/tables`, cid: ev.export_tables.tables_root, codec: "dag-json", size: ev.export_tables.tables_car.bytes, sha256: ev.export_tables.tables_car.sha256,
-      car: { file: "tables.car", bytes: ev.export_tables.tables_car.bytes, sha256: ev.export_tables.tables_car.sha256, blocks: 1, release_asset: null },
+      car: { file: "tables.car", bytes: ev.export_tables.tables_car.bytes, sha256: ev.export_tables.tables_car.sha256, blocks: 1, release_asset: ev.release?.tables_car ?? null },
       pins: [{ provider: "filebase", method: "elephant-cli upload (parts added + tables.car dag/import, gateway readback)", at }],
       lexicon: { ...lexicon, role: "tables (CountyTables root)" } },
   );
