@@ -42,7 +42,14 @@
         "deed_over_10y": 159529,
         "owner_out_of_state": 26766
       },
-      "previous_run_id": null
+      "previous_run_id": null,
+      "pins_released": {
+        "at": "2026-10-21T15:45:37.662Z",
+        "vendor": "pinata",
+        "scope": "files referenced only by this run",
+        "reason": "Pinata free-plan storage limit; files remain pinned on Filebase and archived as CARs in GitHub Release run-20261020T180000Z",
+        "files": 59
+      }
     },
     {
       "run_id": "20261020T185517Z",
