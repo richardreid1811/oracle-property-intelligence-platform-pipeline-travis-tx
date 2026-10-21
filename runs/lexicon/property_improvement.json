@@ -119,5 +119,12 @@
     "archive_car": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/lexicon-property_improvement/travis-property_improvement.car",
     "tables_car": "https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/lexicon-property_improvement/travis-property_improvement-tables.car",
     "created_at": "2026-10-21T17:50:00Z"
+  },
+  "atlas_pr": {
+    "url": "https://github.com/elephant-xyz/atlas/pull/83",
+    "state": "open",
+    "branch": "richardreid1811:publish/tx-travis",
+    "title": "Publish TX travis property_improvement",
+    "opened_at": "2026-10-21T19:22:00Z"
   }
 }

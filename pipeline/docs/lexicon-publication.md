@@ -7,7 +7,7 @@ Filebase+IPNS conventions used by the Elephant oracle skills". This pipeline doe
    Elephant Lexicon, validated and packed with `elephant-cli`, and uploaded to Filebase, one CAR per
    county per data group, exactly as `use-oracle/reference/car-publication.md` (soofi-xyz-team-kit)
    prescribes. Each archive gets an entry in the Atlas county page `atlas/counties/TX/travis.json`;
-   the Atlas registration pull request is prepared but on hold by operator decision (section 3).
+   the Atlas registration pull request for `property_improvement` is open (https://github.com/elephant-xyz/atlas/pull/83; section 3).
 2. **Snapshot + IPNS (the query layer).** Every run's DuckDB-ready Parquet snapshot is listed in a
    manifest; its files are pinned on Filebase and Pinata, its directory roots on Filebase with a CAR
    in the run's GitHub Release; the IPNS name `oracle-open-data-travis` (Filebase
@@ -147,11 +147,18 @@ them through Atlas, whose global IPNS name `elephant-atlas` is re-pointed by Ele
 
 `elephant-cli export-tables --atlas-page` writes `atlas/counties/TX/travis.json` (one entry per
 group: archive root `cid`, data-group `schema`, `tables` root). Registration is a pull request to
-[elephant-xyz/atlas](https://github.com/elephant-xyz/atlas) (branch `publish/tx-travis`, title
-`Publish TX travis county`) that an Elephant code owner merges; on merge Elephant copies the
+[elephant-xyz/atlas](https://github.com/elephant-xyz/atlas) (branch `publish/<state>-<county>`, title
+`Publish <STATE> <county> <group>`) that an Elephant code owner merges; on merge Elephant copies the
 archive into its own Filebase account and re-points the global Atlas IPNS. The page entry for
-`property_improvement` is written; the pull request is prepared but not opened (on hold by
-operator decision), so no archive is listed in Atlas yet.
+`property_improvement` is written and its pull request is open:
+[elephant-xyz/atlas#83](https://github.com/elephant-xyz/atlas/pull/83) (`Publish TX travis property_improvement`, from the fork
+`richardreid1811/atlas`, branch `publish/tx-travis`, opened 2026-10-21). Atlas's local checks
+(`npm test`, `npm run validate`, `npm run index -- --check`) pass. PRs from forks get no secrets, so
+the `validate` gate fetches the archive through the public gateways only. The archive is 146,207
+small blocks, and a full `?format=car` export from `ipfs.filebase.io` streamed at about 10 KB/s in a
+local test, so that download may exceed the gate's per-request limit. The release CAR is the fallback.
+Until a code owner merges, no Travis archive is listed in Atlas. The `county` group follows in its
+own PR.
 
 ## 4. Human gate
 
