@@ -15,7 +15,7 @@ import { DuckDBInstance } from "@duckdb/node-api";
 import { existsSync, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { contractorAggSql, hailExposureSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
+import { businessLocationsSql, contractorAggSql, hailExposureSql, lakewayPermitsSql, linkSql, lit, normalizePermitsSql, normName, openDaysSql, ownerRegionFallbackSql, ownersSql, rawPermitsSql, reclassifySql, roofAgeSql, windowSourceSql } from "./permit-sql.mjs";
 
 const [out, prevManifestPath, windowFile, ...rest] = process.argv.slice(2);
 const opt = (n) => (rest.includes(n) ? rest[rest.indexOf(n) + 1] : null);
@@ -76,6 +76,21 @@ const win = (await c.runAndReadAll(`
 await step("upsert", `
 delete from permits where permit_key in (select permit_key from permits_window);
 insert into permits by name select * from permits_window;`);
+// City of Lakeway permits (Tyler EnerGov harvest): same columns and rules, upserted by permit_key.
+const lakewayFile = opt("--lakeway");
+await step("permits source_request_json", "alter table permits add column if not exists source_request_json varchar");
+if (lakewayFile) {
+  await step("lakeway normalize", lakewayPermitsSql("lakeway_window", lakewayFile));
+  await step("lakeway links", openDaysSql("lakeway_window") + linkSql("lakeway_window") + `
+-- The portal publishes no coordinates: a linked permit takes its parcel's centroid so radius
+-- queries find it (coordinate source documented in the data contract).
+alter table lakeway_window add column if not exists latitude double;
+alter table lakeway_window add column if not exists longitude double;
+update lakeway_window w set latitude = pr.latitude, longitude = pr.longitude from properties pr where pr.prop_id = w.prop_id;`);
+  await step("lakeway upsert", `
+delete from permits where permit_key in (select permit_key from lakeway_window);
+insert into permits by name select * from lakeway_window;`);
+}
 await step("open days (all)", openDaysSql("permits"));
 
 await step("roof_age", roofAgeSql);
@@ -89,6 +104,12 @@ await step("hail", (hailParts.length
        select *, row_number() over (partition by event_id order by source_url desc) as rk from (${hailParts.join(" union all by name ")})
      ) where rk = 1 order by event_date, event_id;\n`
   : `create or replace table hail_events (event_id varchar, episode_id varchar, event_date date, latitude double, longitude double, hail_inches double, county_zone varchar, report_source varchar, source_url varchar);\n`) + hailExposureSql);
+// Overture places: rebuilt from a fresh extract (--places), else carried from the previous snapshot.
+// Overture releases are monthly and the extract scans S3, so the weekly run normally carries them.
+const placesFile = opt("--places");
+const prevPlaces = (() => { try { return source("tables/business_locations.parquet"); } catch { return null; } })();
+if (placesFile) await step("business_locations", businessLocationsSql(placesFile));
+else if (prevPlaces) await step("business_locations", `create or replace table business_locations as select * from read_parquet(${prevPlaces})`);
 // Older snapshots carried a calendar-dependent years_since_deed; tenure is now computed at query time.
 await step("owner_signals", "alter table owner_signals drop column if exists years_since_deed;\n" + ownerRegionFallbackSql);
 await step("owners", ownersSql + `;

@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { ipnsLabel, publishPointer } from "./ipns.mjs";
 import { importTree, PROFILE_DESCRIPTION, writeCar, writeDirOnlyCar } from "./unixfs.mjs";
 
 const [runDir, runId, runsDir, carsDir, ...flags] = process.argv.slice(2);
@@ -157,6 +158,45 @@ for (const o of uploadOrder) {
 }
 process.stderr.write("\n");
 
+// --- IPNS: re-point the county's open-data name at this run's root before the manifest is
+// written, so the manifest records the name and the CID it resolved to. Filebase's free plan
+// allows one name, so the query table is addressed by path under the same name.
+let ipns = null;
+if (!dryRun) {
+  const p = await publishPointer(ipnsLabel("open-data", "travis"), entries.get("").cid.toString());
+  ipns = {
+    ...p,
+    query_table_path: `/ipns/${p.name}/tables/leads.parquet`,
+    note: "IPNS is a pointer; the CID is the snapshot. resolved_cid is what the name resolved to when this run was published.",
+  };
+  if (!p.resolves_to_target) console.error(`warning: ${p.label} has not resolved to the new root yet (got ${p.resolved_cid})`);
+}
+
+// --- Elephant Lexicon archives (one CAR per county per data group, built and uploaded with
+// elephant-cli by src/lexicon/publish-group.mjs; evidence in runs/lexicon/<group>.json). Listed in
+// every run's manifest while current, so the manifest names every eligible published artifact.
+const lexiconDir = join(runsDir, "lexicon");
+const lexiconObjects = [];
+for (const f of existsSync(lexiconDir) ? (await readdir(lexiconDir)).filter((x) => x.endsWith(".json")).sort() : []) {
+  const ev = JSON.parse(await readFile(join(lexiconDir, f), "utf8"));
+  if (!ev.upload || !ev.hash?.car || !ev.export_tables?.tables_car) continue;
+  const at = ev.finished_at;
+  const lexicon = { group: ev.group, schema: ev.atlas_entry?.schema ?? null, properties: ev.properties, cli_commit: ev.cli?.commit, evidence: `runs/lexicon/${f}` };
+  lexiconObjects.push(
+    { name: `lexicon/${ev.group}/archive`, cid: ev.hash.root, codec: "dag-json", size: ev.hash.car.bytes, sha256: ev.hash.car.sha256,
+      car: { file: `travis-${ev.group}.car`, bytes: ev.hash.car.bytes, sha256: ev.hash.car.sha256, blocks: ev.hash.blocks, release_asset: null },
+      pins: [{ provider: "filebase", method: "elephant-cli upload (Kubo RPC dag/import, gateway readback)", at }],
+      lexicon: { ...lexicon, role: "archive (CountyIndex root)" } },
+    { name: `lexicon/${ev.group}/tables`, cid: ev.export_tables.tables_root, codec: "dag-json", size: ev.export_tables.tables_car.bytes, sha256: ev.export_tables.tables_car.sha256,
+      car: { file: "tables.car", bytes: ev.export_tables.tables_car.bytes, sha256: ev.export_tables.tables_car.sha256, blocks: 1, release_asset: null },
+      pins: [{ provider: "filebase", method: "elephant-cli upload (parts added + tables.car dag/import, gateway readback)", at }],
+      lexicon: { ...lexicon, role: "tables (CountyTables root)" } },
+  );
+}
+const prevCids = new Set((previous ? JSON.parse(await readFile(join(runsDir, previous.run_id, "manifest.json"), "utf8")).objects : []).map((o) => o.cid));
+for (const o of lexiconObjects) if (prevCids.has(o.cid)) o.reused_from_previous_run = true;
+objects.push(...lexiconObjects);
+
 // --- manifest
 const coverage = JSON.parse(await readFile(join(runDir, "coverage.json"), "utf8"));
 const manifest = {
@@ -168,7 +208,7 @@ const manifest = {
   unixfs_profile: PROFILE_DESCRIPTION,
   cid_version: 1, multibase: "base32",
   previous_run: previous ? { run_id: previous.run_id, root_cid: previous.root_cid, manifest_cid: previous.manifest_cid } : null,
-  ipns: null,
+  ipns,
   gateway_urls_note: "Gateway URLs are derived from CIDs and are convenience locators only; the CID is the artifact.",
   objects: objects.map(({ local_path, local_car_path, local_dir_car_path, ...o }) => ({
     ...o,
@@ -203,6 +243,7 @@ history.runs.push({
   counts: coverage.counts,
   deltas_vs_previous: deltas,
   previous_run_id: previous?.run_id ?? null,
+  ipns: ipns ? { name: ipns.name, label: ipns.label, resolved_cid: ipns.resolved_cid } : null,
 });
 if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
 console.log(JSON.stringify({ run_id: runId, root: manifest.root.cid, manifest_cid: manifestCid, objects: manifest.objects.length, dry_run: dryRun }));

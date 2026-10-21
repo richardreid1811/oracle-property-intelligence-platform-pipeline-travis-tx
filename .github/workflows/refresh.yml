@@ -35,6 +35,8 @@ jobs:
           FILEBASE_BUCKET: ${{ secrets.FILEBASE_BUCKET }}
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+          # Lakeway permits are read through the portal's own page (headless Chrome, preinstalled on ubuntu-latest).
+          CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
         run: |
           set -o pipefail  # a pipeline failure must fail the step, not be masked by tee
           node pipeline/src/run-incremental.mjs --runs runs | tee run-result.json

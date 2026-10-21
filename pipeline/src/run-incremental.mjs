@@ -72,7 +72,32 @@ const hailDir = join(data, "raw/noaa-recent");
 const prevManifest = JSON.parse(await readFile(prevManifestPath, "utf8"));
 const prevHasHail = prevManifest.objects.some((o) => o.name === "tables/hail_events.parquet");
 node("src/sources/noaa-hail.mjs", hailDir, "--from", prevHasHail ? String(year - 1) : "1996", "--to", String(year));
-node("src/build/incremental.mjs", db, prevManifestPath, windowFile, "--prev-dir", prevDir, "--hail", join(hailDir, "hail-events.parquet"));
+// City of Lakeway permits (Tyler EnerGov): changes since the last harvest minus a day, or the full
+// history when the previous run has none. A portal outage carries the previous Lakeway rows forward.
+const lakewayDir = join(data, "raw/permits/lakeway-window");
+const prevLakeway = prevRun.sources?.find((s) => s.key === "lakeway_permits")?.receipt;
+const lakewaySince = prevLakeway?.fetched_at ? new Date(Date.parse(prevLakeway.fetched_at) - 86_400_000).toISOString().slice(0, 10) : null;
+let lakewayArgs = [];
+// --lakeway-from <dir>: use a harvest already made this session (same script, same receipt).
+const lakewayFrom = opt("--lakeway-from", null);
+if (args.includes("--no-lakeway")) {
+  console.error("Lakeway harvest skipped (--no-lakeway); previous Lakeway permits, if any, carried forward");
+} else if (lakewayFrom) {
+  execFileSync("mkdir", ["-p", lakewayDir]);
+  execFileSync("cp", [join(lakewayFrom, "permits.ndjson"), join(lakewayFrom, "receipt.json"), lakewayDir]);
+  lakewayArgs = ["--lakeway", join(lakewayDir, "permits.ndjson")];
+} else try {
+  node("src/sources/tyler-permits.mjs", lakewayDir, "--jurisdiction", "lakeway", ...(lakewaySince ? ["--since", lakewaySince] : ["--from-year", "1995"]));
+  lakewayArgs = ["--lakeway", join(lakewayDir, "permits.ndjson")];
+} catch (e) {
+  console.error(`Lakeway harvest failed (${e.message}); previous Lakeway permits carried forward`);
+}
+// Overture places: rebuilt only when a fresh extract is passed (--places <extract dir>); otherwise
+// the previous snapshot's business_locations are carried.
+const placesDir = opt("--places", null);
+if (placesDir) execFileSync("cp", [join(placesDir, "receipt.json"), join(data, "raw/overture/receipt.json")]);
+node("src/build/incremental.mjs", db, prevManifestPath, windowFile, "--prev-dir", prevDir, "--hail", join(hailDir, "hail-events.parquet"),
+  ...lakewayArgs, ...(placesDir ? ["--places", join(placesDir, "places.parquet")] : []));
 node("src/build/embeddings.mjs", db, "--prev-dir", prevDir);
 node("src/publish/export.mjs", db, runDir);
 // The published schema must match docs/data-contract.md; drift stops the run before anything is pinned.

@@ -59,7 +59,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `bbb_status` | `excluded_no_public_api_http_403` (earlier runs: `blocked_http_403_pending_bbb_api`) |
 | `registry_link` | `business_registry_exact_name`, `business_registry_ambiguous`, `no_business_registry_match` |
 | `link_basis` | `tcad_id=geo_id`, `tcad_id=geo_id+address (<n> parcels share geo_id)`, `tcad_id=geo_id (ambiguous <n>, lowest prop_id)`, `tcad_id=prop_id`; null = permit not linked to a current parcel |
-| `permit_history_coverage` | `austin_permit_history_1978_plus`, `austin_etj_or_limited_purpose_permits` (unincorporated parcels where the City of Austin issues permits), `no_county_building_permits_in_texas`, `municipal_permits_not_yet_ingested` |
+| `permit_history_coverage` | `austin_permit_history_1978_plus`, `austin_etj_or_limited_purpose_permits` (unincorporated parcels where the City of Austin issues permits), `lakeway_permit_history` (City of Lakeway permits from its public Tyler EnerGov portal), `no_county_building_permits_in_texas`, `municipal_permits_not_yet_ingested` |
 
 ## Tables
 
@@ -111,12 +111,12 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 `tables/roofing_permits.parquet`: City of Austin permits with roofing work. It has the same columns as `permits` except `year` (below).
 
 ### permits
-`tables/permits/year=YYYY/part0.parquet`: every City of Austin permit (2.38M), partitioned by opened year. The partition column `year` exists only in the folder name.
+`tables/permits/year=YYYY/part0.parquet`: every City of Austin permit (2.38M) and every City of Lakeway permit from its public portal, partitioned by opened year. The partition column `year` exists only in the folder name.
 
 | Column | Type | Meaning |
 |---|---|---|
-| `permit_key` | VARCHAR | `austin:<permit_number>` (key) |
-| `issuing_authority` | VARCHAR | `City of Austin` |
+| `permit_key` | VARCHAR | `austin:<permit_number>` or `lakeway:<permit_number>` (key) |
+| `issuing_authority` | VARCHAR | `City of Austin` or `City of Lakeway` |
 | `permit_number` | VARCHAR | Permit number as issued |
 | `permit_type` | VARCHAR | Type code (`BP` building, `EP` electrical, `MP` mechanical, `PP` plumbing, …) |
 | `permit_type_desc` | VARCHAR | Type description |
@@ -137,8 +137,8 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `source_jurisdiction` | VARCHAR | Jurisdiction tag from the source (e.g. `AUSTIN FULL PURPOSE`) |
 | `project_id` | VARCHAR | City project/folder ID |
 | `masterpermitnum` | VARCHAR | Master permit for companion permits |
-| `latitude` | DOUBLE | Permit location latitude (source) |
-| `longitude` | DOUBLE | Permit location longitude (source) |
+| `latitude` | DOUBLE | Permit location latitude (Austin: source; Lakeway: the linked parcel's centroid, the portal has no coordinates) |
+| `longitude` | DOUBLE | Permit location longitude (Austin: source; Lakeway: the linked parcel's centroid) |
 | `job_valuation` | DOUBLE | Declared job valuation (USD) |
 | `contractor_company_name` | VARCHAR | Contractor as listed on the permit |
 | `contractor_full_name` | VARCHAR | Contractor contact as listed |
@@ -157,9 +157,10 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `closed_date` | DATE | Completion date when closed |
 | `prop_id` | VARCHAR | Linked TCAD property; null = valid but unlinked |
 | `link_basis` | VARCHAR | How `prop_id` was linked (enum) |
-| `window_source` | VARCHAR | Harvest that produced the row: `full` or `window><date>` |
+| `window_source` | VARCHAR | Harvest that produced the row: `full` or `window><date>` (Austin), `lakeway` (Lakeway) |
 | `county_fips` | VARCHAR | County of the permit (48453 = Travis) |
 | `contractor_key` | VARCHAR | Link to `contractors` |
+| `source_request_json` | VARCHAR | Lakeway only: the exact JSON body of the portal search POST that returned the row (`source_url` is its endpoint); null for Austin |
 
 ### contractors
 `tables/contractors.parquet`: contractors deduplicated across permits.
@@ -302,6 +303,35 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 | `report_source` | VARCHAR | Who reported it (spotter, public, law enforcement, …) |
 | `source_url` | VARCHAR | NOAA yearly details file the row came from |
 
+### business_locations
+`tables/business_locations.parquet`: Overture Maps places (business and point-of-interest locations) inside the Census TIGER/Line Travis County boundary, from a pinned Overture release. Overture is a numerator, not a census of all businesses. Licence: Overture Maps Foundation (CDLA-Permissive-2.0) with per-provider terms (`license_url`); no OpenStreetMap rows (licence gate).
+
+| Column | Type | Meaning |
+|---|---|---|
+| `gers_id` | VARCHAR | Overture GERS ID (key) |
+| `overture_version` | INTEGER | Overture feature version |
+| `name` | VARCHAR | Primary name |
+| `taxonomy_primary` | VARCHAR | Most specific Overture category |
+| `taxonomy_hierarchy` | VARCHAR | Category path, broad to specific, joined with ` > ` |
+| `basic_category` | VARCHAR | Coarse Overture category |
+| `operating_status` | VARCHAR | Overture operating status |
+| `confidence` | DOUBLE | Overture existence confidence (0-1) |
+| `brand_name` | VARCHAR | Brand, when known |
+| `address` | VARCHAR | Street address as supplied |
+| `locality` | VARCHAR | City |
+| `zip` | VARCHAR | 5-digit ZIP |
+| `latitude` | DOUBLE | WGS84 latitude |
+| `longitude` | DOUBLE | WGS84 longitude |
+| `providers` | VARCHAR | Source datasets, `;`-separated (lower-case) |
+| `website` | VARCHAR | First website |
+| `phone` | VARCHAR | First phone |
+| `prop_id` | VARCHAR | TCAD property when the street address and ZIP match exactly one parcel's situs address |
+| `parcel_link_basis` | VARCHAR | `exact_situs_address_unique` or null |
+| `business_key` | VARCHAR | Link to `businesses` when name and street address match exactly one Comptroller business |
+| `business_link_basis` | VARCHAR | `exact_name_and_address_unique` or null |
+| `overture_release` | VARCHAR | Overture release the row came from |
+| `license_url` | VARCHAR | Attribution and licence terms |
+
 ### businesses
 `tables/businesses.parquet`: Travis County businesses (Texas Comptroller sales-tax outlets and franchise taxpayers).
 
@@ -353,6 +383,7 @@ All tools attach `bbb_lookup_url` to rows that name a contractor (see `bbb_statu
 
 | Effective | Change | Type |
 |---|---|---|
+| run after 20261020T225920Z | Added City of Lakeway permits (`issuing_authority` `City of Lakeway`, column `source_request_json`, coverage value `lakeway_permit_history`) and the `business_locations` table (Overture places) | additive |
 | run after 20261020T223321Z | Added `hail_events` and the lead columns `severe_hail_reports_since_roof`, `max_hail_inches_since_roof`, `last_severe_hail_date_since_roof`; new `permit_history_coverage` value `austin_etj_or_limited_purpose_permits` | additive |
 | run after 20261020T194930Z | Removed `years_since_deed` from `leads` and `owner_signals`: tenure is computed at query time so snapshots do not change with the calendar. Tools still return it | breaking |
 | run after 20261020T194930Z | Removed the `tiles/leads/` index directory (unused by any consumer) | breaking |

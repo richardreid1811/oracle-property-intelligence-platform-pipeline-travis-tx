@@ -77,6 +77,9 @@ await copy("businesses", "select * from businesses order by business_key");
 const hasEmb = (await c.runAndReadAll("select count(*) as n from information_schema.tables where table_name = 'permit_embeddings'")).getRowObjectsJson()[0].n > 0;
 if (hasEmb) await copy("permit_embeddings", "select * from permit_embeddings order by permit_key");
 await copy("licenses", "select * exclude (name_norm) from licenses order by license_type, license_number");
+// Overture places (business/POI locations), absent in snapshots made before the places source.
+const hasPlaces = (await c.runAndReadAll("select count(*) as n from information_schema.tables where table_name = 'business_locations'")).getRowObjectsJson()[0].n > 0;
+if (hasPlaces) await copy("business_locations", "select * from business_locations order by gers_id");
 
 // Full permit history, partitioned by issue year so a daily refresh only rewrites recent years.
 {
@@ -112,6 +115,10 @@ select
   (select count(*) from owner_signals where date_diff('day', deed_date, current_date) > 10 * 365.2425) as deed_over_10y,
   (select count(*) from owners) as owners,
   (select count(*) from owners where property_count > 1) as multi_property_owners,
-  (select count(*) from owner_signals where owner_mail_region in ('out_of_state', 'international')) as owner_out_of_state`)).getRowObjectsJson()[0];
+  (select count(*) from owner_signals where owner_mail_region in ('out_of_state', 'international')) as owner_out_of_state,
+  (select count(*) from permits where issuing_authority = 'City of Lakeway') as permits_lakeway`)).getRowObjectsJson()[0];
+if (hasPlaces) Object.assign(cov, (await c.runAndReadAll(`select count(*) as business_locations,
+  count(prop_id) as business_locations_linked_to_parcel, count(business_key) as business_locations_linked_to_registry
+  from business_locations`)).getRowObjectsJson()[0]);
 await writeFile(join(runDir, "coverage.json"), JSON.stringify({ county: "travis", state: "TX", fips: "48453", counts: cov }, null, 2) + "\n");
 console.log(JSON.stringify(cov));

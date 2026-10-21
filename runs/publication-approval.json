@@ -1,0 +1,8 @@
+{
+  "county": "travis",
+  "approved": true,
+  "approved_by": "Oracle operator (repository owner)",
+  "approved_at": "2026-10-21T04:20:00Z",
+  "scope": "Upload of the Travis County Elephant Lexicon archives (county and property_improvement groups) and their tables to public IPFS via Filebase, including owner names and mailing addresses from the TCAD public appraisal roll.",
+  "not_approved": "Opening the Atlas registration pull request (on hold by the operator)."
+}

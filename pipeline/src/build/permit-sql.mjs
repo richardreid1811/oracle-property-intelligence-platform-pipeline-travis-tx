@@ -41,7 +41,14 @@ export const reclassifySql = (table) => `
 update ${table} set
   roofing_work = ${roofingWorkExpr("upper(coalesce(description, ''))", "permit_type")},
   status_bucket = ${statusBucketExpr("status", "completed_date")},
-  closed_date = completed_date`;
+  closed_date = completed_date
+where coalesce(issuing_authority, 'City of Austin') = 'City of Austin';
+-- Lakeway permit types are words, not Austin's BP/EP codes: classify type + work class + description.
+update ${table} set
+  roofing_work = ${roofingWorkExpr("upper(concat_ws(' ', permit_type, work_class, description))", "'BP'")},
+  status_bucket = ${statusBucketExpr("status", "completed_date")},
+  closed_date = completed_date
+where issuing_authority = 'City of Lakeway'`;
 
 /**
  * Owner mailing-region fallback: PO-box and other unique ZIPs have no Census ZIP area, so a Travis
@@ -196,13 +203,15 @@ select
   -- Austin also issues permits in its ETJ and limited-purpose areas, which TCAD records as
   -- unincorporated; those parcels have real permit history.
   case when p.jurisdiction = 'CITY OF AUSTIN' then 'austin_permit_history_1978_plus'
+       when p.jurisdiction = 'CITY OF LAKEWAY' and lw.loaded then 'lakeway_permit_history'
        when p.jurisdiction = 'TRAVIS COUNTY (UNINCORPORATED)' and ap.prop_id is not null then 'austin_etj_or_limited_purpose_permits'
        when p.jurisdiction = 'TRAVIS COUNTY (UNINCORPORATED)' then 'no_county_building_permits_in_texas'
        else 'municipal_permits_not_yet_ingested' end as permit_history_coverage
 from properties p
 left join final_roof f using (prop_id)
 left join unverified_roof u using (prop_id)
-left join (select distinct prop_id from permits where prop_id is not null) ap using (prop_id);
+left join (select distinct prop_id from permits where prop_id is not null and coalesce(issuing_authority, 'City of Austin') = 'City of Austin') ap using (prop_id)
+cross join (select count(*) > 0 as loaded from permits where issuing_authority = 'City of Lakeway') lw;
 alter table roof_age add column if not exists roof_age_years integer;
 update roof_age set roof_age_years = year(current_date) - roof_year where roof_year is not null`;
 
@@ -308,3 +317,83 @@ select prop_id,
        max(hail_inches) as max_hail_inches_since_roof,
        max(event_date) filter (hail_inches >= ${HAIL_SEVERE_INCHES}) as last_severe_hail_date_since_roof
 from hits group by prop_id order by prop_id`;
+
+/**
+ * City of Lakeway permits (Tyler EnerGov Civic Self Service, src/sources/tyler-permits.mjs) into
+ * `target` with the same columns and rules as the Austin permits: same roofing classifier and
+ * status buckets; `tcad_id` from the portal's MainParcel (a TCAD geo_id with dashes on legacy
+ * permits, the TCAD PROP_ID on newer ones), so the shared deterministic link rules apply.
+ * `source_url` is the search endpoint; `source_request_json` holds the exact POST body that
+ * returned the row. Run linkSql/openDaysSql on `target` afterwards, then upsert by permit_key.
+ */
+export const lakewayPermitsSql = (target, ndjson) => `
+create or replace table ${target} as
+with raw as (
+  select * from read_json(${lit(ndjson)}, format='newline_delimited', columns={
+    jurisdiction:'VARCHAR', case_id:'VARCHAR', permit_number:'VARCHAR', permit_type:'VARCHAR', work_class:'VARCHAR',
+    status:'VARCHAR', description:'VARCHAR', main_parcel:'VARCHAR', address:'VARCHAR', apply_date:'VARCHAR',
+    issue_date:'VARCHAR', expire_date:'VARCHAR', final_date:'VARCHAR', complete_date:'VARCHAR', source_request:'JSON',
+    source_detail_url:'VARCHAR', fetched_at:'VARCHAR', contractors:'JSON'})
+),
+base as (
+  select
+    'lakeway:' || permit_number as permit_key, 'City of Lakeway' as issuing_authority, permit_number,
+    permit_type, permit_type as permit_type_desc, work_class, description,
+    nullif(regexp_replace(coalesce(main_parcel, ''), '[^0-9]', '', 'g'), '') as tcad_id,
+    try_cast(apply_date as timestamp)::date as applied_date, try_cast(issue_date as timestamp)::date as issued_date,
+    try_cast(expire_date as timestamp)::date as expires_date,
+    coalesce(try_cast(final_date as timestamp)::date, try_cast(complete_date as timestamp)::date) as completed_date,
+    status,
+    trim(regexp_replace(coalesce(regexp_extract(upper(address), '^(.*?)\\s+LAKEWAY\\b', 1), upper(address)), '\\s+', ' ', 'g')) as address,
+    'LAKEWAY' as city, regexp_extract(address, '(\\d{5})\\s*$', 1) as zip, 'CITY OF LAKEWAY' as source_jurisdiction,
+    nullif(trim(json_extract_string(contractors, '$[0].name')), '') as contractor_company_name,
+    json_extract_string(contractors, '$[0].role') as contractor_trade,
+    source_detail_url, json_extract_string(source_request, '$.url') as source_url,
+    cast(json_extract(source_request, '$.json') as varchar) as source_request_json,
+    case_id as socrata_id, fetched_at, '48453' as county_fips,
+    upper(concat_ws(' ', permit_type, work_class, description)) as d
+  from raw
+)
+select * exclude (d),
+  ${roofingWorkExpr("d", "'BP'")} as roofing_work,
+  ${statusBucketExpr("status", "completed_date")} as status_bucket,
+  coalesce(issued_date, applied_date) as opened_date,
+  case when completed_date is not null then completed_date end as closed_date,
+  'lakeway' as window_source,
+  case when contractor_company_name is not null then 'contractor:' || md5(${normName("contractor_company_name")}) end as contractor_key
+from base`;
+
+/**
+ * Overture places (src/sources/overture-places.mjs) as `business_locations`, one row per GERS id,
+ * reconciled conservatively: a TCAD parcel only when the place's street address and ZIP match
+ * exactly one parcel's situs address (suite/unit removed), and a Texas Comptroller business only
+ * when its normalized name and street address match exactly one business. Unmatched stays null.
+ * Needs properties and businesses.
+ */
+const streetNorm = (col) => `regexp_replace(regexp_replace(upper(trim(${col})), '\\s+(STE|SUITE|UNIT|APT|BLDG|#)\\s*.*$', ''), '\\s+', ' ', 'g')`;
+export const businessLocationsSql = (placesParquet) => `
+create or replace table business_locations as
+with pl as (select * from read_parquet(${lit(placesParquet)})),
+pa as (select gers_id, ${streetNorm("address_freeform")} as a, left(address_postcode, 5) as z from pl where address_freeform is not null),
+ta as (select prop_id, ${streetNorm("situs_address")} as a, situs_zip as z from properties where situs_address is not null),
+parcel as (
+  select pa.gers_id, min(ta.prop_id) as prop_id from pa join ta using (a, z) group by 1 having count(distinct ta.prop_id) = 1
+),
+bn as (select business_key, ${normName("business_name")} as n, ${streetNorm("address")} as a, left(zip, 5) as z from businesses where business_name is not null),
+biz as (
+  select pl.gers_id, min(bn.business_key) as business_key
+  from pl join bn on bn.n = ${normName("pl.name_primary")} and bn.a = ${streetNorm("pl.address_freeform")} and bn.z = left(pl.address_postcode, 5)
+  group by 1 having count(distinct bn.business_key) = 1
+)
+select pl.gers_id, pl.overture_version, pl.name_primary as name, pl.taxonomy_primary,
+       array_to_string(pl.taxonomy_hierarchy, ' > ') as taxonomy_hierarchy, pl.basic_category, pl.operating_status,
+       round(pl.confidence, 4) as confidence, pl.brand_name, pl.address_freeform as address, pl.address_locality as locality,
+       left(pl.address_postcode, 5) as zip, pl.latitude, pl.longitude,
+       array_to_string(list_sort(list_distinct(list_transform(pl.sources, s -> lower(s.dataset)))), ';') as providers,
+       pl.websites[1] as website, pl.phones[1] as phone,
+       parcel.prop_id, case when parcel.prop_id is not null then 'exact_situs_address_unique' end as parcel_link_basis,
+       biz.business_key, case when biz.business_key is not null then 'exact_name_and_address_unique' end as business_link_basis,
+       pl.overture_release,
+       'https://docs.overturemaps.org/attribution/' as license_url
+from pl left join parcel using (gers_id) left join biz using (gers_id)
+order by pl.gers_id`;

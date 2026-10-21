@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AppData } from "../App";
 import { bytes, shortCid, when } from "../format";
-import type { ManifestObject } from "../types";
+import type { LexiconEvidence, ManifestObject } from "../types";
 
 // Independent public gateways (not our pinning vendors). ipfs.io/dweb.link retired HTTP access 2026-09-21.
 const VERIFY_GATEWAYS = ["https://ipfs.orbitor.dev", "https://dget.top"];
@@ -23,10 +23,41 @@ export async function verifyInBrowser(o: ManifestObject, gateway: string): Promi
   return { state: ok ? "ok" : "bad", detail: ok ? `${bytes(buf.byteLength)}, sha256 match, ${secs}s` : `got ${buf.byteLength} B sha256 ${digest.slice(0, 12)}…` };
 }
 
+// Lexicon archives and the Atlas page are evidence files in the repository (written by the publish step).
+const REPO_RAW = "https://raw.githubusercontent.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/travis-pipeline";
+const LEXICON_GROUPS = ["county", "property_improvement"] as const;
+
+async function resolveIpns(name: string): Promise<string | null> {
+  const res = await fetch(`https://ipfs.filebase.io/ipns/${name}`, { method: "HEAD", cache: "no-store" });
+  return res.headers.get("x-ipfs-roots")?.split(",")[0].trim() ?? null;
+}
+
 export default function Artifacts({ data }: { data: AppData }) {
   const { manifest, verification } = data;
   const [checks, setChecks] = useState<Record<string, Check>>({});
   const [showAll, setShowAll] = useState(false);
+  const [lexicon, setLexicon] = useState<LexiconEvidence[]>([]);
+  const [ipnsNow, setIpnsNow] = useState<{ state: "running" | "ok" | "bad"; detail: string } | null>(null);
+  // Runs before IPNS was introduced record it in the history entry instead of the (immutable) manifest.
+  const latestRun = data.history.runs.at(-1);
+  const ipns = manifest.ipns ?? latestRun?.ipns ?? null;
+
+  useEffect(() => {
+    Promise.all(
+      LEXICON_GROUPS.map((g) => fetch(`${REPO_RAW}/runs/lexicon/${g}.json`, { cache: "no-store" }).then((r) => (r.ok ? (r.json() as Promise<LexiconEvidence>) : null)).catch(() => null)),
+    ).then((rows) => setLexicon(rows.filter((r): r is LexiconEvidence => r !== null)));
+  }, []);
+
+  async function checkIpns() {
+    if (!ipns) return;
+    setIpnsNow({ state: "running", detail: "resolving…" });
+    try {
+      const cid = await resolveIpns(ipns.name);
+      setIpnsNow(cid ? { state: cid === manifest.root.cid ? "ok" : "bad", detail: cid === manifest.root.cid ? `resolves to this run's root ${shortCid(cid)}` : `resolves to ${cid ? shortCid(cid) : "nothing"} (this run's root is ${shortCid(manifest.root.cid)})` } : { state: "bad", detail: "no x-ipfs-roots header returned" });
+    } catch (e) {
+      setIpnsNow({ state: "bad", detail: String((e as Error).message ?? e) });
+    }
+  }
 
   async function check(o: ManifestObject) {
     for (const g of VERIFY_GATEWAYS) {
@@ -41,7 +72,8 @@ export default function Artifacts({ data }: { data: AppData }) {
     }
   }
 
-  const dirs = manifest.objects.filter((o) => o.codec === "directory");
+  // Directory roots and Elephant Lexicon archive/table roots (dag-json): DAGs published with a CAR.
+  const dirs = manifest.objects.filter((o) => o.codec !== "file");
   const files = manifest.objects.filter((o) => o.codec === "file");
   const shown = showAll ? files : files.filter((o) => !o.name.startsWith("tables/permits/"));
   const ci = (cid: string) => verification?.results.find((r) => r.cid === cid);
@@ -56,7 +88,6 @@ export default function Artifacts({ data }: { data: AppData }) {
         <p className="muted small">
           CIDs are the durable identity (CIDv1, base32; {manifest.unixfs_profile}). Gateway URLs are derived from CIDs. Files are pinned on Filebase and
           Pinata; directory roots are pinned on Filebase and published as CARs that any IPFS node can import.
-          IPNS: {manifest.ipns ? <code>{manifest.ipns.name} → {manifest.ipns.resolved_cid}</code> : "not used for this run (CIDs and run history are the pointers)"}.
         </p>
         {verification && (
           <p className={`small ${verification.all_ok ? "ok-text" : "error"}`}>
@@ -67,7 +98,54 @@ export default function Artifacts({ data }: { data: AppData }) {
       </section>
 
       <section className="card">
-        <h2>Directory roots</h2>
+        <h2>IPNS pointer</h2>
+        {ipns ? (
+          <>
+            <p className="small">
+              <code>{ipns.label ?? "oracle-open-data-travis"}</code> = <code>{ipns.name}</code> (Filebase names API, re-pointed at every run). Recorded for this
+              run: resolved to <code>{ipns.resolved_cid ?? "—"}</code>{ipns.resolved_at ? ` at ${when(ipns.resolved_at)}` : ""}. IPNS is a pointer; the CID is the snapshot.
+            </p>
+            <p className="small">
+              Query table by path: <a href={`https://ipfs.filebase.io/ipns/${ipns.name}/tables/leads.parquet`} target="_blank" rel="noreferrer"><code>/ipns/{shortCid(ipns.name)}/tables/leads.parquet</code></a>{" "}
+              <button onClick={checkIpns}>Resolve now</button>{" "}
+              {ipnsNow && <span className={ipnsNow.state === "ok" ? "ok-text" : ipnsNow.state === "bad" ? "error" : "muted"}>{ipnsNow.detail}</span>}
+            </p>
+          </>
+        ) : (
+          <p className="small muted">No IPNS name recorded for this run.</p>
+        )}
+      </section>
+
+      <section className="card">
+        <h2>Elephant Lexicon archives</h2>
+        <p className="muted small">
+          One CAR per county per data group, built with elephant-cli from records in the Elephant Lexicon and validated against the live lexicon manifest, then
+          uploaded to Filebase. Each group's archive root, tables root and schema form its entry on the Atlas county page (<a href={`${REPO_RAW}/atlas/counties/TX/travis.json`} target="_blank" rel="noreferrer">travis.json</a>).
+        </p>
+        {lexicon.length ? (
+          <table className="tbl">
+            <thead><tr><th>Group</th><th className="num">Properties</th><th>Validation</th><th>Archive root</th><th>Tables root</th><th>Upload</th><th>Atlas</th></tr></thead>
+            <tbody>
+              {lexicon.map((l) => (
+                <tr key={l.group}>
+                  <td>{l.group}</td>
+                  <td className="num">{l.properties.toLocaleString()}</td>
+                  <td className="small">{l.validate_dir ? `${l.validate_dir.error_rows} property errors` : "—"} · {l.validate_car ? (l.validate_car.passed ? "CAR passed all 6 checks" : "CAR failed") : "CAR pending"}</td>
+                  <td>{l.hash ? <a href={`https://ipfs.filebase.io/ipfs/${l.hash.root}`} target="_blank" rel="noreferrer"><code title={l.hash.root}>{shortCid(l.hash.root)}</code></a> : "—"}</td>
+                  <td>{l.export_tables ? <code title={l.export_tables.tables_root}>{shortCid(l.export_tables.tables_root)}</code> : "—"}</td>
+                  <td className="small">{l.upload ? "uploaded to Filebase, root read back" : "not uploaded yet"}</td>
+                  <td className="small">{l.atlas_pr ? <a href={l.atlas_pr.url} target="_blank" rel="noreferrer">{l.atlas_pr.state}</a> : "PR not opened"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="small muted">No Lexicon archive evidence published yet.</p>
+        )}
+      </section>
+
+      <section className="card">
+        <h2>Directory and archive roots</h2>
         <table className="tbl">
           <thead><tr><th>Name</th><th>CID</th><th className="num">Size</th><th>CAR (sha256)</th><th>CI check</th></tr></thead>
           <tbody>
@@ -76,7 +154,7 @@ export default function Artifacts({ data }: { data: AppData }) {
                 <td>{o.name}</td>
                 <td><code title={o.cid}>{o.cid}</code></td>
                 <td className="num">{bytes(o.size)}</td>
-                <td className="small"><a href={o.car?.release_asset} target="_blank" rel="noreferrer">{o.car?.file.split("/").pop()}</a> {o.car && bytes(o.car.bytes)} · {o.car?.sha256.slice(0, 12)}… · {o.car?.blocks} blocks</td>
+                <td className="small">{o.car?.release_asset ? <a href={o.car.release_asset} target="_blank" rel="noreferrer">{o.car.file.split("/").pop()}</a> : <a href={`https://ipfs.filebase.io/ipfs/${o.cid}?format=car`} target="_blank" rel="noreferrer">{o.car?.file.split("/").pop()} (gateway CAR)</a>} {o.car && bytes(o.car.bytes)} · {o.car?.sha256.slice(0, 12)}… · {o.car?.blocks} blocks</td>
                 <td className="small">{ci(o.cid) ? Object.entries(ci(o.cid)!.gateways).map(([g, r]) => <span key={g} className={`tag ${r.ok ? "ok" : "bad"}`}>{new URL(g).host} {r.ok ? "✓" : "✗"}</span>) : "pending"}</td>
               </tr>
             ))}

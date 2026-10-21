@@ -33,11 +33,23 @@ for (const f of (existsSync(join(raw, "permits/austin")) ? await readdir(join(ra
   permitReceipts.push({ file: f.replace(".receipt.json", ""), ...(await readJson(join(raw, "permits/austin", f))) });
 }
 
+// Harvest receipts for the two one-time bulk sources. Measured from the harvested files
+// (data/raw/gis/tcad-centroids.ndjson stamps every record with the harvest time; the Census file's
+// timestamp is its download time); CI runs, which do not re-harvest them, use the same values.
+const CENTROID_RECEIPT = {
+  url: "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0",
+  features: 386682, pages: 194, page_size: 2000, fetched_at: "2026-10-20T16:37:24.373Z", duration_seconds: 139,
+};
+const CENSUS_RECEIPT = {
+  url: "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt",
+  sha256: "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf", bytes: 6821287, fetched_at: "2026-10-20T17:29:58.936Z",
+};
+
 const sources = [
   { key: "tcad_appraisal_roll", name: "Travis Central Appraisal District appraisal export (2026, Legacy 8.0.33)",
     kind: "bulk_download", receipt: tcadReceipts.at(-1) ?? null },
   { key: "tcad_parcel_centroids", name: "TCAD parcel layer (City of Austin-hosted ArcGIS FeatureServer), centroids",
-    kind: "arcgis_paging", receipt: { url: "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0", features: 386682 } },
+    kind: "arcgis_paging", receipt: CENTROID_RECEIPT },
   { key: "austin_permits", name: "City of Austin Issued Construction Permits (Socrata 3syk-w9eu)",
     kind: mode === "full" ? "full_pull" : "full_pull + business_date_windows",
     receipt: permitReceipts.at(-1) ?? null, harvests: permitReceipts },
@@ -48,16 +60,25 @@ const sources = [
   { key: "tdlr_licenses", name: "TDLR All Licenses (contractor classes)",
     kind: "socrata", receipt: await readJson(join(raw, "identity/tdlr-contractor-licenses.ndjson.receipt.json")) },
   { key: "census_zcta_county", name: "US Census 2020 ZCTA-to-county relationship file",
-    kind: "bulk_download", receipt: { url: "https://www2.census.gov/geo/docs/maps-data/data/rel2020/zcta520/tab20_zcta520_county20_natl.txt", sha256: "3ed41278d637dc249e0323306f68be8a6c234e3090f4de88ef328dee71aeaaaf" } },
+    kind: "bulk_download", receipt: CENSUS_RECEIPT },
   { key: "noaa_hail", name: "NOAA NCEI Storm Events: hail reports around Travis County (1996-present)",
     kind: "bulk_download", receipt: (await readJson(join(raw, "noaa-recent/receipt.json"))) ?? (await readJson(join(raw, "noaa/receipt.json"))) },
+  { key: "lakeway_permits", name: "City of Lakeway permits (Tyler EnerGov Civic Self Service, public search)",
+    kind: "portal_api (browser-session template, kit tyler-civic-access pattern)",
+    receipt: await readJson(join(raw, "permits/lakeway-window/receipt.json")) ?? await readJson(join(raw, "permits/lakeway/receipt.json")) },
+  { key: "overture_places", name: "Overture Maps places (business/POI locations), clipped to the TIGER/Line Travis County boundary",
+    kind: "bulk_download (pinned release)", receipt: await readJson(join(raw, "overture/receipt.json")) },
+  { key: "pflugerville_permits", name: "City of Pflugerville permits (Cityworks PublicAccess)", kind: "blocked",
+    receipt: { url: "https://ams.pflugervilletx.gov/PublicAccess/", status: "login_required", observed_at: "2026-10-21T04:40:00Z",
+      evidence: "window.Environment.allowGuest = false; every route redirects to /PublicAccess/login. The pipeline does not create portal accounts; a Texas Public Information Act request is the route." } },
   { key: "bbb", name: "Better Business Bureau profiles", kind: "blocked",
     receipt: await readJson(join(raw, "bbb/access-evidence.json")) },
 ];
 
 const limitations = [
   "BBB ratings excluded from automated ingestion: bbb.org returned HTTP 403 to automated requests, robots.txt disallows search and pagination, and BBB offers no public API. Contractors carry bbb_status instead of a rating rather than data obtained by circumventing those controls.",
-  "Permit history is automated for the City of Austin (56.2% of parcels) and for unincorporated parcels in Austin's ETJ and limited-purpose areas (43,496 parcels, 9.8%), where the City issues permits. The rest of unincorporated Travis County (about 15%) has no county building permits under Texas law, so roof age there is year-built based. Pflugerville and Lakeway adapters are designed but not built; 19 other municipalities require Texas Public Information Act requests.",
+  "Permit history is automated for the City of Austin (56.2% of parcels) and for unincorporated parcels in Austin's ETJ and limited-purpose areas (43,496 parcels, 9.8%), where the City issues permits. The rest of unincorporated Travis County (about 15%) has no county building permits under Texas law, so roof age there is year-built based. City of Lakeway permits (2.3% of parcels) are harvested from its public Tyler EnerGov portal. Pflugerville (5.4%) requires a portal login (no guest access), and 19 other municipalities require Texas Public Information Act requests; roof age there is year-built based.",
+  "Business/POI locations come from Overture Maps places (pinned release, licence gate passed: no OpenStreetMap data). They link to a TCAD parcel only on an exact, unique street-address match and to a Texas Comptroller business only on an exact, unique name + address match; Overture is a numerator, not a census of all businesses.",
   "Hail exposure uses NOAA Storm Events hail reports: the published lead columns count severe hail (1.75 inches or more) within 1 mile of a parcel in or after its roof year, and the hail tool joins reports at query time for any window, size and distance. Parcels without a roof year get no hail exposure. Reports are point observations, so exposure is a lead signal, not evidence of roof damage.",
   "Roof age basis: finaled re-roof permit (high), issued-but-unfinaled re-roof permit (medium), TCAD year built assuming original roof (low). The basis and confidence are recorded per property.",
   "Texas is a non-disclosure state: no sale prices. Ownership age is derived from the TCAD deed date.",

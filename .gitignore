@@ -12,3 +12,7 @@ downloads/
 .wrangler/
 dist/
 apps/web/public/runs/
+
+# elephant-cli install and its run logs
+tools/elephant-cli/node_modules/
+elephant-cli*.log

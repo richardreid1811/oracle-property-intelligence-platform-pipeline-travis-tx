@@ -16,7 +16,7 @@ export type Manifest = {
   root: { cid: string };
   unixfs_profile: string;
   previous_run: { run_id: string; root_cid: string; manifest_cid: string | null } | null;
-  ipns: { name: string; resolved_cid: string } | null;
+  ipns: { name: string; label?: string; target_cid?: string; resolved_cid: string | null; resolved_at?: string; query_table_path?: string } | null;
   objects: ManifestObject[];
   counts: Record<string, string>;
 };
@@ -32,6 +32,7 @@ export type HistoryRun = {
   counts: Record<string, string>;
   deltas_vs_previous: Record<string, number>;
   previous_run_id: string | null;
+  ipns?: { name: string; label?: string; resolved_cid: string | null; resolved_at?: string; note?: string } | null;
 };
 
 export type HistoryCheck = { checked_at: string; source: string; window_since: string; rows: number; result: string; current_run_id: string };
@@ -56,4 +57,20 @@ export type GatewayReport = {
   failures: number;
   all_ok: boolean;
   results: { name: string; cid: string; codec: string; gateways: Record<string, { ok: boolean; ms: number; error?: string }> }[];
+};
+
+export type LexiconEvidence = {
+  county: { county: string; state: string; fips: string };
+  group: string;
+  cli: { package: string; commit: string };
+  manifest_url: string;
+  properties: number;
+  validate_dir?: { error_rows: number; shards: { shard: number; errors: number; summary: string }[] };
+  hash?: { blocks: number; root: string };
+  validate_car?: { checks: Record<string, number>; passed: boolean };
+  export_tables?: { tables_root: string };
+  atlas_entry?: { cid: string; schema: string; tables: string } | null;
+  upload?: { archive: Record<string, unknown>; tables: Record<string, unknown> };
+  atlas_pr?: { url: string; state: string } | null;
+  finished_at?: string;
 };

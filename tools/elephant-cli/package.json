@@ -1,0 +1,8 @@
+{
+  "name": "travis-elephant-tools",
+  "private": true,
+  "description": "Pinned Elephant CLI (GitHub main, as the Elephant oracle skills require: the npm release lacks CAR hash/validate/upload and export-tables).",
+  "dependencies": {
+    "@elephant-xyz/cli": "github:elephant-xyz/elephant-cli#44bb182b9f7f904662e9b33e1fde70bdeab62322"
+  }
+}

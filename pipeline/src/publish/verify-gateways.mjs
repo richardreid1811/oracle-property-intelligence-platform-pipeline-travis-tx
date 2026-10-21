@@ -88,7 +88,8 @@ async function worker() {
         per[g] = { ok: false, not_attempted: true, error: "time budget exhausted" };
       } else {
         try {
-          per[g] = { ...(o.codec === "directory" ? await verifyDirectory(g, o) : await verifyFile(g, o)), ms: Date.now() - started };
+          // Directories and Elephant Lexicon archive roots (dag-json) are DAGs: verify as CAR, every block re-hashed.
+          per[g] = { ...(o.codec === "file" ? await verifyFile(g, o) : await verifyDirectory(g, o)), ms: Date.now() - started };
         } catch (err) {
           per[g] = { ok: false, error: err.message, ms: Date.now() - started };
         }
@@ -107,7 +108,7 @@ const report = {
   verified_at: new Date().toISOString(),
   verifier: process.env.GITHUB_ACTIONS ? `github-actions run ${process.env.GITHUB_RUN_ID ?? ""}`.trim() : "local",
   gateways,
-  method: "files: full GET + sha256; directories: CAR, dag-scope=all when CAR <= 80 MB else entity (data files verified individually)",
+  method: "files: full GET + sha256; directories and Lexicon archive roots (dag-json): CAR with every block re-hashed against its CID, dag-scope=all when the CAR is <= 80 MB, else entity (directory: data files verified individually; archive: root block)",
   objects: results.length,
   failures,
   all_ok: failures === 0,
