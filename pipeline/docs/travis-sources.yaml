@@ -346,7 +346,7 @@ enrichment:
     robots_notes: "robots.txt disallows /*? (search, category pagination); allows /us/*/*/profile/* and lists profile sitemaps"
     access_route: "none: no public BBB API (developer.bbb.org unavailable); excluded from automated ingestion by operator decision 2026-10-20"
     expected_count: null
-  places: {source: overture, fips: "48453"}
+  places: {source: overture, fips: "48453", status: not_ingested, note: "overture-places-ingest not run; no roofing-lead requirement depends on business POIs"}
 
 destination:
   writes_in_scope: true

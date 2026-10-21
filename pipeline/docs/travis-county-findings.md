@@ -78,8 +78,8 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
 | 17 others | 25,142 | 5.7% | custodian-only / manual-only | MGO, GovBuilt, Round Rock portal, Leander Development Hub, or paper offices |
 
 - **No county roofing permits.** Texas counties have no building-code authority, so unincorporated Travis issues development, septic and driveway permits but **no re-roof permits**. Roof age there falls back to year built and TCAD roof attributes, labelled as such.
-- **Automated permit-history coverage:** about 64% of parcels (Austin, Pflugerville, Lakeway).
-- **Records requests.** Every custodian-only or manual-only row names a Texas Public Information Act records-first request: office, scope, and portal or email. Rows whose contact is a city homepage are marked `contact_verified: false`. **Requests are drafted by the pipeline and sent only by the Oracle operator.**
+- **Automated permit-history coverage:** 66% of parcels: City of Austin (56.2%) plus unincorporated parcels in Austin's ETJ / limited-purpose areas, where Austin issues permits (9.8%). The Pflugerville and Lakeway adapters above were planned but not built.
+- **Records requests.** Every custodian-only or manual-only row in `travis-sources.yaml` names a Texas Public Information Act records-first request: office, scope, and portal or email. Rows whose contact is a city homepage are marked `contact_verified: false`. **None have been sent; sending is the Oracle operator's decision.**
 - **Austin tags other cities' rows.** The Austin dataset also carries ~20k Austin-issued trade permits (mostly electrical/mechanical) tagged to Lakeway, Bee Cave, West Lake Hills, Rollingwood, The Hills, Sunset Valley and Pflugerville. These are kept as a supplement, not counted as those cities' building history.
 
 ### Austin roofing vocabulary
@@ -98,16 +98,16 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
 
   The kit's roof-age profile maps `Expired` to `other`. For lead discovery, expired-unfinaled is the core "long-open permit" signal and is modelled separately.
 - **Contractor:** `contractor_company_name` is filled on about 32% of re-roof rows. Trade is often "General Contractor".
-- **Incremental key:** Socrata `:updated_at`.
+- **Incremental key:** permit business dates (status, applied, issued, completed), from the previous run's watermark minus one day. Socrata `:updated_at` is not usable: the portal rewrites it on every row nightly.
 
 ## 5. Identity, licensing, enrichment (Texas replacements for the Florida kit stages)
 
 - **Business identity:** Texas Comptroller Active Franchise Tax Permit Holders and Sales Tax Permit Holders (data.texas.gov). These replace Sunbiz; SOSDirect is pay-per-search and is not used.
 - **Licensing:** TDLR licenses (data.texas.gov). Texas has **no roofing contractor license**, so the DBPR-style rule ("no license match → write no contractor") would drop every roofer.
   - The permit-listed contractor is kept as permit evidence.
-  - It is linked to an official Comptroller entity only on a confident name + address match.
-- **BBB:** kit `bbb-harvest` (Central Texas, roofing categories), run locally.
-- **Places:** kit `overture-places-ingest` with FIPS 48453.
+  - It is linked to an official Comptroller entity only when its normalized name matches exactly one franchise-taxpayer name (`identity_status = resolved_exact_name`). Several matches are labelled `ambiguous_<n>_registry_matches`; no address or fuzzy matching is used.
+- **BBB:** not ingested. bbb.org returns HTTP 403 to automated requests, robots.txt disallows search and category pagination, and there is no public BBB API, so the kit's `bbb-harvest` was not run (operator decision, 2026-10-20). Contractors carry `bbb_status = excluded_no_public_api_http_403`. The roofing CRM links to BBB's own search and lets reps record ratings they look up themselves.
+- **Places:** not ingested. The kit's `overture-places-ingest` was not run; no roofing-lead requirement depends on business POIs, and Travis County business identity comes from the Comptroller files.
 - **Ownership:**
   - Texas is a non-disclosure state, so there are no sale prices.
   - Ownership age comes from the deed date.
@@ -119,13 +119,13 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
 |---|---|---|
 | TCAD export | bulk download | 557 MB in about 1 min; PROP.TXT streamed from the zip in 19 s |
 | TCAD GIS centroids | ArcGIS paging | 2m19s for 386,682 |
-| Austin permits | Socrata API | 2.38M rows; full pull is bounded by Socrata paging (app token recommended); incremental by `:updated_at` |
-| Pflugerville / Lakeway | portal adapters | to be benchmarked (concurrency 1→2→4) before scale-out |
+| Austin permits | Socrata API | 2.38M rows; full pull 19m42s, bounded by Socrata paging (app token recommended); incremental by business-date window, seconds |
+| Pflugerville / Lakeway | portal adapters | not built |
 | Records-request jurisdictions | TPIA | statutory response 10 business days; not on the demo critical path |
 
 ## 7. Risks
 
 - **traviscad.org blocks non-browser HTML requests.** Only direct file links are used.
-- **Public IPFS gateways (ipfs.io, dweb.link) rate-limit or stall CLI requests from the operator's network.** Browser fetches succeed. Two-gateway verification therefore runs from GitHub Actions.
+- **Public IPFS gateways (ipfs.io, dweb.link) rate-limit or stall CLI requests from the operator's network, and since 2026-09-21 serve content only through a browser service worker.** Two-gateway verification therefore runs from GitHub Actions against ipfs.orbitor.dev and dget.top.
 - **MGO, GovWell and GovBuilt jurisdictions require accounts.** The pipeline does not create portal accounts.
 - **Roof-age coverage is uneven.** Strong evidence (permit completion) exists mainly in Austin; elsewhere it is year built or roof attributes only.
