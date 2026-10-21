@@ -1,0 +1,117 @@
+{
+  "county": {
+    "county": "travis",
+    "state": "TX",
+    "fips": "48453"
+  },
+  "group": "property_improvement",
+  "cli": {
+    "package": "@elephant-xyz/cli",
+    "commit": "44bb182b9f7f904662e9b33e1fde70bdeab62322"
+  },
+  "manifest_url": "https://lexicon.elephant.xyz/api/manifest",
+  "started_at": "2026-10-21T14:39:19.744Z",
+  "properties": 16217,
+  "validate_dir": {
+    "shards": [
+      {
+        "shard": 0,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2703, succeeded: 2703, failed: 0"
+      },
+      {
+        "shard": 1,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2703, succeeded: 2703, failed: 0"
+      },
+      {
+        "shard": 2,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2703, succeeded: 2703, failed: 0"
+      },
+      {
+        "shard": 3,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2703, succeeded: 2703, failed: 0"
+      },
+      {
+        "shard": 4,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2703, succeeded: 2703, failed: 0"
+      },
+      {
+        "shard": 5,
+        "code": 0,
+        "errors": 0,
+        "summary": "Properties processed: 2702, succeeded: 2702, failed: 0"
+      }
+    ],
+    "error_rows": 0,
+    "finished_at": "2026-10-21T15:46:25.044Z"
+  },
+  "hash": {
+    "car_written": "CAR written: /Users/Richard/code/oracle-property-intelligence-platform-pipeline-travis-tx/pipeline/data/lexicon/property_improvement-work/travis-property_improvement.car (146207 blocks, root baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq)",
+    "blocks": 146207,
+    "root": "baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+    "car": {
+      "bytes": 62825992,
+      "sha256": "235f0baa7d4828581a894554b78d43760288bdd304110ecf0cbfe7a170e9011c"
+    }
+  },
+  "validate_car": {
+    "checks": {
+      "integrity": 0,
+      "root": 0,
+      "index": 0,
+      "graph": 0,
+      "lexicon": 0,
+      "orphans": 0
+    },
+    "passed": true
+  },
+  "export_tables": {
+    "tables_written": "Tables written: /Users/Richard/code/oracle-property-intelligence-platform-pipeline-travis-tx/pipeline/data/lexicon/property_improvement-work/travis-property_improvement-tables (9 tables, 9 parts, root baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa)",
+    "tables_root": "baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa",
+    "atlas_page": "atlas/counties/TX/travis.json",
+    "tables_car": {
+      "bytes": 1606,
+      "sha256": "ba525ba5a7c8cf9119b5083870baecf3d5c11acb88643b7d7449afa7dab5fb7e"
+    }
+  },
+  "atlas_entry": {
+    "cid": "baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+    "schema": "bafkreicyzywzwhmguojpi2otgrwsyi37le3u4lnavljbxu76cnrudxaxfu",
+    "tables": "baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa"
+  },
+  "upload": {
+    "archive": {
+      "api": "https://rpc.filebase.io",
+      "root": "baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+      "blocks": 146207,
+      "gatewayUrl": "https://ipfs.filebase.io/ipfs/baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+      "uploadedAt": "2026-10-21T15:51:31.504Z"
+    },
+    "tables": {
+      "api": "https://rpc.filebase.io",
+      "root": "baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa",
+      "countyRoot": "baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+      "parts": 9,
+      "gatewayUrl": "https://ipfs.filebase.io/ipfs/baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa",
+      "uploadedAt": "2026-10-21T15:51:47.139Z"
+    },
+    "approval": {
+      "county": "travis",
+      "approved": true,
+      "approved_by": "Oracle operator (repository owner)",
+      "approved_at": "2026-10-21T04:20:00Z",
+      "scope": "Upload of the Travis County Elephant Lexicon archives (county and property_improvement groups) and their tables to public IPFS via Filebase, including owner names and mailing addresses from the TCAD public appraisal roll.",
+      "not_approved": "Opening the Atlas registration pull request (on hold by the operator)."
+    }
+  },
+  "finished_at": "2026-10-21T15:51:47.415Z"
+}
