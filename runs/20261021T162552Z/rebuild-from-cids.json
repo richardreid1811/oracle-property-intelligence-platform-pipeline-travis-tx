@@ -1,0 +1,769 @@
+{
+  "run_id": "20261021T162552Z",
+  "manifest_sha256": "1b425403539dce08b70c272dcab52ab4d55d86ba1f09fc10718168dc8b05f47a",
+  "rebuilt_at": "2026-10-21T19:15:18.460Z",
+  "verifier": "github-actions run 39659961731",
+  "gateways": [
+    "https://ipfs.orbitor.dev",
+    "https://dget.top"
+  ],
+  "method": "inputs: runs/history.json + this manifest only. Files downloaded by CID from the gateways above (no project-operated or pinning-vendor gateway), byte length + sha256 checked against the manifest, tree re-imported with the publishing UnixFS profile (file, directory and root CIDs must match), Parquet tables opened in DuckDB and counts recomputed (export.mjs definitions) against manifest.counts and coverage.json; date-dependent counts not compared",
+  "checks": {
+    "manifest_cid": {
+      "ok": true,
+      "expected": "bafkreia3ijkagu45zyelodbhfxflkkvu2voynoq7bh6ba4mbndoiwbpupi",
+      "computed": "bafkreia3ijkagu45zyelodbhfxflkkvu2voynoq7bh6ba4mbndoiwbpupi"
+    },
+    "download": {
+      "ok": true,
+      "files": 73,
+      "summary": "{\"run_id\":\"20261021T162552Z\",\"root\":\"bafybeifmmp4weeujuzcgyzpfed654baimyfjlzqk35gojpex4t3ai42fci\",\"files\":73,\"fetched\":73,\"reused\":0,\"out_dir\":\"/home/runner/work/_temp/snapshot\"}",
+      "error": null,
+      "timed_out": false
+    },
+    "bytes": {
+      "ok": true,
+      "files": 73,
+      "mismatched": []
+    },
+    "cids": {
+      "ok": true,
+      "recomputed": 75,
+      "mismatched": []
+    },
+    "root_cid": {
+      "ok": true,
+      "expected": "bafybeifmmp4weeujuzcgyzpfed654baimyfjlzqk35gojpex4t3ai42fci",
+      "computed": "bafybeifmmp4weeujuzcgyzpfed654baimyfjlzqk35gojpex4t3ai42fci"
+    },
+    "counts": {
+      "ok": true,
+      "compared": 19,
+      "mismatched": [],
+      "not_compared": [
+        "roof_15y_plus",
+        "deed_over_10y"
+      ]
+    }
+  },
+  "files": [
+    {
+      "name": "coverage.json",
+      "cid": "bafkreiha6raricinoy6cmpqdc2ps5kumidwd5zixoezrtrrpmlx2ulmz6y",
+      "bytes": 780,
+      "sha256": "e0f44114090d763c263e03169f2eaa8c40ec3ee517713319c62f62efaa2d99f6",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "deltas.json",
+      "cid": "bafkreietk42vjnozwf7pnfmsozlhy6jw54u2mjxa5hcuybpxqh4mklf5oe",
+      "bytes": 816,
+      "sha256": "93573554b5d9b17ef6959276567c7936ef29a626e0e9c54c05f781f8c52cbd71",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "run.json",
+      "cid": "bafkreidbea766rkrs6j5e4nt537qgzdjzhuvxmo5ninhrtd6axrzttdlqe",
+      "bytes": 22989,
+      "sha256": "61203fef45519793d271b3eeff036469c9e95bb1dd6a1a78cc7e05e399cc6b81",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "samples/contractors-roofing.csv",
+      "cid": "bafkreibswckhlxws5eysfijgcdokfjr2rixuoqrpw6e5whue6gscf2662m",
+      "bytes": 28283,
+      "sha256": "32b09475ded2e93122a12610dca2a63a8a2f47422fb789db1e84f1a422ebded3",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "samples/leads-roof-15y-plus.csv",
+      "cid": "bafkreic2twdqoqlsb5b6zaiab75544frlsww56ojarordzs6ez2ncy572e",
+      "bytes": 80478,
+      "sha256": "5a9d870741720f43ec81000ffbde70b15cad6ef9c9045d11e65e2674d163bfd1",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "samples/roofing-permits-open.csv",
+      "cid": "bafkreideglu3g3owx6ze2majrte7bxdnveyvqepjdyqdrm6cchuhqk6s7u",
+      "bytes": 44716,
+      "sha256": "6432e9b36dd6bfb24d30098cc9f0dc6da9315811e91e2038b3c211e8782bd2fd",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/business_locations.parquet",
+      "cid": "bafybeicwu34zthzeduoax7rsvdkoitbpajhk3zc4pxjcvf2vn3ezi3d73q",
+      "bytes": 6964577,
+      "sha256": "fab6fbaea31b33739992d0ed1fececee6f4b2ff9fc1498eb90487622ab46fa1e",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/businesses.parquet",
+      "cid": "bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+      "bytes": 14609775,
+      "sha256": "bb0f2f24cdfdb698a02f73226eabec27e4f356d4fbb0b657387745e9f9c9a7eb",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/contractors.parquet",
+      "cid": "bafybeibaw2lf3mgsglr7guoo4452abcvwaju5aog45whkztdzhnkm2z5mq",
+      "bytes": 1935398,
+      "sha256": "5cc0eb8aafaf363d0dc2a3f5cdbd3605741b9301813a8617b7896743b8c03164",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/hail_events.parquet",
+      "cid": "bafkreif4uqslb7gtpeghtwjhdpe2buh6n4ocxr4mc5ol2axzngsszj6sqa",
+      "bytes": 12769,
+      "sha256": "bca424b0fcd3790c79d9271bc9a0d0fe6f1c2bc78c175cbd02f969a52ca7d280",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/leads.parquet",
+      "cid": "bafybeidxdtlsttrdbahkouoesslkvduxes5tzwpgv7s4knrh2y3rrvfgti",
+      "bytes": 24901915,
+      "sha256": "9f2da08195d1d51a77f29e97290a9d5f042d48d9d3e3a19da1bc0f2d3359fcdf",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/licenses.parquet",
+      "cid": "bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
+      "bytes": 1499654,
+      "sha256": "f07d7cbab5cc454f1f5b9dc7ad8e145c71e043d1fb387ddd39061a34a454eed1",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/owner_signals.parquet",
+      "cid": "bafybeigtgmesfqkjyr2m4sqplszqmehxcivyyolxphdvrvbluui5vwgsya",
+      "bytes": 9109563,
+      "sha256": "9f418df8e5d081636e97cd4934cc87a4471b1764ae86d921eb0295cc18220718",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/owners.parquet",
+      "cid": "bafybeicc27abqr7jg7jfe7yq3nhuer6lr4kc3mpp7tmvb7gm4rrn63ebaq",
+      "bytes": 17064401,
+      "sha256": "fd5b2c66608b90e31859f82f68f10627d72e37964a11571851a1167f756a6802",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permit_embeddings.parquet",
+      "cid": "bafybeibkdwjtczgvsf3vtms4peiqbntlteu7g4kjdwuqf5edmfk3ry6sfi",
+      "bytes": 10177016,
+      "sha256": "2161a73c5becbbd5bf71448263889daed885b9021dd6f094bbeac1b38d8b2756",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1921/part0.parquet",
+      "cid": "bafkreica5etpgprrctko6jzdiunpuh6wp5kicicem5vq5wj4u5e5bg6bnu",
+      "bytes": 11138,
+      "sha256": "40e926f33e3114d4ef2723451afa1fd67f54812044676b0ed93ca749d09bc16d",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1969/part0.parquet",
+      "cid": "bafkreihgl35oqg3rnselrs72nsjv4jd7eeqsf22wnld4chuwygfpgjciwm",
+      "bytes": 8952,
+      "sha256": "e65efae81b716c88b8cbfa6c935e247f212122eb566ac7c11e96c18af32448b3",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1970/part0.parquet",
+      "cid": "bafkreiag7lyj3unakjppzsm7xaelydofqvy35qogvfgqw3wnft3fxbdj2i",
+      "bytes": 10324,
+      "sha256": "06faf09dd1a0525efcc99fb808bc0dc58571bec1c6a94d0b6ecd2cf65b8469d2",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1971/part0.parquet",
+      "cid": "bafkreib5lltpmstav4c7tdodswgoen7yndv2clwwt46tkitxommu2tr5nm",
+      "bytes": 10387,
+      "sha256": "3d5ae6f64a60af05f98dc3958ce237f868eba12ed69f3d35227773194d4e3d6b",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1976/part0.parquet",
+      "cid": "bafkreifj25exsw3tvdpgxi76elm6ec6jh5jerrjz5wjc7id5ja3rcpa4vu",
+      "bytes": 8718,
+      "sha256": "a9d749795b73a8de6ba3fe22d9e20bc93f5248c539ed922fa07d4837113c1cad",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1977/part0.parquet",
+      "cid": "bafkreiecfklojogby622izk6ukudwn75bpgaqlgqy3ih4svhpo4rasbnou",
+      "bytes": 13683,
+      "sha256": "822a96e4b8c1c7b5a4655ea2a83b37fd0bcc082cd0c6d07e4aa77bb910482d75",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1978/part0.parquet",
+      "cid": "bafkreiabtlnyviizb67ykaqagzo5hfolfabs5w543io46bulzjlwvzezui",
+      "bytes": 36710,
+      "sha256": "019adb8aa1190fbf850200365dd395cb28032edbbcda1dcf068bca576ae499a2",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1979/part0.parquet",
+      "cid": "bafkreibmjn4jwa6nyka2aqjrta5jjf7kmfljnfbe2j72xqvfchwfpcrynm",
+      "bytes": 85814,
+      "sha256": "2c4b789b03cdc281a04131983a9497ea6156969424d27fabc2a511ec578a386b",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1980/part0.parquet",
+      "cid": "bafybeicyjnyupaxwhdzwm62nspcv6i274rtiih5wkroit2nvldzumtlrla",
+      "bytes": 735519,
+      "sha256": "96bd2bdc730dae234e4bec6589b0a39018be3c824a9c493e0679c8a25d3b2c39",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1981/part0.parquet",
+      "cid": "bafybeidmcli34hxh453ij624cgkq6vwvwx6hgqthxk53ww65xncc373kye",
+      "bytes": 1694335,
+      "sha256": "a27bced16d70a9e0deb8aa620085a023c1e4f89401022fd315228501d93896ed",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1982/part0.parquet",
+      "cid": "bafybeiefad65rakbj5vgndefg4m3cclsrza4he2s7foc4s6k7mzwilq5be",
+      "bytes": 2020047,
+      "sha256": "d997d5cd3ffc19c13dcccbfda1d7bedfc5b2c573619eefd94d6eaed5c38fe4a2",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1983/part0.parquet",
+      "cid": "bafybeibbqro23cdktzsbmkd5gr7lb4a6weizbb5kthbxxdtyhhekf3bkmy",
+      "bytes": 2510857,
+      "sha256": "9f39ac58062a057cc31fbea01bc4f481d78eeb0ff1424bc359c5ef76aedabc10",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1984/part0.parquet",
+      "cid": "bafybeifyprbp2svdquheqj5hx4lk32ekqwpshzvpdy37qp2cq4aqckhn4u",
+      "bytes": 3043201,
+      "sha256": "6c8eb4f27bfe6706f7c35ea5fe5ced64aa8ca462d94918c3134c165fddff2fc1",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1985/part0.parquet",
+      "cid": "bafybeifiabhuesi5fbnuck2w4qqlr7alenzsr4lc25nrdiuweb3yvtltbm",
+      "bytes": 3019924,
+      "sha256": "372878697a75a76e04ddae3b2217ef6159859ad995358c9b78738b2204f7f1ff",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1986/part0.parquet",
+      "cid": "bafybeiecdl5jarugzj7n2u5iu2hclwuizgnkdy2q7n4djyacb4aiwdiwq4",
+      "bytes": 2613670,
+      "sha256": "e1fe4c03b98b744941e6a0b66c2b8e164a89dd3b93369283d6e7f4f84ee4498f",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1987/part0.parquet",
+      "cid": "bafybeighzs4vfesaevx6hcgbygoafmbkglwchz4ieqje6s5rqwvyi2camq",
+      "bytes": 2136110,
+      "sha256": "880330165aeb077a04f86e0531fb8cce0b6a937263be07d46872fe85da1de410",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1988/part0.parquet",
+      "cid": "bafybeia7gmn67x4zg7sqwi53z6sjgb7y3lcpxavheokq4alxl42ycozoge",
+      "bytes": 1773175,
+      "sha256": "eb957499c0644dd5d978f88fd15afa6e35ff27eeb79ce1a10ada0627e82f7f30",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1989/part0.parquet",
+      "cid": "bafybeiawadmzsvwudzurvp24ede7xnpzuwnsxgmiyichn3sau4omhvj6uq",
+      "bytes": 1630877,
+      "sha256": "fe34f67fd33307b267a237d1cf768f12605e2a75ad9f96300a234743b5529b14",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1990/part0.parquet",
+      "cid": "bafybeicliewhqbjjehtbjy5mn2lhu2akp7ellb77egemro3ketpcewrhoq",
+      "bytes": 1549806,
+      "sha256": "d35f928bb4fa7aa0c6f15dae41101b9a7daebd9c27000f142fc727fcc86256ea",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1991/part0.parquet",
+      "cid": "bafybeif57fuv2wxho5g2f6auvkyxsnd4r7ai43soxn274tgy5m4j7v7noa",
+      "bytes": 1498575,
+      "sha256": "daa84122908695466be652281bcec023f27bc4c5b16e0ff94b627d1658457035",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1992/part0.parquet",
+      "cid": "bafybeieg4xk2c2q77j55as5omqzmgbroh62hddnpj2lay3hjmidg4cxxuq",
+      "bytes": 1629744,
+      "sha256": "c08c9e3abdc136d0d3c74d8e74ef932e47b65ce4ed4779b90783779fbb058ec4",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1993/part0.parquet",
+      "cid": "bafybeibgyytimdbrpzp7zukxgyfpacr4x4yzxxtv5467llnl5bw3fmalsa",
+      "bytes": 1748648,
+      "sha256": "a3c17a2567803f12c5c757ca02e67f53de5771a4df8899a804f901fc6e7d2833",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1994/part0.parquet",
+      "cid": "bafybeiaxevapttlbdqkal7yk2u22srensbajc5c7rzrepabvqh2khiqwa4",
+      "bytes": 1754484,
+      "sha256": "3631cc68447ec68d06341832be09fec9c8d85109f9961399f045445b3e9d7dfb",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1995/part0.parquet",
+      "cid": "bafybeiffyhrizd4hs6x3gkwa6uievkway2emgi4l6hsd6inlsoy5olrcky",
+      "bytes": 1788418,
+      "sha256": "6ac45442d6894cffe8e56b69beeb18c16798b01a312e5ca5d835ec66dc31d14f",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1996/part0.parquet",
+      "cid": "bafybeiez36ymmzb3jsbmrnrnjrnxymttfirn7cy7nxukjs2fho3yxpe3c4",
+      "bytes": 1987786,
+      "sha256": "5d55af6b83c6acaa68c04d462d77fe2ea3ecf98be20732d424ad0650949f32db",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1997/part0.parquet",
+      "cid": "bafybeie6nnlj5yh6ahszip4viujnm23vnqrkrmhdhmaakr4mtyq7c4zpti",
+      "bytes": 1809236,
+      "sha256": "69834a76c3646d3ef983240afded447666b1b53fde7fa9f9579e6826efc70341",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1998/part0.parquet",
+      "cid": "bafybeifzwvi7hjqlpknenwk2ye5eflichwwukjdbc22ftmufunctdxtkhe",
+      "bytes": 1959971,
+      "sha256": "bef2d965780a866af862b2f341a542af2daceb6b24be5f4aea072f3b60af304a",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=1999/part0.parquet",
+      "cid": "bafybeif4lxtqo324xmcg42hwux4upnyeqfav7lzvfqrxpk3g7mot5qselm",
+      "bytes": 1962732,
+      "sha256": "3fd8d4f6e313fe4411fa7908664263917c3f92fce16c3a916329b37b00255323",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2000/part0.parquet",
+      "cid": "bafybeie2jnljpf2us27du7gp73wpl6ho3efy4owa2w3i66gp44fsx4wp6e",
+      "bytes": 2568218,
+      "sha256": "2f7a00f5100ff153b9e894529f0d79540ccc29d60a8c0ec83c11d9fc2e4c905e",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2001/part0.parquet",
+      "cid": "bafybeic373qkjvvqdug3p6wik43rv3kd6jkfucjqzrxja7grijlxexojru",
+      "bytes": 2353116,
+      "sha256": "92d1c96825faa154398515dc1564f81c81e8071102523826f4ee46667cda068d",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2002/part0.parquet",
+      "cid": "bafybeib4vyl3ptl3u4dc3zdswu6wnwm2kq235aysgskzbjd2r33psj7y4e",
+      "bytes": 2555624,
+      "sha256": "f0671b8a033f719c1fbc3a9251589355e3e6ed1f1027acabfa0d7c0e09c19b84",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2003/part0.parquet",
+      "cid": "bafybeiabypgvnbzkdtgu2oatxi7gnhb44a3t6ik4jimiozsfvlenfgfvoy",
+      "bytes": 2652605,
+      "sha256": "fb0a26fe28d7213d06317e0a8d8194f7824308b0576ecc5ae98c9205a44dd552",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2004/part0.parquet",
+      "cid": "bafybeidl3jyhmshwfxqvqcam2evcol3dflgnldexzmpnc2lmpl56cqiepe",
+      "bytes": 2824493,
+      "sha256": "1e3803b8e9cdf9832ab3286886a2ac7e25aae0cc11bf38e502d683d75b1dc739",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2005/part0.parquet",
+      "cid": "bafybeielaselyhkjezjrwvtp3rrrf3pwnlwhjxcaeqxhzr6rmds6sb5p5u",
+      "bytes": 3373141,
+      "sha256": "4409e2b627954e960e41ca63f1be95c790e9e68b9153dd92677d0e3b6ffc823d",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2006/part0.parquet",
+      "cid": "bafybeibx4jmdqadtocxx6kze2owxj6gzumeizszh3diyon4lwhn7ibxkcy",
+      "bytes": 3837192,
+      "sha256": "65c6cecf0d6e663c82cefc2c24514440ff4f665c05c94ca738e5d0f881da6ad1",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2007/part0.parquet",
+      "cid": "bafybeibbygu5vimwdd55vzlt6gathcnpymzaddj2ktjnlvdhuukejlichy",
+      "bytes": 3607444,
+      "sha256": "f6d1a295bd232ba28aa3081350b30efb6ceb7b413d35df5ad72aacedc7495a29",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2008/part0.parquet",
+      "cid": "bafybeidthmznesrouyzy27iwstvgw7gncz4j4dn4ao34szcxf26ovpm4hi",
+      "bytes": 3762767,
+      "sha256": "1411b29b5927b5d3b19404e4972e4295e607197c1ae5a422edac576a5bf57b2d",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2009/part0.parquet",
+      "cid": "bafybeidtyi3nbhbbjhcylddmd6crsmjc4hyvaiv6srcq33e7inqstgr2km",
+      "bytes": 3591117,
+      "sha256": "8e28d17bccab716ddb15cdc1d2eb9377a521778d78bdcf52bf2d81c3613f5998",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2010/part0.parquet",
+      "cid": "bafybeifxdf6avjzczknvmojwqyadrprfa7tc7g7u2ae2hr63phl4pf7bey",
+      "bytes": 3955481,
+      "sha256": "bf49e7faa382f1957691102182f841312fefb1b9e25adc7908a3fd8299c815b4",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2011/part0.parquet",
+      "cid": "bafybeidc4myeuvdzhtavmamgwr7nlbs3mxu2gmzdm2awhrwt6o6btkdbwe",
+      "bytes": 4099687,
+      "sha256": "30886c6e9fdea145645926e3d4875118fe7aa3e9f2f838367115e4716a5fd6e0",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2012/part0.parquet",
+      "cid": "bafybeicgxk3hbarjlkdos5xd3vw3xs7x64w2iypf5wjhpfcxlwnnme5pqu",
+      "bytes": 4354996,
+      "sha256": "6aa18bb1e0adf43c572f3a7e16104215040cd34f6e4943352736dca122adadf2",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2013/part0.parquet",
+      "cid": "bafybeicusp4ep6bkitqc7giu4c47vcy5hxzagxoantwspurvg4xenzxujm",
+      "bytes": 4730462,
+      "sha256": "3fcea0dc0510f917129ffaeb932de14d6c6f52a570bec5adfb9c9140b72601d9",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2014/part0.parquet",
+      "cid": "bafybeiehyijsyhnk37oxiwp4btwjnupb7za5yes7ztwbmwhepcl7a7g7uy",
+      "bytes": 4767524,
+      "sha256": "5b1caa47a9cd9e172c5b6303588064b3953c25d57cb4989508e45f70ae2a59a4",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2015/part0.parquet",
+      "cid": "bafybeidg52l76uni5icvhzg3gyq54h3zdxbjd25fsx2gdbjbcjnmu2fn2m",
+      "bytes": 4867703,
+      "sha256": "f3cf8c499f1ccb8c2abb593b58087ec67cab57a100ddac9073b6cba00b316935",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2016/part0.parquet",
+      "cid": "bafybeiaj4ygn3bwbtqwyk5yn3g2wz3aqkz5soyuw3xuotecvgkrv44nus4",
+      "bytes": 5079090,
+      "sha256": "6119f39261eb426018d55f27617f146238157b7e399e7f69957bff9e18ed51ed",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2017/part0.parquet",
+      "cid": "bafybeidnejm4wvfw2nf72h6gzdoa3qlniutatdxuj4tjjdceg6sw4gyrzi",
+      "bytes": 5195642,
+      "sha256": "e969b5b911436e1e2399b221e488f7627b671f6a75402cb0efe04ba7d6bc64c0",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2018/part0.parquet",
+      "cid": "bafybeihrf3pa4ctmd6zgyjkl3unwz727rzxguul4lefz6r6mq5t26zeqh4",
+      "bytes": 5232763,
+      "sha256": "cc2360ce58497131ff4a19d2bc845a6320fe175eccf97246a76c74a5febe260d",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2019/part0.parquet",
+      "cid": "bafybeidnenbsble5qfvqwnkrlzrgyuu7kzfhgnfgqcsg5hpetjv5qiqir4",
+      "bytes": 5752578,
+      "sha256": "1afe1821ab33d0f51cf62925590ced33f77480df2052d8bcf02b2fc182bbada5",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2020/part0.parquet",
+      "cid": "bafybeicbph74ciydmmyhdepjcpmbjgdm4mxlt2e3nkp636fkd756sbvgcy",
+      "bytes": 5242082,
+      "sha256": "309481b808c3d1de8fbcae38e77765bb0189672b5fb885b02d1b59d1f199ec1b",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2021/part0.parquet",
+      "cid": "bafybeic7pk7ouwfmdne4jq2tnqppkkljddfdivzzmudtthzluvbeftmxbi",
+      "bytes": 5878398,
+      "sha256": "79adba769636de64198dac8b97b1e3c4d72be0292e819186af27bcf93912846a",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2022/part0.parquet",
+      "cid": "bafybeid4rmrouzcoml5dtawyezw6bxbbn3v445z6353agbg35egrn7l4ei",
+      "bytes": 5629213,
+      "sha256": "edc3e83d9e48cd80f9aa997acb9221d8b58dc5073e5d34512a1f611f81f8554a",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2023/part0.parquet",
+      "cid": "bafybeif5xhastehfvcog2hk5fn33ezp4meyfgupojhrrbxrju6xlc5je4e",
+      "bytes": 5008337,
+      "sha256": "5c5afede11bbb2569f8d11b4e236c094c53a736086528854058b504c831b0dec",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2024/part0.parquet",
+      "cid": "bafybeig5mhkirf7i6gpi7nut4nxrkmsow5il4tri2qrkyekutlqp4qsfke",
+      "bytes": 4612547,
+      "sha256": "9bc0a9d3d2144e94bf5b2bc3f9fc0f6cb8a36f0e83a9693b4de6d1d7aec641d7",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2025/part0.parquet",
+      "cid": "bafybeighrcpctkvrhuwx3zvv3jzvr3ierhyoajzitpua5vym75qjffy7mu",
+      "bytes": 4592937,
+      "sha256": "e1d2847725eae2ccfe1bf559e61c07e1b8c4e304329e14d85ad1191c97e5cc32",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/permits/year=2026/part0.parquet",
+      "cid": "bafybeiajrmz2pvvxemzjgkom3sfslxnqz2rv4pf7ug5xyhboqbzblc2anq",
+      "bytes": 3891060,
+      "sha256": "b9e57e7d89fcb95ad0c1a83067bc0a328c7b7ee512e0b01ba49243ac1472a379",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/properties.parquet",
+      "cid": "bafybeif5hn4t7y3rwub2wjgt7dodfbhrl75ahdectyqvx3xstjncjxd6ny",
+      "bytes": 28102308,
+      "sha256": "092a5105f751a0c5a21ce3dbb4bb987b6c5ef7bc2e6bc684678975b70b84d64c",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/roof_age.parquet",
+      "cid": "bafybeiaf6n5ircvlaqwhbo5nzvejibkt7alksxvgrdiq6iqrhnyurdkgcq",
+      "bytes": 1346443,
+      "sha256": "6db9fdcee644cc65a200e45767c52479f359456a44037a4a1cbcebadbe47d074",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    },
+    {
+      "name": "tables/roofing_permits.parquet",
+      "cid": "bafybeicnbfteilxfqc4wkytph4arysyor76wt5j32yqire6vdsjr4vhysa",
+      "bytes": 2934778,
+      "sha256": "0b1a9a772afd222ae1fc6d590722f2c432f75af4ac75d893ea3d3161f1bfb743",
+      "via": "ipfs.orbitor.dev",
+      "ok": true
+    }
+  ],
+  "table_rows": {
+    "business_locations": 93331,
+    "businesses": 367843,
+    "contractors": 32470,
+    "hail_events": 1093,
+    "leads": 441972,
+    "licenses": 54784,
+    "owner_signals": 441972,
+    "owners": 376634,
+    "permit_embeddings": 31970,
+    "properties": 441972,
+    "roof_age": 441972,
+    "roofing_permits": 31970,
+    "permits": 2381226
+  },
+  "counts": {
+    "properties": {
+      "recomputed": 441972,
+      "manifest": 441972,
+      "coverage_json": 441972,
+      "ok": true
+    },
+    "properties_with_coordinates": {
+      "recomputed": 430761,
+      "manifest": 430761,
+      "coverage_json": 430761,
+      "ok": true
+    },
+    "permits": {
+      "recomputed": 2381226,
+      "manifest": 2381226,
+      "coverage_json": 2381226,
+      "ok": true
+    },
+    "permits_linked_to_parcel": {
+      "recomputed": 2017804,
+      "manifest": 2017804,
+      "coverage_json": 2017804,
+      "ok": true
+    },
+    "roofing_permits": {
+      "recomputed": 31970,
+      "manifest": 31970,
+      "coverage_json": 31970,
+      "ok": true
+    },
+    "roofing_permits_open_or_unfinaled": {
+      "recomputed": 1724,
+      "manifest": 1724,
+      "coverage_json": 1724,
+      "ok": true
+    },
+    "contractors": {
+      "recomputed": 32470,
+      "manifest": 32470,
+      "coverage_json": 32470,
+      "ok": true
+    },
+    "contractors_resolved": {
+      "recomputed": 10745,
+      "manifest": 10745,
+      "coverage_json": 10745,
+      "ok": true
+    },
+    "contractors_with_bbb": {
+      "recomputed": 0,
+      "manifest": 0,
+      "coverage_json": 0,
+      "ok": true
+    },
+    "businesses": {
+      "recomputed": 367843,
+      "manifest": 367843,
+      "coverage_json": 367843,
+      "ok": true
+    },
+    "licenses": {
+      "recomputed": 54784,
+      "manifest": 54784,
+      "coverage_json": 54784,
+      "ok": true
+    },
+    "owners": {
+      "recomputed": 376634,
+      "manifest": 376634,
+      "coverage_json": 376634,
+      "ok": true
+    },
+    "multi_property_owners": {
+      "recomputed": 21793,
+      "manifest": 21793,
+      "coverage_json": 21793,
+      "ok": true
+    },
+    "owner_out_of_state": {
+      "recomputed": 26231,
+      "manifest": 26231,
+      "coverage_json": 26231,
+      "ok": true
+    },
+    "permits_lakeway": {
+      "recomputed": 0,
+      "manifest": 0,
+      "coverage_json": 0,
+      "ok": true
+    },
+    "business_locations": {
+      "recomputed": 93331,
+      "manifest": 93331,
+      "coverage_json": 93331,
+      "ok": true
+    },
+    "business_locations_linked_to_parcel": {
+      "recomputed": 37916,
+      "manifest": 37916,
+      "coverage_json": 37916,
+      "ok": true
+    },
+    "business_locations_linked_to_registry": {
+      "recomputed": 8686,
+      "manifest": 8686,
+      "coverage_json": 8686,
+      "ok": true
+    },
+    "roofing_permits_table": {
+      "recomputed": 31970,
+      "manifest": 31970,
+      "ok": true
+    }
+  },
+  "bytes_downloaded": 271905717,
+  "seconds": 47,
+  "failures": 0,
+  "all_ok": true
+}
