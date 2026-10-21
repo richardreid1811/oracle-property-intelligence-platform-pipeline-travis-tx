@@ -55,7 +55,7 @@ written to `runs/lexicon/<group>.json`. The Atlas page entry is in `atlas/counti
 | Group | Result | Evidence |
 |---|---|---|
 | `property_improvement` | 16,217 properties validated in 6 shards, 0 errors; CAR of 146,207 blocks; all six CAR checks (integrity, root, index, graph, lexicon, orphans) passed; archive root `baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq`; tables root `baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa` (9 parts); both uploaded to Filebase at 15:51 UTC; Atlas page entry written | `runs/lexicon/property_improvement.json`, `atlas/counties/TX/travis.json` |
-| `county` | directory validation still running (expected to finish later on 2026-10-21); hashed, CAR-validated and uploaded after that | none yet |
+| `county` | not published: 441,972 properties transformed; directory validation at about 1.5 s per property per process needs about 37 h on 5 processes and was stopped at about 39% on 2026-10-21 to finish the submission | none |
 
 A run's manifest lists the Lexicon archive and tables roots (`lexicon/<group>/archive`,
 `lexicon/<group>/tables`) from the first run published after the upload. Runs 6 and 7
@@ -157,8 +157,7 @@ archive into its own Filebase account and re-points the global Atlas IPNS. The p
 the `validate` gate fetches the archive through the public gateways only. The archive is 146,207
 small blocks, and a full `?format=car` export from `ipfs.filebase.io` streamed at about 10 KB/s in a
 local test, so that download may exceed the gate's per-request limit. The release CAR is the fallback.
-Until a code owner merges, no Travis archive is listed in Atlas. The `county` group follows in its
-own PR.
+Until a code owner merges, no Travis archive is listed in Atlas. The `county` group is not published (status table above).
 
 ## 4. Human gate
 
