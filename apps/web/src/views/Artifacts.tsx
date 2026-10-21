@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AppData } from "../App";
+import { READ_GATEWAYS } from "../db";
 import { bytes, shortCid, when } from "../format";
 import type { LexiconEvidence, ManifestObject } from "../types";
 
@@ -28,8 +29,29 @@ const REPO_RAW = "https://raw.githubusercontent.com/richardreid1811/oracle-prope
 const LEXICON_GROUPS = ["county", "property_improvement"] as const;
 
 async function resolveIpns(name: string): Promise<string | null> {
-  const res = await fetch(`https://ipfs.filebase.io/ipns/${name}`, { method: "HEAD", cache: "no-store" });
+  const res = await fetch(`https://ipfs.filebase.io/ipns/${name}`, { method: "HEAD", cache: "no-store", signal: AbortSignal.timeout(20_000) });
   return res.headers.get("x-ipfs-roots")?.split(",")[0].trim() ?? null;
+}
+
+// Browsers usually cannot read x-ipfs-roots (CORS does not expose it), so fall back to reading the
+// run summary under the name: its run_id says which snapshot the gateway resolved the name to.
+const IPNS_GATEWAYS = ["https://ipfs.orbitor.dev", ...READ_GATEWAYS.filter((g) => g !== "https://ipfs.orbitor.dev")];
+
+async function resolveIpnsRunJson(name: string): Promise<{ gateway: string; runId: string; root: string | null; failed: string[] } | null> {
+  const failed: string[] = [];
+  for (const g of IPNS_GATEWAYS) {
+    try {
+      const res = await fetch(`${g}/ipns/${name}/run.json`, { cache: "no-store", signal: AbortSignal.timeout(20_000) });
+      if (res.ok) {
+        const run = (await res.json()) as { run_id?: string; root?: string; root_cid?: string };
+        if (run.run_id) return { gateway: g, runId: run.run_id, root: run.root_cid ?? run.root ?? null, failed };
+      }
+    } catch {
+      /* try next gateway */
+    }
+    failed.push(new URL(g).host);
+  }
+  return null;
 }
 
 export default function Artifacts({ data }: { data: AppData }) {
@@ -51,11 +73,29 @@ export default function Artifacts({ data }: { data: AppData }) {
   async function checkIpns() {
     if (!ipns) return;
     setIpnsNow({ state: "running", detail: "resolving…" });
-    try {
-      const cid = await resolveIpns(ipns.name);
-      setIpnsNow(cid ? { state: cid === manifest.root.cid ? "ok" : "bad", detail: cid === manifest.root.cid ? `resolves to this run's root ${shortCid(cid)}` : `resolves to ${cid ? shortCid(cid) : "nothing"} (this run's root is ${shortCid(manifest.root.cid)})` } : { state: "bad", detail: "no x-ipfs-roots header returned" });
-    } catch (e) {
-      setIpnsNow({ state: "bad", detail: String((e as Error).message ?? e) });
+    const cid = await resolveIpns(ipns.name).catch(() => null);
+    if (cid) {
+      setIpnsNow({ state: cid === manifest.root.cid ? "ok" : "bad", detail: cid === manifest.root.cid ? `resolves to this run's root ${shortCid(cid)} (x-ipfs-roots via ipfs.filebase.io)` : `resolves to ${shortCid(cid)} (this run's root is ${shortCid(manifest.root.cid)})` });
+      return;
+    }
+    setIpnsNow({ state: "running", detail: "x-ipfs-roots not readable in the browser; reading run.json under the name…" });
+    const r = await resolveIpnsRunJson(ipns.name);
+    if (!r) {
+      setIpnsNow({ state: "bad", detail: `no gateway returned /ipns/${shortCid(ipns.name)}/run.json (tried ${IPNS_GATEWAYS.map((g) => new URL(g).host).join(", ")})` });
+      return;
+    }
+    const host = new URL(r.gateway).host + (r.failed.length ? ` (${r.failed.join(", ")} did not answer)` : "");
+    const runs = data.history.runs;
+    const idx = runs.findIndex((h) => h.run_id === r.runId);
+    const latest = runs.at(-1);
+    const rootNote = r.root ? (r.root === manifest.root.cid ? `, root ${shortCid(r.root)} matches` : `, root ${shortCid(r.root)} differs from ${shortCid(manifest.root.cid)}`) : "";
+    if (r.runId === manifest.run_id) {
+      const rootOk = !r.root || r.root === manifest.root.cid;
+      setIpnsNow({ state: rootOk ? "ok" : "bad", detail: `via ${host}: run.json is run ${r.runId} (run ${idx + 1}, the latest${rootNote})` });
+    } else if (idx >= 0) {
+      setIpnsNow({ state: "bad", detail: `via ${host}: run.json is run ${r.runId} (run ${idx + 1}, older than the latest run ${latest?.run_id}${rootNote}); the gateway may be serving a cached IPNS record` });
+    } else {
+      setIpnsNow({ state: "bad", detail: `via ${host}: run.json is run ${r.runId}, which is not in run history (latest is ${manifest.run_id}${rootNote})` });
     }
   }
 

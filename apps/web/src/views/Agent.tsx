@@ -53,16 +53,20 @@ const compact = (rows: Row[]) =>
     ),
   );
 
-// Minimal, safe markdown: **bold** and bare https links. No HTML injection (React escapes text).
+// Minimal, safe markdown: **bold**, [text](https://…) links and bare https links. No HTML injection
+// (React escapes text); labelled links are https only.
+const MD_LINK = /^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/;
 function Rich({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
+  const parts = text.split(/(\[[^\]]+\]\(https:\/\/[^\s)]+\)|\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
   return (
     <>
-      {parts.map((p, i) =>
-        p.startsWith("**") && p.endsWith("**") ? <strong key={i}>{p.slice(2, -2)}</strong>
+      {parts.map((p, i) => {
+        const link = MD_LINK.exec(p);
+        return link ? <a key={i} href={link[2]} target="_blank" rel="noreferrer">{link[1]}</a>
+        : p.startsWith("**") && p.endsWith("**") ? <strong key={i}>{p.slice(2, -2)}</strong>
         : /^https?:\/\//.test(p) ? <a key={i} href={p} target="_blank" rel="noreferrer">{p.replace(/^https?:\/\//, "")}</a>
-        : <Fragment key={i}>{p}</Fragment>,
-      )}
+        : <Fragment key={i}>{p}</Fragment>;
+      })}
     </>
   );
 }
@@ -85,7 +89,7 @@ export default function Agent({ data }: { data: AppData }) {
     try {
       for (let step = 0; step < MAX_STEPS; step++) {
         const res = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: msgs, mode }) });
-        const out = await res.json();
+        const out = (await res.json()) as { message?: string; error?: string; response?: unknown; tool_calls?: { name: string; arguments: unknown }[] };
         if (!res.ok) throw new Error(out.message ?? out.error ?? `HTTP ${res.status}`);
         const calls: { name: string; arguments: unknown }[] = out.tool_calls ?? [];
         if (!calls.length) {
