@@ -3,6 +3,9 @@ import type { AppData } from "../App";
 import { fmt, when } from "../format";
 import type { Manifest } from "../types";
 import { verifyInBrowser } from "./Artifacts";
+import { COUNT_LABELS } from "./Overview";
+
+const COUNT_LABEL: Record<string, string> = Object.fromEntries(COUNT_LABELS);
 
 export default function Runs({ data }: { data: AppData }) {
   const runs = [...data.history.runs].reverse();
@@ -61,7 +64,7 @@ export default function Runs({ data }: { data: AppData }) {
             <thead><tr><th>Count</th><th className="num">Value</th><th className="num">Δ vs previous</th></tr></thead>
             <tbody>
               {Object.entries(r.counts).map(([k, v]) => (
-                <tr key={k}><td>{k}</td><td className="num">{fmt(v)}</td><td className="num">{r.previous_run_id ? (r.deltas_vs_previous[k] > 0 ? "+" : "") + fmt(r.deltas_vs_previous[k]) : "initial"}</td></tr>
+                <tr key={k}><td title={k}>{COUNT_LABEL[k] ?? k}</td><td className="num">{fmt(v)}</td><td className="num">{r.previous_run_id ? (r.deltas_vs_previous[k] > 0 ? "+" : "") + fmt(r.deltas_vs_previous[k]) : "initial"}</td></tr>
               ))}
             </tbody>
           </table>

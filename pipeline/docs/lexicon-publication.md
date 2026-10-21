@@ -6,9 +6,11 @@ Filebase+IPNS conventions used by the Elephant oracle skills". This pipeline doe
 1. **Lexicon archives (the Elephant data layer).** Travis County records are transformed into the
    Elephant Lexicon, validated and packed with `elephant-cli`, and uploaded to Filebase, one CAR per
    county per data group, exactly as `use-oracle/reference/car-publication.md` (soofi-xyz-team-kit)
-   prescribes. Each archive is registered through an Atlas county page.
-2. **Snapshot + IPNS (the query layer).** Every run's DuckDB-ready Parquet snapshot is pinned on
-   Filebase and Pinata and listed in a manifest; the IPNS name `oracle-open-data-travis` (Filebase
+   prescribes. Each archive gets an entry in the Atlas county page `atlas/counties/TX/travis.json`;
+   the Atlas registration pull request is prepared but on hold by operator decision (section 3).
+2. **Snapshot + IPNS (the query layer).** Every run's DuckDB-ready Parquet snapshot is listed in a
+   manifest; its files are pinned on Filebase and Pinata, its directory roots on Filebase with a CAR
+   in the run's GitHub Release; the IPNS name `oracle-open-data-travis` (Filebase
    names API, `elephant-xyz/skills` `county-open-data-publish` convention) is re-pointed at each new run.
 
 ## 1. Lexicon archives
@@ -47,6 +49,18 @@ release lacks CAR hash/validate/upload and `export-tables`). The lexicon manifes
 Evidence for every step (CSV error counts, `CAR written` line, the six CAR check counts, tables
 root, upload summaries with the gateway that served each root, CLI commit, manifest URL) is
 written to `runs/lexicon/<group>.json`. The Atlas page entry is in `atlas/counties/TX/travis.json`.
+
+### Status (2026-10-21)
+
+| Group | Result | Evidence |
+|---|---|---|
+| `property_improvement` | 16,217 properties validated in 6 shards, 0 errors; CAR of 146,207 blocks; all six CAR checks (integrity, root, index, graph, lexicon, orphans) passed; archive root `baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq`; tables root `baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa` (9 parts); both uploaded to Filebase at 15:51 UTC; Atlas page entry written | `runs/lexicon/property_improvement.json`, `atlas/counties/TX/travis.json` |
+| `county` | directory validation still running (expected to finish later on 2026-10-21); hashed, CAR-validated and uploaded after that | none yet |
+
+A run's manifest lists the Lexicon archive and tables roots (`lexicon/<group>/archive`,
+`lexicon/<group>/tables`) from the first run published after the upload. Runs 6 and 7
+(`20261021T150751Z`, `20261021T154604Z`) predate the `property_improvement` upload, so their
+manifests do not list it.
 
 ### Provenance
 
@@ -125,8 +139,9 @@ them through Atlas, whose global IPNS name `elephant-atlas` is re-pointed by Ele
 group: archive root `cid`, data-group `schema`, `tables` root). Registration is a pull request to
 [elephant-xyz/atlas](https://github.com/elephant-xyz/atlas) (branch `publish/tx-travis`, title
 `Publish TX travis county`) that an Elephant code owner merges; on merge Elephant copies the
-archive into its own Filebase account and re-points the global Atlas IPNS. Status of that pull
-request is recorded in `runs/lexicon/*.json`.
+archive into its own Filebase account and re-points the global Atlas IPNS. The page entry for
+`property_improvement` is written; the pull request is prepared but not opened (on hold by
+operator decision), so no archive is listed in Atlas yet.
 
 ## 4. Human gate
 

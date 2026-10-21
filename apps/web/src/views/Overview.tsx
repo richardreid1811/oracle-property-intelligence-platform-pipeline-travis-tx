@@ -1,13 +1,13 @@
 import type { AppData } from "../App";
 import { fmt, shortCid, when } from "../format";
 
-const COUNT_LABELS: [string, string][] = [
+export const COUNT_LABELS: [string, string][] = [
   ["properties", "Properties (assessed parcels)"],
   ["properties_with_coordinates", "Properties with coordinates"],
   ["permits", "Permits (City of Austin)"],
   ["permits_linked_to_parcel", "Permits linked to a parcel"],
   ["roofing_permits", "Roofing permits"],
-  ["roofing_permits_open_or_unfinaled", "Roofing permits open / never finaled"],
+  ["roofing_permits_open_or_unfinaled", "Open or never-finaled re-roof/repair permits"],
   ["contractors", "Contractors (deduplicated)"],
   ["contractors_resolved", "Contractors resolved to TX registry"],
   ["contractors_with_bbb", "Contractors with BBB rating"],
@@ -18,15 +18,23 @@ const COUNT_LABELS: [string, string][] = [
   ["multi_property_owners", "Owners with multiple properties"],
   ["deed_over_10y", "No ownership change in 10+ years"],
   ["owner_out_of_state", "Out-of-state / international owners"],
+  ["business_locations", "Business locations (Overture Maps places)"],
+  ["business_locations_linked_to_parcel", "Business locations linked to a parcel"],
+  ["business_locations_linked_to_registry", "Business locations linked to the Texas registry"],
+  ["permits_lakeway", "Permits (City of Lakeway)"],
 ];
+
+// Lakeway permits are listed only once a run has ingested any.
+const shownCount = (k: string, counts: Record<string, string>) => k !== "permits_lakeway" || Number(counts[k] ?? 0) > 0;
 
 function receiptLine(r: Record<string, unknown> | null): string {
   if (!r) return "no receipt";
   const parts: string[] = [];
-  const n = r.written ?? r.features ?? (r.members ? Object.keys(r.members as object).length + " files" : undefined);
+  const n = r.written ?? r.rows ?? r.features ?? r.clipped_count ?? (typeof r.permits === "number" ? r.permits : undefined);
   if (n !== undefined) parts.push(`${fmt(n)} records`);
+  else if (r.members) parts.push(`${Object.keys(r.members as object).length} export files`);
   if (r.reported !== undefined) parts.push(`source reported ${fmt(r.reported)}`);
-  const at = r.fetched_at ?? r.extracted_at ?? r.observed_at;
+  const at = r.fetched_at ?? r.extracted_at ?? r.retrieved_at ?? r.observed_at;
   if (at) parts.push(when(String(at)));
   const digest = r.zip_sha256 ?? r.sha256;
   if (digest) parts.push(`sha256 ${String(digest).slice(0, 12)}…`);
@@ -38,6 +46,7 @@ function receiptLine(r: Record<string, unknown> | null): string {
 export default function Overview({ data }: { data: AppData }) {
   const { manifest, run, history, steps, verification } = data;
   const latest = history.runs.at(-1)!;
+  const counts: Record<string, string> = { ...manifest.counts, ...(run?.counts ?? {}) };
   return (
     <div className="stack">
       <section className="card">
@@ -72,10 +81,10 @@ export default function Overview({ data }: { data: AppData }) {
           <h2>Records by dataset</h2>
           <table className="tbl">
             <tbody>
-              {COUNT_LABELS.map(([k, label]) => (
+              {COUNT_LABELS.filter(([k]) => shownCount(k, counts)).map(([k, label]) => (
                 <tr key={k}>
                   <td>{label}</td>
-                  <td className="num">{fmt(manifest.counts[k])}</td>
+                  <td className="num">{fmt(counts[k])}</td>
                   <td className="num muted">{!latest.previous_run_id ? "initial" : latest.deltas_vs_previous?.[k] ? (latest.deltas_vs_previous[k] > 0 ? "+" : "") + fmt(latest.deltas_vs_previous[k]) : "0"}</td>
                 </tr>
               ))}

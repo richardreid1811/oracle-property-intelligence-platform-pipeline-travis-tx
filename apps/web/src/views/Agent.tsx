@@ -33,10 +33,24 @@ async function unnest(args: Record<string, unknown>): Promise<Record<string, unk
   return out;
 }
 
+// On permit rows (top-level or nested permit lists), an empty contractor is spelled out so the model
+// says "no contractor listed" instead of omitting it or guessing. Only the model's copy changes.
+const CONTRACTOR_KEYS = ["contractor_company_name", "contractor"];
+const isEmpty = (v: unknown) => v === null || v === undefined || (typeof v === "string" && !v.trim());
+function markNoContractor(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(markNoContractor);
+  if (!v || typeof v !== "object") return v;
+  const o = Object.fromEntries(Object.entries(v as Row).map(([k, x]) => [k, markNoContractor(x)]));
+  if ("permit_number" in o || "permit" in o) for (const k of CONTRACTOR_KEYS) if (k in o && isEmpty(o[k])) o[k] = "no contractor listed";
+  return o;
+}
+
 // Keep tool payloads small for the model's context: top rows, truncated strings.
 const compact = (rows: Row[]) =>
   rows.slice(0, MAX_ROWS_TO_MODEL).map((r) =>
-    Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "string" && v.length > 160 ? v.slice(0, 160) + "…" : v])),
+    markNoContractor(
+      Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "string" && v.length > 160 ? v.slice(0, 160) + "…" : v])),
+    ),
   );
 
 // Minimal, safe markdown: **bold** and bare https links. No HTML injection (React escapes text).

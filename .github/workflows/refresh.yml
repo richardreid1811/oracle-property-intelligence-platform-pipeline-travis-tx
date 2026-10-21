@@ -49,8 +49,8 @@ jobs:
           RUN=${{ steps.run.outputs.run_id }}
           C=pipeline/data/publish/cars/$RUN
           gh release create "run-$RUN" $C/root.car $C/tables_permits.car runs/$RUN/manifest.json \
-            --target "$GITHUB_REF_NAME" --title "Pipeline run $RUN (scheduled incremental)" \
-            --notes "Scheduled incremental run. Root and manifest CIDs are in runs/history.json and manifest.json."
+            --target "$GITHUB_REF_NAME" --title "Pipeline run $RUN (${{ github.event_name == 'schedule' && 'scheduled' || 'on-demand' }} incremental)" \
+            --notes "Incremental run (${{ github.event_name }}). Root and manifest CIDs are in runs/history.json and manifest.json."
       # Pushes made with GITHUB_TOKEN do not trigger other workflows, so verify the new run here.
       - name: Verify new run on independent public gateways
         if: steps.run.outputs.run_id != ''
