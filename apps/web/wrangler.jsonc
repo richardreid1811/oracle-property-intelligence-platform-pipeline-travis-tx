@@ -1,6 +1,7 @@
 {
   // Single free-plan Worker: static UI assets + /api/chat relay to Workers AI.
-  // No database or storage bindings: data is read by the browser from IPFS by CID.
+  // No database: data is read by the browser from IPFS by CID. CHAT_CACHE (KV) only keeps model
+  // replies to identical conversations so repeated questions don't spend the free AI allocation.
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "travis-oracle",
   "main": "worker/index.ts",
@@ -12,5 +13,6 @@
     "run_worker_first": ["/api/*"]
   },
   "ai": { "binding": "AI" },
+  "kv_namespaces": [{ "binding": "CHAT_CACHE", "id": "b18f4640f4cb40df9b4bf9032f513b17" }],
   "observability": { "enabled": true }
 }

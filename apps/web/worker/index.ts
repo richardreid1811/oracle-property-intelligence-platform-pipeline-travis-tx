@@ -8,6 +8,7 @@ import { openAiTools } from "@travis-oracle/query-tools";
 interface Env {
   AI: Ai;
   ASSETS: Fetcher;
+  CHAT_CACHE: KVNamespace;
 }
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -33,6 +34,10 @@ Rules:
 - If a result has no contractor, say "no contractor listed" for it. If the area searched is outside the City of Austin and its ETJ, say permit history there is not in the data (Pflugerville requires a portal login; unincorporated county land has no building permits; Lakeway is being added).
 - Report the total number of matches (total_matches_in_radius) and say the list shows the top results. Aged-roof results are ranked permit-verified first; permit results are ordered longest-open first.
 - Keep answers concise: a short summary, then a compact list of the top results.`;
+
+const CACHE_TTL_S = 14 * 24 * 3600;
+const sha256 = async (text: string) =>
+  [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)))].map((b) => b.toString(16).padStart(2, "0")).join("");
 
 // Best-effort per-isolate limiter; Workers AI's own daily free allocation is the hard cap.
 const hits = new Map<string, number[]>();
@@ -66,6 +71,11 @@ async function chat(request: Request, env: Env): Promise<Response> {
   const system = answer
     ? `${SYSTEM_PROMPT}\nThe tool results are in the conversation above. Do not call tools. Write the final answer now from those results only.`
     : SYSTEM_PROMPT;
+  // Identical conversations (same messages, mode, prompt and model; tool results included, so a new
+  // snapshot misses) reuse the stored reply instead of spending the daily free allocation.
+  const key = await sha256(JSON.stringify({ MODEL, system, answer, messages }));
+  const cached = await env.CHAT_CACHE.get(key).catch(() => null);
+  if (cached) return new Response(cached, { headers: { "content-type": "application/json", "x-chat-cache": "hit" } });
   try {
     const result = (await env.AI.run(MODEL as keyof AiModels, {
       messages: [{ role: "system", content: system }, ...messages],
@@ -73,7 +83,9 @@ async function chat(request: Request, env: Env): Promise<Response> {
       max_tokens: 1200,
       temperature: 0.2,
     } as never)) as { response?: string; tool_calls?: { name: string; arguments: unknown }[] };
-    return Response.json({ model: MODEL, response: result.response ?? "", tool_calls: result.tool_calls ?? [] });
+    const reply = JSON.stringify({ model: MODEL, response: result.response ?? "", tool_calls: result.tool_calls ?? [] });
+    await env.CHAT_CACHE.put(key, reply, { expirationTtl: CACHE_TTL_S }).catch(() => undefined);
+    return new Response(reply, { headers: { "content-type": "application/json", "x-chat-cache": "miss" } });
   } catch (err) {
     const message = String((err as Error)?.message ?? err);
     const exhausted = /4006|daily free allocation|neurons/i.test(message);
