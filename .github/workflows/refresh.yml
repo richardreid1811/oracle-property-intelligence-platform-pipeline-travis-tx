@@ -1,4 +1,4 @@
-# Weekly incremental refresh on a free GitHub-hosted runner (no Oracle-hosted infrastructure):
+# Twice-weekly incremental refresh on a free GitHub-hosted runner (no Oracle-hosted infrastructure):
 # pull the City of Austin permit window since the last watermark, apply it to the previous snapshot
 # (read by CID from IPFS), republish changed artifacts as new CIDs, and commit the manifest and run
 # history. With no source changes it only records an ingestion check.
@@ -6,8 +6,10 @@ name: refresh
 
 on:
   schedule:
-    # Weekly: keeps pin counts inside the free tiers (500 files per vendor) with the retention policy.
-    - cron: "40 7 * * 1"
+    # Twice a week (Mondays and Thursdays): Austin publishes permit changes daily, but each run's
+    # verification downloads the whole snapshot through gateways, and twice weekly keeps that inside
+    # Filebase's free 10 GB/month egress; retention keeps pins inside the free tiers.
+    - cron: "40 7 * * 1,4"
   workflow_dispatch:
 
 permissions:

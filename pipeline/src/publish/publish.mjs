@@ -93,6 +93,7 @@ const historyPath = join(runsDir, "history.json");
 const history = existsSync(historyPath) ? JSON.parse(await readFile(historyPath, "utf8")) : { county: "travis", state: "TX", runs: [] };
 if (history.runs.some((r) => r.run_id === runId)) throw new Error(`run ${runId} already in history`);
 const published = new Map(); // cid -> pins already recorded
+const pinataRefused = []; // files Pinata refused this run (second copy: root CAR in the release)
 for (const r of history.runs) {
   const m = JSON.parse(await readFile(join(runsDir, r.run_id, "manifest.json"), "utf8"));
   for (const o of m.objects) published.set(o.cid, o.pins);
@@ -148,11 +149,22 @@ for (const o of uploadOrder) {
     const fb = await filebaseAdd(o.local_path, `${runId}/${o.name}`);
     if (fb !== o.cid) throw new Error(`filebase CID mismatch for ${o.name}: ${fb} != ${o.cid}`);
     o.pins.push({ provider: "filebase", method: "add", at: new Date().toISOString() });
-    if (!(await pinataHas(o.cid))) {
-      const pn = await pinataAdd(o.local_path, `${runId}/${o.name}`);
-      if (pn !== o.cid) throw new Error(`pinata CID mismatch for ${o.name}: ${pn} != ${o.cid}`);
+    // Pinata is the second vendor on the free plan; when it refuses a file (storage limit), the run
+    // still publishes: the file is on Filebase and inside the run's root CAR in the GitHub Release.
+    // The refusal is recorded on the object and in the run history. A CID mismatch always fails.
+    try {
+      if (!(await pinataHas(o.cid))) {
+        const pn = await pinataAdd(o.local_path, `${runId}/${o.name}`);
+        if (pn !== o.cid) throw new Error(`pinata CID mismatch for ${o.name}: ${pn} != ${o.cid}`);
+      }
+      o.pins.push({ provider: "pinata", method: "v3 files public", at: new Date().toISOString() });
+    } catch (e) {
+      if (/CID mismatch/.test(e.message)) throw e;
+      const reason = e.message.slice(0, 200);
+      o.pin_notes = [...(o.pin_notes ?? []), `Pinata refused: ${reason}`];
+      pinataRefused.push(o.name);
+      console.error(`\nwarning: Pinata refused ${o.name}: ${reason}`);
     }
-    o.pins.push({ provider: "pinata", method: "v3 files public", at: new Date().toISOString() });
   }
   process.stderr.write(`\rpinned ${uploadOrder.indexOf(o) + 1}/${uploadOrder.length}`);
 }
@@ -254,6 +266,7 @@ history.runs.push({
   previous_run_id: previous?.run_id ?? null,
   ipns: ipns ? { name: ipns.name, label: ipns.label, resolved_cid: ipns.resolved_cid } : null,
   ...(manifestPinNote ? { manifest_pin_note: manifestPinNote } : {}),
+  ...(pinataRefused.length ? { pinata_refused: pinataRefused } : {}),
 });
 if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
 console.log(JSON.stringify({ run_id: runId, root: manifest.root.cid, manifest_cid: manifestCid, objects: manifest.objects.length, dry_run: dryRun }));
