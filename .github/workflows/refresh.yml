@@ -37,11 +37,13 @@ jobs:
           FILEBASE_BUCKET: ${{ secrets.FILEBASE_BUCKET }}
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
           SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
-          # Lakeway permits are read through the portal's own page (headless Chrome, preinstalled on ubuntu-latest).
-          CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
         run: |
           set -o pipefail  # a pipeline failure must fail the step, not be masked by tee
-          node pipeline/src/run-incremental.mjs --runs runs | tee run-result.json
+          # --no-lakeway: Lakeway is not loaded yet, and its first harvest is the full history since 1995
+          # (about 2.5 h of portal lookups), longer than this job's timeout. The first scheduled run
+          # (2026-10-22) timed out in it before publishing. The harvester runs on its own until a full
+          # history is loaded; incremental Lakeway windows can then be turned back on here.
+          node pipeline/src/run-incremental.mjs --runs runs --no-lakeway | tee run-result.json
           # The last stdout line is the run result. Anything other than a run id or "no_changes" fails the
           # step (an assignment, so a failing parse is not masked the way it would be inside echo).
           RUN_ID=$(node -e '
