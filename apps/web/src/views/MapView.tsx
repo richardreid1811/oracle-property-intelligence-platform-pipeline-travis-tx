@@ -41,8 +41,11 @@ export default function MapView({ data }: { data: AppData }) {
   useEffect(() => {
     if (!mapEl.current || map.current) return;
     map.current = L.map(mapEl.current, { zoomControl: true }).setView([center.lat, center.lon], 12);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
+      // The page sends no Referer (index.html, for the Hugging Face model CDN); OSM's tile policy
+      // requires one, so tiles carry the site origin.
+      referrerPolicy: "strict-origin-when-cross-origin",
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map.current);
     layer.current = L.layerGroup().addTo(map.current);
