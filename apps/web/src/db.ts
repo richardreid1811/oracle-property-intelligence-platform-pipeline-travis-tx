@@ -1,7 +1,7 @@
 // DuckDB-WASM over IPFS: the published Parquet tables are fetched by CID from public gateways and
 // queried in the browser. No Oracle-hosted database.
 import * as duckdb from "@duckdb/duckdb-wasm";
-import { PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
+import { PLACES_SQL, resolveArgs, snapshotDate, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
 import type { Manifest } from "./types";
 
 // Vendor gateways serve CORS + HTTP range requests for reads; independent gateways (orbitor.dev, dget.top) verify.
@@ -97,7 +97,9 @@ export async function runTool(
   const tool = toolByName[name];
   if (!tool) throw new Error(`unknown tool ${name}`);
   if (tool.needs_embedding) await ensureEmbeddings();
-  const args = await resolveArgs(name, rawArgs, query, tool.needs_embedding ? embedQuery : undefined);
+  // Durations (days open, years since deed) are measured to the snapshot date, so one snapshot always
+  // gives the same rows (and the agent's cached answers stay valid) instead of shifting daily.
+  const args = await resolveArgs(name, { ...rawArgs, _as_of: snapshotDate(manifestRef) }, query, tool.needs_embedding ? embedQuery : undefined);
   const sql = tool.sql(args);
   const rows = withLookupLinks(await query(sql));
   const count = tool.count_sql ? (await query(tool.count_sql(args)))[0] : undefined;

@@ -36,8 +36,12 @@ const point = (a) => ({
   lon: inRange(a.longitude, -98.3, -97.3, "longitude"),
   r: num(a.radius_miles, { min: 0.1, max: 25, dflt: 5 }),
 });
-// Ownership tenure in whole years as of today (exact; not calendar-year boundaries).
-const TENURE = "cast(floor(date_diff('day', deed_date, current_date) / 365.2425) as integer)";
+// "Today" for durations (days open, years since deed, default hail window) is the snapshot date when
+// the runtime passes it as _as_of (see snapshotDate), so results stay identical for one snapshot
+// instead of shifting daily; without it, the query date.
+const asOf = (a) => (/^\d{4}-\d{2}-\d{2}$/.test(a?._as_of ?? "") ? `date '${a._as_of}'` : "current_date");
+// Ownership tenure in whole years (exact; not calendar-year boundaries).
+const tenure = (a, col = "deed_date") => `cast(floor(date_diff('day', ${col}, ${asOf(a)}) / 365.2425) as integer)`;
 // "Older than N years": strict comparison on whole-year roof age.
 const olderThan = (a) => num(a.older_than_years ?? a.min_roof_age_years, { min: 0, max: 150, dflt: 15 });
 const residential = (a) => (bool(a.residential_only, false) ? "and (imprv_state_cd like 'A%' or imprv_state_cd like 'B%' or imprv_state_cd like 'E%')" : "");
@@ -97,8 +101,8 @@ export const tools = [
       const since = /^\d{4}-\d{2}-\d{2}$/.test(a.issued_since ?? "") ? `and opened_date >= date '${a.issued_since}'` : "";
       return `
         select p.permit_number, p.status, p.status_bucket, p.roofing_work, p.opened_date,
-               date_diff('day', p.opened_date, current_date) as open_days,
-               round(date_diff('day', p.opened_date, current_date) / 365.25, 1) as open_years, p.address, p.prop_id,
+               date_diff('day', p.opened_date, ${asOf(a)}) as open_days,
+               round(date_diff('day', p.opened_date, ${asOf(a)}) / 365.25, 1) as open_years, p.address, p.prop_id,
                round(${miles(lat, lon, "p.latitude", "p.longitude")}, 2) as distance_miles,
                p.contractor_company_name, c.legal_name as contractor_legal_name, c.identity_status as contractor_identity,
                c.bbb_rating, c.bbb_status, left(p.description, 160) as description,
@@ -107,7 +111,7 @@ export const tools = [
         where p.roofing_work in ('roof_replacement', 'roof_repair')
           and p.status_bucket in ('open', 'expired_unfinaled')
           and ${bbox(lat, lon, r, "p.latitude", "p.longitude")} and ${miles(lat, lon, "p.latitude", "p.longitude")} <= ${r}
-          and date_diff('day', p.opened_date, current_date) >= ${minDays} ${since}
+          and date_diff('day', p.opened_date, ${asOf(a)}) >= ${minDays} ${since}
         order by p.opened_date, p.permit_number
         limit ${LIMIT(a.limit)}`;
     },
@@ -118,7 +122,7 @@ export const tools = [
       return `select count(*) as matches, count(contractor_company_name) as with_contractor
               from roofing_permits
               where roofing_work in ('roof_replacement', 'roof_repair') and status_bucket in ('open', 'expired_unfinaled')
-                and ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and date_diff('day', opened_date, current_date) >= ${minDays} ${since}`;
+                and ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r} and date_diff('day', opened_date, ${asOf(a)}) >= ${minDays} ${since}`;
     },
   },
   {
@@ -155,7 +159,7 @@ export const tools = [
       return `
         with q as (select ${vec} as v)
         select p.permit_number, p.status, p.status_bucket, p.roofing_work, p.opened_date,
-               case when p.status_bucket in ('open', 'expired_unfinaled') then round(date_diff('day', p.opened_date, current_date) / 365.25, 1) end as open_years,
+               case when p.status_bucket in ('open', 'expired_unfinaled') then round(date_diff('day', p.opened_date, ${asOf(a)}) / 365.25, 1) end as open_years,
                p.address, p.prop_id, left(p.description, 200) as description,
                p.contractor_company_name, c.legal_name as contractor_legal_name, c.identity_status as contractor_identity, c.bbb_rating,
                round(array_cosine_similarity(e.embedding::FLOAT[384], q.v)::DOUBLE, 3) as similarity,
@@ -180,11 +184,11 @@ export const tools = [
       const { lat, lon, r } = point(a);
       const minYears = num(a.min_years, { min: 0, max: 100, dflt: 10 });
       return `
-        select prop_id, situs_address, owner_name, deed_date, ${TENURE} as years_since_deed, owner_occupied_homestead,
+        select prop_id, situs_address, owner_name, deed_date, ${tenure(a)} as years_since_deed, owner_occupied_homestead,
                owner_property_count, roof_age_years, roof_age_basis, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
-          and date_diff('day', deed_date, current_date) > ${minYears} * 365.2425
+          and date_diff('day', deed_date, ${asOf(a)}) > ${minYears} * 365.2425
         order by deed_date, prop_id
         limit ${LIMIT(a.limit)}`;
     },
@@ -199,7 +203,7 @@ export const tools = [
       const regions = (Array.isArray(a.regions) && a.regions.length ? a.regions : ["out_of_state", "international", "texas_other"]).filter((x) => allowed.includes(x));
       return `
         select prop_id, situs_address, owner_name, mail_city, mail_state, owner_mail_region, owner_property_count,
-               roof_age_years, roof_age_confidence, ${TENURE} as years_since_deed, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
+               roof_age_years, roof_age_confidence, ${tenure(a)} as years_since_deed, round(${miles(lat, lon)}, 2) as distance_miles, source_detail_url
         from leads
         where ${bbox(lat, lon, r)} and ${miles(lat, lon)} <= ${r}
           and owner_mail_region in (${regions.map((x) => `'${x}'`).join(",") || "''"})
@@ -212,7 +216,7 @@ export const tools = [
     description: "Full record for one TCAD property id: owner, deed, year built, roof attributes and roof-age evidence, plus all roofing permits on the parcel.",
     input_schema: { type: "object", properties: { prop_id: { type: "string" } }, required: ["prop_id"] },
     sql: (a) => `
-      select l.*, ${TENURE.replaceAll("deed_date", "l.deed_date")} as years_since_deed, (select list({permit: permit_number, status: status, opened: opened_date, completed: completed_date,
+      select l.*, ${tenure(a, "l.deed_date")} as years_since_deed, (select list({permit: permit_number, status: status, opened: opened_date, completed: completed_date,
                                 contractor: contractor_company_name, work: roofing_work, link: source_detail_url})
                    from roofing_permits where prop_id = l.prop_id) as roofing_permits
       from leads l where l.prop_id = '${str(a.prop_id, 12).replace(/[^0-9]/g, "")}'`,
@@ -237,7 +241,7 @@ function hailSql(a, countOnly) {
   const { lat, lon, r } = point(a);
   const minIn = num(a.min_hail_inches, { min: 0.75, max: 6, dflt: 1.75 });
   const er = num(a.event_radius_miles, { min: 0.25, max: 3, dflt: 1 });
-  const since = /^\d{4}-\d{2}-\d{2}$/.test(a.since ?? "") ? `date '${a.since}'` : "current_date - interval 3 year";
+  const since = /^\d{4}-\d{2}-\d{2}$/.test(a.since ?? "") ? `date '${a.since}'` : `${asOf(a)} - interval 3 year`;
   const age = a.older_than_years === undefined || a.older_than_years === null || a.older_than_years === "" ? null : num(a.older_than_years, { min: 0, max: 150 });
   const dLat = er / 69.0;
   const dLon = er / (69.17 * Math.cos((lat * Math.PI) / 180));
@@ -336,6 +340,12 @@ export const PLACES_SQL = `
   having count(*) >= 50
   union all
   select * from (values ${LANDMARKS.map(([n, la, lo]) => `('${n}', 'landmark (approximate)', ${la}, ${lo}, 0)`).join(", ")})`;
+
+/** Snapshot date (YYYY-MM-DD) from a run manifest, for the tools' _as_of argument. */
+export const snapshotDate = (manifest) => {
+  const m = /^(\d{4})(\d{2})(\d{2})T/.exec(manifest?.run_id ?? "");
+  return m ? `${m[1]}-${m[2]}-${m[3]}` : String(manifest?.created_at ?? "").slice(0, 10) || undefined;
+};
 
 /** OpenAI-style tool list for chat-completions function calling (Workers AI accepts this shape). */
 export const openAiTools = () =>

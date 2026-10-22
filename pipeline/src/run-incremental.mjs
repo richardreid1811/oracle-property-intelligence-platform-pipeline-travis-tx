@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // One incremental pipeline run, end to end, from the previous published snapshot:
-//   1. previous run from runs/history.json; its run.json read by CID under the root (watermark)
+//   1. previous run from runs/history.json; its run.json read by CID under the root (watermark),
+//      sha256-verified against the previous manifest
 //   2. City of Austin permit window since watermark - 1 day (overlap; the upsert de-duplicates)
 //   3. no permit changes -> record an ingestion check in history and stop (no new CIDs)
 //   4. fetch the previous snapshot by CID (sha256-verified), then incremental build -> export ->
@@ -8,6 +9,7 @@
 // Each step is an existing idempotent script; any failure stops the run before publication.
 // Usage: node src/run-incremental.mjs [--runs ../runs] [--gateway https://ipfs.filebase.io] [--dry-run]
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,13 +34,20 @@ const history = JSON.parse(await readFile(historyPath, "utf8"));
 const prev = history.runs.at(-1);
 const prevManifestPath = join(runsDir, prev.run_id, "manifest.json");
 
-// Watermark lives in the previous run summary, read by path under its root CID.
+// Watermark lives in the previous run summary, read by path under its root CID and checked against
+// the previous manifest's SHA-256 before anything is derived from it.
+const sha256 = (b) => createHash("sha256").update(b).digest("hex");
+const prevManifest = JSON.parse(await readFile(prevManifestPath, "utf8"));
+const prevRunObj = prevManifest.objects.find((o) => o.name === "run.json");
+if (!prevRunObj?.sha256) throw new Error(`previous manifest ${prevManifestPath} lists no run.json digest`);
 const prevRunRes = await fetch(`${gateway}/ipfs/${prev.root_cid}/run.json`, { signal: AbortSignal.timeout(60_000) });
 if (!prevRunRes.ok) throw new Error(`cannot read previous run.json (HTTP ${prevRunRes.status})`);
-const prevRun = await prevRunRes.json();
+const prevRunBytes = Buffer.from(await prevRunRes.arrayBuffer());
+if (sha256(prevRunBytes) !== prevRunObj.sha256) throw new Error(`previous run.json from ${gateway} does not match the manifest sha256 ${prevRunObj.sha256}`);
+const prevRun = JSON.parse(prevRunBytes.toString("utf8"));
 const prevRunPath = join(data, "state", `${prev.run_id}.run.json`);
 execFileSync("mkdir", ["-p", join(data, "state")]);
-await writeFile(prevRunPath, JSON.stringify(prevRun));
+await writeFile(prevRunPath, prevRunBytes);
 const permits = prevRun.sources.find((s) => s.key === "austin_permits");
 const watermark = permits?.receipt?.next_watermark;
 if (!watermark) throw new Error("previous run has no Austin permit watermark");
@@ -69,7 +78,6 @@ execFileSync("mkdir", ["-p", join(data, "build")]);
 // from the previous snapshot. If that snapshot has no hail history yet, harvest it all (1996+).
 const year = new Date().getUTCFullYear();
 const hailDir = join(data, "raw/noaa-recent");
-const prevManifest = JSON.parse(await readFile(prevManifestPath, "utf8"));
 const prevHasHail = prevManifest.objects.some((o) => o.name === "tables/hail_events.parquet");
 node("src/sources/noaa-hail.mjs", hailDir, "--from", prevHasHail ? String(year - 1) : "1996", "--to", String(year));
 // City of Lakeway permits (Tyler EnerGov): changes since the last harvest minus a day, or the full

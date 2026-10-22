@@ -1,13 +1,21 @@
 import { Fragment, useState } from "react";
 import type { AppData } from "../App";
-import { runTool, type Row } from "../db";
+import { planQuestion } from "@travis-oracle/query-tools/question.mjs";
+import { query, runTool, type Row } from "../db";
+import { ResultTable, type Mode } from "./MapView";
 
 type Msg = { role: "user" | "assistant" | "tool"; content: string; name?: string };
 type Turn =
   | { kind: "user"; text: string }
   | { kind: "assistant"; text: string }
-  | { kind: "tool"; name: string; args: Record<string, unknown>; rows: number; total?: unknown; sql: string; error?: string }
+  | { kind: "tool"; name: string; args: Record<string, unknown>; rows: number; total?: unknown; sql: string; error?: string; results?: Row[] }
+  | { kind: "note"; text: string }
   | { kind: "error"; text: string };
+
+// The Worker answers 503 ai_allocation_exhausted when the Workers AI free allocation is used up.
+class AllocationExhausted extends Error {}
+const FALLBACK_NOTE = "The free AI allowance for today is used up (resets 00:00 UTC). Showing a direct search instead.";
+const nextUtcMidnight = () => { const d = new Date(); d.setUTCHours(24, 0, 0, 0); return d.getTime(); };
 
 const MAX_STEPS = 6;
 const MAX_TOOL_ROUNDS = 1;
@@ -45,11 +53,12 @@ function markNoContractor(v: unknown): unknown {
   return o;
 }
 
-// Keep tool payloads small for the model's context: top rows, truncated strings.
+// Keep tool payloads small for the model's context: top rows, truncated strings. Links (*_url) stay
+// whole, since the model must copy them exactly.
 const compact = (rows: Row[]) =>
   rows.slice(0, MAX_ROWS_TO_MODEL).map((r) =>
     markNoContractor(
-      Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "string" && v.length > 160 ? v.slice(0, 160) + "…" : v])),
+      Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "string" && v.length > 160 && !k.endsWith("_url") ? v.slice(0, 160) + "…" : v])),
     ),
   );
 
@@ -81,6 +90,28 @@ export default function Agent({ data }: { data: AppData }) {
   const [history, setHistory] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  // Last place searched, so "near that area" in a follow-up question reuses it.
+  const [lastPlace, setLastPlace] = useState<{ place: Row; radius_miles?: number } | null>(null);
+  // After one 503, skip the model until the allocation resets.
+  const [exhaustedUntil, setExhaustedUntil] = useState(0);
+
+  // Without the model: parse the question deterministically (packages/query-tools/question.mjs),
+  // resolve the place, run the one tool in the browser and show its rows directly.
+  async function directSearch(question: string) {
+    setTurns((t) => [...t, { kind: "note", text: FALLBACK_NOTE }]);
+    const plan = await planQuestion(question, query, lastPlace ?? {});
+    setLastPlace({ place: plan.place as Row, radius_miles: plan.args.radius_miles });
+    if (plan.assumptions.length) setTurns((t) => [...t, { kind: "note", text: `Assumed: ${plan.assumptions.join("; ")}.` }]);
+    try {
+      const { rows, count, sql } = await runTool(plan.tool, plan.args);
+      setTurns((t) => [...t, { kind: "tool", name: plan.tool, args: plan.args, rows: rows.length, total: count?.matches, sql, results: rows }]);
+      if (rows.some((r) => r.bbb_lookup_url)) {
+        setTurns((t) => [...t, { kind: "note", text: "BBB ratings are not ingested (BBB blocks automated access); use Check BBB to look a contractor up on bbb.org." }]);
+      }
+    } catch (e) {
+      setTurns((t) => [...t, { kind: "tool", name: plan.tool, args: plan.args, rows: 0, sql: "", error: String((e as Error).message ?? e) }]);
+    }
+  }
 
   async function ask(question: string) {
     if (!question.trim() || busy) return;
@@ -92,9 +123,11 @@ export default function Agent({ data }: { data: AppData }) {
     let toolRounds = 0;
     const seen = new Set<string>();
     try {
+      if (Date.now() < exhaustedUntil) throw new AllocationExhausted();
       for (let step = 0; step < MAX_STEPS; step++) {
         const res = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: msgs, mode }) });
         const out = (await res.json()) as { message?: string; error?: string; response?: unknown; tool_calls?: { name: string; arguments: unknown }[] };
+        if (res.status === 503 && out.error === "ai_allocation_exhausted") throw new AllocationExhausted();
         if (!res.ok) throw new Error(out.message ?? out.error ?? `HTTP ${res.status}`);
         const calls: { name: string; arguments: unknown }[] = out.tool_calls ?? [];
         if (!calls.length) {
@@ -117,6 +150,7 @@ export default function Agent({ data }: { data: AppData }) {
           msgs = [...msgs, { role: "assistant", content: `Calling tool ${call.name} with ${JSON.stringify(args)}` }];
           try {
             const { rows, count, sql, resolved } = await runTool(call.name, args);
+            if (resolved) setLastPlace({ place: resolved, radius_miles: Number(args.radius_miles) || undefined });
             setTurns((t) => [...t, { kind: "tool", name: call.name, args, rows: rows.length, total: count?.matches, sql }]);
             const payload = { ...(resolved ? { search_center: resolved } : {}), returned_rows: rows.length, ...(count ? { total_matches_in_radius: count } : {}), rows: compact(rows) };
             msgs = [...msgs, { role: "tool", name: call.name, content: JSON.stringify(payload) }];
@@ -131,7 +165,14 @@ export default function Agent({ data }: { data: AppData }) {
         if (step === MAX_STEPS - 1) setTurns((t) => [...t, { kind: "error", text: "Stopped after the maximum number of tool steps." }]);
       }
     } catch (e) {
-      setTurns((t) => [...t, { kind: "error", text: String((e as Error).message ?? e) }]);
+      if (e instanceof AllocationExhausted) {
+        setExhaustedUntil(nextUtcMidnight());
+        try {
+          await directSearch(question);
+        } catch (err) {
+          setTurns((t) => [...t, { kind: "error", text: String((err as Error).message ?? err) }]);
+        }
+      } else setTurns((t) => [...t, { kind: "error", text: String((e as Error).message ?? e) }]);
     } finally {
       setHistory(msgs.filter((m) => m.role !== "tool").slice(-8));
       setBusy(false);
@@ -144,7 +185,8 @@ export default function Agent({ data }: { data: AppData }) {
         <h1>Roofing-lead agent</h1>
         <p className="muted small">
           Llama 3.3 70B on Cloudflare Workers AI chooses tools; each tool runs as SQL in your browser against the IPFS-hosted snapshot
-          ({data.manifest.root.cid.slice(0, 16)}…). Every tool call and its SQL are shown below.
+          ({data.manifest.root.cid.slice(0, 16)}…). Every tool call and its SQL are shown below. When the free daily AI allowance is used up,
+          the question is parsed directly (place, radius, years, lead type) and one search runs without the model.
         </p>
         <div className="examples">
           {EXAMPLES.map((q) => (
@@ -157,13 +199,17 @@ export default function Agent({ data }: { data: AppData }) {
           t.kind === "user" ? <div key={i} className="msg user">{t.text}</div>
           : t.kind === "assistant" ? <div key={i} className="msg assistant"><Rich text={t.text} /></div>
           : t.kind === "error" ? <div key={i} className="msg error">{t.text}</div>
+          : t.kind === "note" ? <div key={i} className="msg note muted small">{t.text}</div>
           : (
-            <details key={i} className="msg tool">
-              <summary>
-                Tool <code>{t.name}</code> {JSON.stringify(t.args)} → {t.error ? <span className="error">{t.error}</span> : `${t.rows} rows${t.total !== undefined ? ` (of ${t.total} matches)` : ""}`}
-              </summary>
-              <pre>{t.sql.trim()}</pre>
-            </details>
+            <Fragment key={i}>
+              <details className="msg tool">
+                <summary>
+                  Tool <code>{t.name}</code> {JSON.stringify(t.args)} → {t.error ? <span className="error">{t.error}</span> : `${t.rows} rows${t.total !== undefined ? ` (of ${t.total} matches)` : ""}`}
+                </summary>
+                <pre>{t.sql.trim()}</pre>
+              </details>
+              {t.results && <div className="msg results"><ResultTable rows={t.results} mode={t.name as Mode} /></div>}
+            </Fragment>
           ),
         )}
         {busy && <div className="msg assistant muted">Working…</div>}

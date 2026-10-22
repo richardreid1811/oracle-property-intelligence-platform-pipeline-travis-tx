@@ -1,5 +1,6 @@
 # Travis County, TX source catalog (county-discovery output, read by county-readiness-preflight).
-# Status: DRAFT — Austin permits and parcel sources probed 2026-10-20; other jurisdictions pending.
+# Status: final for this milestone (readiness validator PASS). Parcel and Austin permit sources probed
+# 2026-10-20; all 23 permit jurisdictions classified; Overture places loaded 2026-10-21.
 county: Travis
 state: TX
 slug: travis
@@ -346,7 +347,16 @@ enrichment:
     robots_notes: "robots.txt disallows /*? (search, category pagination); allows /us/*/*/profile/* and lists profile sitemaps"
     access_route: "none: no public BBB API (developer.bbb.org unavailable); excluded from automated ingestion by operator decision 2026-10-20"
     expected_count: null
-  places: {source: overture, fips: "48453", status: not_ingested, note: "overture-places-ingest not run; no roofing-lead requirement depends on business POIs"}
+  places:
+    source: overture
+    fips: "48453"
+    status: loaded
+    release: "2026-09-23.1"
+    clipped_count: 93331
+    retrieved_at: "2026-10-21T04:46:53Z"
+    boundary: "Census TIGER/Line 2024 county 48453 (sha256 04e668d3502757c837c13444730547cd967f28a2c49aeffb873d1792ab2cb97b)"
+    published_as: "tables/business_locations.parquet (from run 20261021T150751Z)"
+    note: "Business POI context only; no roofing-lead requirement depends on it."
 
 destination:
   writes_in_scope: true

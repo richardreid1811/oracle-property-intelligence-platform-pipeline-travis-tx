@@ -7,6 +7,11 @@
 //   TRAVIS_ORACLE_MANIFEST_CID  pin an exact run manifest by CID
 //   TRAVIS_ORACLE_HISTORY_URL   run history JSON (default: runs/history.json in the GitHub repo)
 // Gateways: TRAVIS_ORACLE_GATEWAYS (comma-separated; default Filebase, Pinata, orbitor.dev, dget.top).
+// Nothing a gateway returns is trusted: the manifest must hash to its raw CID, and every table and
+// run.json must match the manifest's SHA-256 and size before it is loaded.
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { DuckDBInstance } from "@duckdb/node-api";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -16,8 +21,9 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { mcpTools, PLACES_SQL, resolveArgs, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
+import { mcpTools, PLACES_SQL, resolveArgs, snapshotDate, toolByName, withLookupLinks } from "@travis-oracle/query-tools";
 import { embed } from "@travis-oracle/query-tools/embed.mjs";
+import { assertDigest, guardSql, rawCidSha256, RUN_SQL_TIMEOUT_MS, withTimeout } from "./guards.mjs";
 
 const HISTORY_URL =
   process.env.TRAVIS_ORACLE_HISTORY_URL ??
@@ -31,17 +37,24 @@ async function getJson(url) {
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   return res.json();
 }
-async function byCid(cid) {
+// Bytes at /ipfs/<path> from the first gateway whose response passes `verify` (throws on mismatch).
+async function verifiedBytes(path, verify, what) {
   let last;
   for (const g of GATEWAYS) {
     try {
-      return { url: `${g}/ipfs/${cid}`, json: await getJson(`${g}/ipfs/${cid}`) };
+      const res = await fetch(`${g}/ipfs/${path}`, { signal: AbortSignal.timeout(300_000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const bytes = verify(Buffer.from(await res.arrayBuffer()));
+      log(`verified ${what} via ${g}`);
+      return bytes;
     } catch (e) {
+      log(`gateway ${g} failed for ${what}: ${e.message}`);
       last = e;
     }
   }
-  throw last;
+  throw new Error(`could not load a verified ${what} from any gateway (${last?.message})`);
 }
+const manifestObject = (manifest, name) => manifest.objects.find((o) => o.name === name);
 
 let state = null; // { conn, manifest, manifestCid, run }
 let loading = null;
@@ -53,38 +66,31 @@ async function ensureLoaded() {
       const history = await getJson(HISTORY_URL);
       manifestCid = history.runs.at(-1).manifest_cid;
     }
-    const { json: manifest } = await byCid(manifestCid);
+    // The manifest is a raw block: its CID is its SHA-256.
+    const manifestSha = rawCidSha256(manifestCid);
+    const manifest = JSON.parse(await verifiedBytes(manifestCid, (b) => assertDigest(b, { sha256: manifestSha }, "manifest"), `manifest ${manifestCid}`));
     log(`snapshot ${manifest.run_id} root ${manifest.root.cid}`);
     const db = await DuckDBInstance.create(":memory:");
     const conn = await db.connect();
-    await conn.run("install httpfs; load httpfs");
-    for (const t of TABLES) {
-      const obj = manifest.objects.find((o) => o.name === `tables/${t}.parquet`);
-      let done = false;
-      for (const g of GATEWAYS) {
-        try {
-          await conn.run(`create or replace table ${t} as select * from read_parquet('${g}/ipfs/${obj.cid}')`);
-          log(`loaded ${t} (${obj.cid}) via ${g}`);
-          done = true;
-          break;
-        } catch (e) {
-          log(`gateway ${g} failed for ${t}: ${e.message}`);
-        }
-      }
-      if (!done) throw new Error(`could not load ${t} from any gateway`);
-    }
+    // Tables are downloaded whole and hash-checked, then read from a local copy (a remote
+    // read_parquet would range-read bytes that were never verified).
+    const dir = await mkdtemp(join(tmpdir(), "travis-oracle-mcp-"));
+    const loadTable = async (t) => {
+      const obj = manifestObject(manifest, `tables/${t}.parquet`);
+      if (!obj) throw new Error(`manifest has no tables/${t}.parquet`);
+      const bytes = await verifiedBytes(obj.cid, (b) => assertDigest(b, obj, obj.name), `${t} (${obj.cid})`);
+      const file = join(dir, `${t}.parquet`);
+      await writeFile(file, bytes);
+      await conn.run(`create or replace table ${t} as select * from read_parquet('${file}')`);
+    };
+    for (const t of TABLES) await loadTable(t);
     await conn.run(PLACES_SQL);
     // Semantic retrieval table (present in runs published after embeddings were added).
-    const emb = manifest.objects.find((o) => o.name === "tables/permit_embeddings.parquet");
-    if (emb) {
-      for (const g of GATEWAYS) {
-        try {
-          await conn.run(`create or replace table permit_embeddings as select * from read_parquet('${g}/ipfs/${emb.cid}')`);
-          log(`loaded permit_embeddings (${emb.cid}) via ${g}`);
-          break;
-        } catch (e) {
-          log(`gateway ${g} failed for permit_embeddings: ${e.message}`);
-        }
+    if (manifestObject(manifest, "tables/permit_embeddings.parquet")) {
+      try {
+        await loadTable("permit_embeddings");
+      } catch (e) {
+        log(`permit_embeddings not loaded: ${e.message}`);
       }
     }
     // All data is now in memory. Lock DuckDB down so run_sql (and anything else) cannot read local
@@ -92,10 +98,11 @@ async function ensureLoaded() {
     await conn.run("SET enable_external_access = false");
     await conn.run("SET lock_configuration = true");
     let run = null;
+    const runObj = manifestObject(manifest, "run.json");
     try {
-      run = (await byCid(`${manifest.root.cid}/run.json`)).json;
-    } catch {
-      /* run summary is optional */
+      run = JSON.parse(await verifiedBytes(`${manifest.root.cid}/run.json`, (b) => assertDigest(b, runObj ?? {}, "run.json"), "run.json"));
+    } catch (e) {
+      log(`run summary not loaded: ${e.message}`); // optional
     }
     state = { conn, manifest, manifestCid, run };
     return state;
@@ -105,20 +112,13 @@ async function ensureLoaded() {
 
 const rows = async (sql) => (await (await ensureLoaded()).conn.runAndReadAll(sql)).getRowObjectsJson();
 
-// Read-only SQL for agents that need ad-hoc questions: a single SELECT/WITH statement.
+// Read-only SQL for agents that need ad-hoc questions: a single SELECT/WITH statement (guards.mjs),
+// cancelled after RUN_SQL_TIMEOUT_MS.
 const SQL_TOOL = {
   name: "run_sql",
   description: "Run one read-only SQL SELECT (DuckDB dialect) over tables leads, roofing_permits, contractors, places, permit_embeddings. Returns at most 200 rows.",
   inputSchema: { type: "object", properties: { sql: { type: "string" } }, required: ["sql"] },
 };
-function guardSql(sql) {
-  const s = String(sql ?? "").trim().replace(/;+\s*$/, "");
-  if (!/^(select|with)\b/i.test(s) || s.includes(";")) throw new Error("only a single SELECT/WITH statement is allowed");
-  if (/\b(attach|copy|install|load|pragma|create|insert|update|delete|drop|alter|export|import|read_csv|read_json|read_parquet|read_text|glob)\b/i.test(s)) {
-    throw new Error("statement uses a disallowed keyword or function");
-  }
-  return `select * from (${s}) limit 200`;
-}
 
 const server = new Server({ name: "travis-oracle", version: "0.1.0" }, { capabilities: { tools: {}, resources: {} } });
 
@@ -128,15 +128,18 @@ server.setRequestHandler(CallToolRequestSchema, async (req) => {
   const { name, arguments: args = {} } = req.params;
   try {
     if (name === "run_sql") {
-      const out = await rows(guardSql(args.sql));
+      const sql = guardSql(args.sql);
+      const { conn } = await ensureLoaded();
+      const out = await withTimeout(() => rows(sql), RUN_SQL_TIMEOUT_MS, () => conn.interrupt());
       return { content: [{ type: "text", text: JSON.stringify({ rows: out }, null, 2) }] };
     }
     const tool = toolByName[name];
     if (!tool) throw new Error(`unknown tool ${name}`);
-    const resolved = await resolveArgs(name, args, rows, async (text) => (await embed([text], { query: true }))[0]);
+    const { manifest } = await ensureLoaded();
+    // Durations are measured to the snapshot date, so a snapshot always returns the same rows.
+    const resolved = await resolveArgs(name, { ...args, _as_of: snapshotDate(manifest) }, rows, async (text) => (await embed([text], { query: true }))[0]);
     const out = withLookupLinks(await rows(tool.sql(resolved)));
     const count = tool.count_sql ? (await rows(tool.count_sql(resolved)))[0] : undefined;
-    const { manifest } = await ensureLoaded();
     const payload = {
       snapshot: { run_id: manifest.run_id, root_cid: manifest.root.cid },
       ...(resolved.resolved_place ? { search_center: resolved.resolved_place } : {}),

@@ -160,6 +160,9 @@ Every acceptance criterion and module was reviewed against real output; fixes we
 | Map popups interpolated data into HTML | XSS from source records | HTML escaping and https-only links |
 | Non-deterministic tie-breaks in the roll build; owner money total exported as DOUBLE | CID churn; inexact money | Explicit tie-breaks; BIGINT cast; contract check caught both |
 | Owners not reconciled across properties | Acceptance gap | `owners` table + registry link |
+| Agent stopped with an error once the Workers AI free allocation was used up | No agent answers until 00:00 UTC | Deterministic fallback (`packages/query-tools/question.mjs`): place, radius, year thresholds and intent parsed from the question, one tool run in the browser, rows shown with their SQL |
+| Days open and years since deed were computed against the query date | Tool results (and the agent's reply cache key) changed daily within one snapshot | Durations measured to the snapshot date (`_as_of` from the manifest run id) |
+| MCP server and incremental runner trusted gateway bytes | A faulty gateway could serve altered tables or watermark | MCP verifies the manifest against its raw CID and every table and `run.json` against the manifest SHA-256; the incremental runner verifies the previous `run.json` |
 
 ### Corrections
 

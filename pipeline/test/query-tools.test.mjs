@@ -106,6 +106,24 @@ describe("open_roofing_permits_near", () => {
   });
 });
 
+describe("snapshot date (_as_of)", () => {
+  test("days open and tenure are measured to the snapshot date, so results do not change daily", async () => {
+    const { snapshotDate } = await import("@travis-oracle/query-tools");
+    const asOf = snapshotDate({ run_id: "20200101T120000Z" });
+    assert.equal(asOf, "2020-01-01");
+    const [p] = await call("open_roofing_permits_near", { latitude: 30.27, longitude: -97.743, radius_miles: 3, _as_of: asOf });
+    assert.equal(Number(p.open_days), 365);
+    assert.equal(p.open_years, 1);
+    const stale = await call("stale_ownership_near", { latitude: 30.2672, longitude: -97.7431, radius_miles: 5, min_years: 5, _as_of: asOf });
+    assert.deepEqual(stale.map((r) => [r.prop_id, r.years_since_deed]), [["101", 18], ["103", 9]]);
+    assert.doesNotMatch(toolByName.open_roofing_permits_near.sql({ latitude: 30.27, longitude: -97.743, _as_of: asOf }), /current_date/);
+  });
+
+  test("a malformed _as_of falls back to the query date instead of being interpolated", () => {
+    assert.match(toolByName.open_roofing_permits_near.sql({ latitude: 30.27, longitude: -97.743, _as_of: "2020-01-01'; drop" }), /current_date/);
+  });
+});
+
 describe("hail_exposed_roofs_near", () => {
   test("joins hail reports at query time, only against the current roof", async () => {
     const args = { latitude: 30.2672, longitude: -97.7431, radius_miles: 5, since: "2018-01-01" };

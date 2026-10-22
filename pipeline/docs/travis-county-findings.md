@@ -107,7 +107,7 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
   - The permit-listed contractor is kept as permit evidence.
   - It is linked to an official Comptroller entity only when its normalized name matches exactly one franchise-taxpayer name (`identity_status = resolved_exact_name`). Several matches are labelled `ambiguous_<n>_registry_matches`; no address or fuzzy matching is used.
 - **BBB:** not ingested. bbb.org returns HTTP 403 to automated requests, robots.txt disallows search and category pagination, and there is no public BBB API, so the kit's `bbb-harvest` was not run (operator decision, 2026-10-20). Contractors carry `bbb_status = excluded_no_public_api_http_403`. The roofing CRM links to BBB's own search and lets reps record ratings they look up themselves.
-- **Places:** not ingested. The kit's `overture-places-ingest` was not run; no roofing-lead requirement depends on business POIs, and Travis County business identity comes from the Comptroller files.
+- **Places:** loaded from Overture Maps release 2026-09-23.1 (93,331 places inside the TIGER/Line county boundary), published as `tables/business_locations.parquet` since run 20261021T150751Z. No roofing-lead requirement depends on business POIs; Travis County business identity comes from the Comptroller files.
 - **Ownership:**
   - Texas is a non-disclosure state, so there are no sale prices.
   - Ownership age comes from the deed date.

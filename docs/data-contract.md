@@ -20,7 +20,7 @@ This is the interface between the Oracle pipeline and its consumers: the roofing
   - `prop_id` is the TCAD property ID as an unpadded decimal string. It is stable across runs and is the CRM's lead anchor.
   - `permit_key` is `austin:<permit_number>`.
   - `contractor_key` is `contractor:<md5(normalized name)>`.
-- **Dates** are ISO `DATE`. Durations are not stored: compute "open for N days" as `date_diff('day', opened_date, current_date)`, so a snapshot never goes stale.
+- **Dates** are ISO `DATE`. Durations are not stored: compute "open for N days" as `date_diff('day', opened_date, <as of>)`, so a snapshot never goes stale. The shared tools take `<as of>` from the snapshot (`_as_of`, the run id's date, set by the UI and MCP server), so one snapshot always returns the same rows; ad-hoc SQL can use `current_date`.
 - **Coordinates** are WGS84 decimal degrees. Always read `coordinate_basis` alongside them.
 - **Provenance:** every row has a `source_detail_url` (the record's page at TCAD or the City of Austin) and/or a `source_url` (the exact API request). Source receipts (URLs, digests, counts, timestamps) are in `run.json` under the snapshot root.
 - **Missing evidence** is null, never zero. Each of the following columns says why a value exists or is absent: `roof_age_basis`, `roof_age_confidence`, `coordinate_basis`, `link_basis`, `identity_status`, `bbb_status`, `permit_history_coverage`.

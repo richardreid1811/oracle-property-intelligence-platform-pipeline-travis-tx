@@ -40,7 +40,15 @@ jobs:
         run: |
           set -o pipefail  # a pipeline failure must fail the step, not be masked by tee
           node pipeline/src/run-incremental.mjs --runs runs | tee run-result.json
-          echo "run_id=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-result.json','utf8').trim().split('\n').pop()).run_id ?? '')")" >> "$GITHUB_OUTPUT"
+          # The last stdout line is the run result. Anything other than a run id or "no_changes" fails the
+          # step (an assignment, so a failing parse is not masked the way it would be inside echo).
+          RUN_ID=$(node -e '
+            const line = require("fs").readFileSync("run-result.json", "utf8").trim().split("\n").pop();
+            const r = JSON.parse(line);
+            if (r.run_id === null && r.result === "no_changes") console.log("");
+            else if (/^\d{8}T\d{6}Z$/.test(r.run_id ?? "")) console.log(r.run_id);
+            else { console.error(`unexpected run result: ${line}`); process.exit(1); }')
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
       - name: Release CARs for the new run
         if: steps.run.outputs.run_id != ''
         env:
@@ -52,7 +60,10 @@ jobs:
             --target "$GITHUB_REF_NAME" --title "Pipeline run $RUN (${{ github.event_name == 'schedule' && 'scheduled' || 'on-demand' }} incremental)" \
             --notes "Incremental run (${{ github.event_name }}). Root and manifest CIDs are in runs/history.json and manifest.json."
       # Pushes made with GITHUB_TOKEN do not trigger other workflows, so verify the new run here.
+      # continue-on-error so retention and the commit of the evidence still happen; the last step fails
+      # the job when verification failed.
       - name: Verify new run on independent public gateways
+        id: verify
         if: steps.run.outputs.run_id != ''
         continue-on-error: true
         run: node pipeline/src/publish/verify-gateways.mjs runs/${{ steps.run.outputs.run_id }}/manifest.json --gateways https://ipfs.orbitor.dev,https://dget.top --budget-min 30
@@ -72,3 +83,8 @@ jobs:
           git add runs
           git commit -m "Pipeline refresh ${{ steps.run.outputs.run_id || 'check (no changes)' }}" || echo "no change"
           git pull --rebase -X theirs && git push
+      - name: Fail when gateway verification failed
+        if: steps.verify.outcome == 'failure'
+        run: |
+          echo "::error::Run ${{ steps.run.outputs.run_id }} did not verify on the independent gateways; manifest and evidence were committed above."
+          exit 1

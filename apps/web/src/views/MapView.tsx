@@ -13,7 +13,7 @@ const MODES = {
   hail_exposed_roofs_near: { label: "Recent hail on current roof (NOAA)", threshold: "min_hail_inches", dflt: 1.75, unit: "inches, last 3 years" },
   semantic_search_permits: { label: "Describe the work (semantic search)", threshold: null, dflt: 0, unit: "" },
 } as const;
-type Mode = keyof typeof MODES;
+export type Mode = keyof typeof MODES;
 
 // Data values are interpolated into popup HTML, so escape them (source records are untrusted input).
 const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
@@ -132,7 +132,7 @@ export default function MapView({ data }: { data: AppData }) {
         )}
         <button className="primary" onClick={search} disabled={!data.dbReady || busy}>{busy ? "Searching…" : data.dbReady ? "Search" : "Loading data…"}</button>
         {err && <div className="error">{err}</div>}
-        {count && <p className="small">{fmt(count.matches)} matching properties in radius ({fmt(count.permit_verified)} with permit-verified roof age). Showing top {rows.length}.</p>}
+        {count && <p className="small">{countSummary(mode, count)} Showing top {rows.length}.</p>}
         {!count && rows.length > 0 && <p className="small">{rows.length} results (max 200).</p>}
         <div className="legend small">
           <span><i style={{ background: CONF_COLOR.high }} /> permit-verified roof</span>
@@ -151,7 +151,15 @@ export default function MapView({ data }: { data: AppData }) {
   );
 }
 
-function ResultTable({ rows, mode }: { rows: Row[]; mode: Mode }) {
+// The count query differs by tool: aged roofs count permit-verified roof ages, permits count those
+// with a listed contractor, hail counts exposed properties.
+function countSummary(mode: Mode, c: Row): string {
+  if (mode === "open_roofing_permits_near") return `${fmt(c.matches)} open or never-finaled roofing permits in radius (${fmt(c.with_contractor)} with a listed contractor).`;
+  if (c.permit_verified !== undefined) return `${fmt(c.matches)} matching properties in radius (${fmt(c.permit_verified)} with permit-verified roof age).`;
+  return `${fmt(c.matches)} matching properties in radius.`;
+}
+
+export function ResultTable({ rows, mode }: { rows: Row[]; mode: Mode }) {
   if (!rows.length) return <p className="muted">Run a search to see results.</p>;
   const cols: [string, string][] =
     mode === "aged_roofs_near"

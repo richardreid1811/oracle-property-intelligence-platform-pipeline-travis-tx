@@ -6,7 +6,8 @@
   "main": "index.mjs",
   "exports": {
     ".": "./index.mjs",
-    "./embed.mjs": "./embed.mjs"
+    "./embed.mjs": "./embed.mjs",
+    "./question.mjs": "./question.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.1"
