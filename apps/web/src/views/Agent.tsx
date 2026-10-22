@@ -53,18 +53,23 @@ const compact = (rows: Row[]) =>
     ),
   );
 
-// Minimal, safe markdown: **bold**, [text](https://…) links and bare https links. No HTML injection
-// (React escapes text); labelled links are https only.
-const MD_LINK = /^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/;
+// Minimal, safe markdown: **bold**, [text](https://…) links, bare https links, and the
+// <a href="…">text</a> the model sometimes writes instead (often without the scheme). No HTML
+// injection (React escapes text); links are https only, a scheme-less www. host gets https://.
+const MD_LINK = /^\[([^\]]+)\]\(((?:https:\/\/|www\.)[^\s)]+)\)$/;
+const HTML_LINK = /^<a\s+href=["']((?:https:\/\/|www\.)[^"'\s]+)["'][^>]*>([^<]+)<\/a>$/i;
+const httpsUrl = (u: string) => (u.startsWith("www.") ? `https://${u}` : u);
 function Rich({ text }: { text: string }) {
-  const parts = text.split(/(\[[^\]]+\]\(https:\/\/[^\s)]+\)|\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
+  const parts = text.split(/(<a\s+href=["'](?:https:\/\/|www\.)[^"'\s]+["'][^>]*>[^<]+<\/a>|\[[^\]]+\]\((?:https:\/\/|www\.)[^\s)]+\)|\*\*[^*]+\*\*|https?:\/\/[^\s)<]+)/gi);
   return (
     <>
       {parts.map((p, i) => {
-        const link = MD_LINK.exec(p);
-        return link ? <a key={i} href={link[2]} target="_blank" rel="noreferrer">{link[1]}</a>
+        const md = MD_LINK.exec(p);
+        const html = HTML_LINK.exec(p);
+        return md ? <a key={i} href={httpsUrl(md[2])} target="_blank" rel="noreferrer">{md[1]}</a>
+        : html ? <a key={i} href={httpsUrl(html[1])} target="_blank" rel="noreferrer">{html[2]}</a>
         : p.startsWith("**") && p.endsWith("**") ? <strong key={i}>{p.slice(2, -2)}</strong>
-        : /^https?:\/\//.test(p) ? <a key={i} href={p} target="_blank" rel="noreferrer">{p.replace(/^https?:\/\//, "")}</a>
+        : /^https:\/\//.test(p) ? <a key={i} href={p} target="_blank" rel="noreferrer">{p.replace(/^https:\/\//, "")}</a>
         : <Fragment key={i}>{p}</Fragment>;
       })}
     </>
