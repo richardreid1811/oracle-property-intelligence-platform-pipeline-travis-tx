@@ -51,7 +51,7 @@ The numbers below are run 8's (`20261021T162552Z`; unchanged from run 7); permit
 - On **run 6** (or run 5), click **Check this snapshot still resolves**; it should resolve with a SHA-256 match. Do the same on the **oldest** run.
 > "Republishing moved the IPNS pointer to the new CID. The old CID is immutable and still resolves."
 - Switch to the GitHub tab: the Releases page has one release per run, each with its root and `tables/permits` CARs. CI attaches the CARs for CI runs; for runs published from the operator's machine (runs 1, 2, 6, 7 and 8) the operator created the release. The separate `lexicon-property_improvement` release holds both Lexicon CARs.
-- Show a `refresh` workflow run (runs 3–5) that published a run with no laptop involved. All runs so far were started on demand (`workflow_dispatch`); the schedule (Mondays and Thursdays 07:40 UTC) first fires on 2026-10-22; if it has run by the time you record, show that run instead.
+- Show a `refresh` workflow run (runs 3–5) that published a run with no laptop involved. These were started on demand (`workflow_dispatch`). The first scheduled run (2026-10-22) timed out in Lakeway's full-history harvest before publishing; the workflow now skips Lakeway, and run 9 (`20261022T141203Z`) is that fixed workflow run on demand.
 
 ## 8. UI: aged roofs in a radius (1 min) — tab **Map search**
 - Type **Pflugerville**, click **Go**, leave the radius at 5 mi and the type on "Roofs older than threshold" at 15, then click **Search**.
