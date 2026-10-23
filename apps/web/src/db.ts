@@ -23,6 +23,11 @@ async function loadTable(db: duckdb.AsyncDuckDB, c: duckdb.AsyncDuckDBConnection
   for (const [i, g] of READ_GATEWAYS.entries()) {
     const file = `${table}-${i}.parquet`;
     try {
+      // DuckDB's HTTP reads have no timeout, so a gateway that accepts connections but never answers
+      // would stall the loop; a bounded 4-byte probe skips it before the load depends on it.
+      const probe = await fetch(`${g}/ipfs/${cid}`, { headers: { Range: "bytes=0-3" }, signal: AbortSignal.timeout(15_000) });
+      void probe.body?.cancel(); // a gateway that ignores Range would otherwise stream the whole file
+      if (!probe.ok) throw new Error(`probe HTTP ${probe.status}`);
       await db.registerFileURL(file, `${g}/ipfs/${cid}`, duckdb.DuckDBDataProtocol.HTTP, false);
       await c.query(`create or replace table ${table} as select * from read_parquet('${file}')`);
       return g;

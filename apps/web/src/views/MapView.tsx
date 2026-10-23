@@ -73,12 +73,20 @@ export default function MapView({ data }: { data: AppData }) {
   }, [center, radius, rows]);
 
   async function locate() {
+    // Enter reaches this even while the Go button is disabled: an empty name would match every place.
+    const name = place.trim();
+    if (!name) return setErr("Type a city, community or ZIP first.");
+    if (!data.dbReady) return setErr("Data is still loading; try again in a moment.");
     setErr(null);
-    const { rows: hits } = await runTool("resolve_place", { name: place });
-    if (!hits.length) return setErr(`No Travis County place matches "${place}".`);
-    const p = { lat: Number(hits[0].latitude), lon: Number(hits[0].longitude) };
-    setCenter(p);
-    map.current?.setView([p.lat, p.lon], 12);
+    try {
+      const { rows: hits } = await runTool("resolve_place", { name });
+      if (!hits.length) return setErr(`No Travis County place matches "${name}".`);
+      const p = { lat: Number(hits[0].latitude), lon: Number(hits[0].longitude) };
+      setCenter(p);
+      map.current?.setView([p.lat, p.lon], 12);
+    } catch (e) {
+      setErr(`Could not look up "${name}": ${String((e as Error).message ?? e)}`);
+    }
   }
 
   async function search() {
@@ -107,7 +115,7 @@ export default function MapView({ data }: { data: AppData }) {
         <label>Place (city, ZIP)
           <div className="inline">
             <input value={place} onChange={(e) => setPlace(e.target.value)} placeholder="e.g. Pflugerville or 78704" onKeyDown={(e) => e.key === "Enter" && locate()} />
-            <button onClick={locate} disabled={!data.dbReady || !place}>Go</button>
+            <button onClick={locate} disabled={!data.dbReady || !place.trim()}>Go</button>
           </div>
         </label>
         <p className="muted small">Or click the map to drop a pin. Center: {center.lat.toFixed(4)}, {center.lon.toFixed(4)}</p>
