@@ -79,14 +79,14 @@ permits:
         contact_verified: true
     - jurisdiction: "Pflugerville"
       parcels: 23659
-      status: "supported"
-      vendor: "PublicAccess portal (vendor unconfirmed; AMANDA-style)"
+      status: "custodian-only"
+      vendor: "Cityworks PublicAccess"
       portal_kind: "record-search"
       url: "https://ams.pflugervilletx.gov/PublicAccess/template/login.aspx"
       historical_records: true
-      access: "Guest login option present (anonymous probe pending)"
-      implementation_status: "planned"
-      adapter_family: "new adapter after guest-access probe"
+      access: "login required (window.Environment.allowGuest = false; every route redirects to /PublicAccess/login; observed 2026-10-21)"
+      implementation_status: "blocked"
+      notes: "The pipeline does not create portal accounts; the records request below is the route."
       records_request:
         recipient_office: "City of Pflugerville City Secretary"
         system_scope: "Texas Public Information Act request for a structured export (CSV) of all building permits incl. status, applied/issued/final dates, work description, contractor, parcel/address"
@@ -113,10 +113,10 @@ permits:
       portal_kind: "record-search"
       url: "https://lakewaytx-energovweb.tylerhost.net/apps/selfservice"
       historical_records: true
-      access: "Civic Access public site (anonymous search to verify)"
-      implementation_status: "planned"
-      adapter_family: "kit tyler-civic-access (reuse)"
-      notes: "EnerGov in use since 2024-11-12; earlier history may need a records request."
+      access: "Civic Access public site (anonymous search)"
+      implementation_status: "built"
+      adapter_family: "pipeline/src/sources/tyler-permits.mjs (search request captured as in kit tyler-civic-access)"
+      notes: "Harvester built; the first full pass indexed 42,764 permits (1995 to date) but its contractor-lookup stage stopped on a portal browser error, so no Lakeway permits are loaded in the published snapshot yet. The scheduled refresh runs with --no-lakeway until the history is loaded."
     - jurisdiction: "Manor"
       parcels: 8687
       status: "custodian-only"

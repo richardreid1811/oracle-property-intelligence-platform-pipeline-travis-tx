@@ -71,14 +71,14 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
 |---|---|---|---|---|
 | Austin | 248,560 | 56.2% | supported | data.austintexas.gov `3syk-w9eu` (Socrata), anonymous, 2,380,939 rows since 1921 |
 | Unincorporated | 111,546 | 25.2% | custodian-only | Pre-2014 TNR document search (PDF images); 2014+ MyGovernmentOnline (login) |
-| Pflugerville | 23,659 | 5.4% | supported (planned) | `ams.pflugervilletx.gov/PublicAccess`, Guest option present |
+| Pflugerville | 23,659 | 5.4% | custodian-only (blocked) | `ams.pflugervilletx.gov/PublicAccess` (Cityworks): login required, no guest access (`window.Environment.allowGuest = false`) |
 | Lago Vista | 13,235 | 3.0% | custodian-only | MGO (login) |
-| Lakeway | 10,132 | 2.3% | supported (planned) | Tyler EnerGov Civic Access; reuse kit `tyler-civic-access` |
+| Lakeway | 10,132 | 2.3% | supported (harvester built, not loaded) | Tyler EnerGov Civic Access, public search; `pipeline/src/sources/tyler-permits.mjs` |
 | Manor | 8,687 | 2.0% | custodian-only | GovWell |
 | 17 others | 25,142 | 5.7% | custodian-only / manual-only | MGO, GovBuilt, Round Rock portal, Leander Development Hub, or paper offices |
 
 - **No county roofing permits.** Texas counties have no building-code authority, so unincorporated Travis issues development, septic and driveway permits but **no re-roof permits**. Roof age there falls back to year built and TCAD roof attributes, labelled as such.
-- **Automated permit-history coverage:** 66% of parcels: City of Austin (56.2%) plus unincorporated parcels in Austin's ETJ / limited-purpose areas, where Austin issues permits (9.8%). The Pflugerville and Lakeway adapters above were planned but not built.
+- **Automated permit-history coverage:** 66% of parcels: City of Austin (56.2%) plus unincorporated parcels in Austin's ETJ / limited-purpose areas, where Austin issues permits (9.8%). Lakeway's harvester is built, but its first full harvest is not in the published snapshot yet; Pflugerville is blocked by its portal login, so a Texas Public Information Act request is the route.
 - **Records requests.** Every custodian-only or manual-only row in `travis-sources.yaml` names a Texas Public Information Act records-first request: office, scope, and portal or email. Rows whose contact is a city homepage are marked `contact_verified: false`. **None have been sent; sending is the Oracle operator's decision.**
 - **Austin tags other cities' rows.** The Austin dataset also carries ~20k Austin-issued trade permits (mostly electrical/mechanical) tagged to Lakeway, Bee Cave, West Lake Hills, Rollingwood, The Hills, Sunset Valley and Pflugerville. These are kept as a supplement, not counted as those cities' building history.
 
@@ -120,7 +120,8 @@ Jurisdictions were enumerated from TCAD taxing entities: 22 municipalities plus 
 | TCAD export | bulk download | 557 MB in about 1 min; PROP.TXT streamed from the zip in 19 s |
 | TCAD GIS centroids | ArcGIS paging | 2m19s for 386,682 |
 | Austin permits | Socrata API | 2.38M rows; full pull 19m42s, bounded by Socrata paging (app token recommended); incremental by business-date window, seconds |
-| Pflugerville / Lakeway | portal adapters | not built |
+| Lakeway | Tyler EnerGov portal | first full pass indexed 42,764 permits in about 21 min (842 search requests); a full-history harvest is about 2.5 h of portal lookups, longer than the CI job's 90-minute timeout; not loaded yet |
+| Pflugerville | Cityworks portal | blocked: login required |
 | Records-request jurisdictions | TPIA | statutory response 10 business days; not on the demo critical path |
 
 ## 7. Risks

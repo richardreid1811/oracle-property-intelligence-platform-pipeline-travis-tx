@@ -15,12 +15,12 @@ Lines in quotes are suggested narration; say them in your own words.
 > "I'll show that the Oracle pipeline has loaded the available Travis County, Texas dataset, that it's queryable through DuckDB, that artifacts are published on IPFS as content-addressed snapshots, and that the UI and an agent answer roofing-lead questions. I acted as both Oracle and builder."
 
 ## 2. Pipeline run summary (1.5 min) — tab **Run summary**
-- Point at: run ID (run 8, `20261021T162552Z`, the latest), published time, the number of runs in history, mode, the gateway-verification badge, and the root and manifest CIDs.
+- Point at: run ID (run 8, `20261021T162552Z`: the latest when the video was recorded; run 9, `20261022T141203Z`, is now the latest), published time, the number of runs in history, mode, the gateway-verification badge, and the root and manifest CIDs.
 - Scroll to **Sources and provenance**. Each source shows a snapshot receipt: record counts, source-reported counts, collection timestamps and SHA-256. Point at the new source **Overture Maps places** (release 2026-09-23.1) and at the two blocked sources: BBB and **Pflugerville**, whose permit portal requires a login. City of Lakeway is not listed as a source in run 8 (nor in run 7), because no Lakeway permits are in the snapshot yet: its public-portal harvester is built, and the first harvest has not finished (see **Source limitations**). Run 6's summary did list Lakeway in error; SOLUTION.md › Corrections explains.
 - Scroll to **Source limitations** and read one or two: BBB, and municipal permit coverage (Austin plus Austin's ETJ cover 66% of parcels; Lakeway's first full harvest is not yet in this snapshot).
 
 ## 3. Total records by source (45 s) — same page, **Records by dataset**
-The numbers below are run 8's (`20261021T162552Z`; unchanged from run 7); permit and contractor counts change slightly every run, so read them off the panel on the day.
+The numbers below are run 8's (`20261021T162552Z`, the latest when the video was recorded; run 9 is now the latest; unchanged from run 7); permit and contractor counts change slightly every run, so read them off the panel on the day.
 > "441,972 parcels, about 2.38 million Austin permits with about 32,000 roofing permits, about 32,500 contractors (10,745 resolved to the Texas Comptroller registry), 367,843 businesses, and 430,761 parcels with coordinates."
 - Point at the **business locations** row in Records by dataset: 93,331 Overture Maps business and point-of-interest locations. The same table is listed in **IPFS artifacts** as `tables/business_locations.parquet`.
 > "93,331 business locations from Overture Maps, clipped to the county boundary."
@@ -47,7 +47,7 @@ The numbers below are run 8's (`20261021T162552Z`; unchanged from run 7); permit
 
 ## 7. Incremental publish = new CID, old CID still resolves (2 min) — tab **Run history**
 - Show the runs with different root CIDs, "new vs reused" object counts, and deltas.
-- Point at the latest run (run 8): the IPNS name now resolves to its root CID. Run 6 was the first run whose manifest records IPNS; the name moved from run 6 to run 7, then to run 8.
+- Point at run 8 (the latest when the video was recorded; run 9 is now the latest): the IPNS name resolved to its root CID. Run 6 was the first run whose manifest records IPNS; the name moved from run 6 to run 7, then to run 8, and now resolves to run 9.
 - On **run 6** (or run 5), click **Check this snapshot still resolves**; it should resolve with a SHA-256 match. Do the same on the **oldest** run.
 > "Republishing moved the IPNS pointer to the new CID. The old CID is immutable and still resolves."
 - Switch to the GitHub tab: the Releases page has one release per run, each with its root and `tables/permits` CARs. CI attaches the CARs for CI runs; for runs published from the operator's machine (runs 1, 2, 6, 7 and 8) the operator created the release. The separate `lexicon-property_improvement` release holds both Lexicon CARs.
