@@ -22,7 +22,7 @@
 import { DuckDBInstance } from "@duckdb/node-api";
 import AdmZip from "adm-zip";
 import { createReadStream } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
 
@@ -347,7 +347,11 @@ const base = `
   select p.*, r.roof_year, r.roof_age_years, r.roof_age_basis, cast(year(current_date) as integer) as tax_year
   from properties p left join roof_age r using (prop_id)`;
 let written = 0;
-await mkdir(join(outDir, group), { recursive: true });
+// The group is built in a fresh staging directory and swapped in only after the whole transform
+// succeeds, so a property that is no longer selected never keeps a ZIP from an earlier run.
+const finalDir = join(outDir, group), stageDir = join(outDir, `.${group}.staging`);
+await rm(stageDir, { recursive: true, force: true });
+await mkdir(stageDir, { recursive: true });
 if (group === "county") {
   // Stream in batches so the whole roll is never held in memory at once.
   const BATCH = 20_000;
@@ -358,7 +362,7 @@ if (group === "county") {
     for (const p of batch) {
       const req = request(p.source_url);
       const gis = p.coordinate_basis === "own_parcel_centroid" ? gisByProp.get(p.prop_id) ?? null : null;
-      await writeProperty(join(outDir, group, p.prop_id), countyFiles(p, req, gis));
+      await writeProperty(join(stageDir, p.prop_id), countyFiles(p, req, gis));
       written++;
     }
     if (batch.length < take) break;
@@ -384,8 +388,10 @@ if (group === "county") {
   }
   const ids = [...byProp.keys()].slice(0, limit ?? undefined);
   for (const p of await rows(`${base} where p.prop_id in (select unnest(['${ids.join("','")}'])) order by p.prop_id`)) {
-    await writeProperty(join(outDir, group, p.prop_id), piFiles(p, request(p.source_url), byProp.get(p.prop_id)));
+    await writeProperty(join(stageDir, p.prop_id), piFiles(p, request(p.source_url), byProp.get(p.prop_id)));
     written++;
   }
 }
-console.log(JSON.stringify({ group, written, out: join(outDir, group), manifest: MANIFEST_URL, seed: SEED, county: COUNTY, property_improvement: PI }));
+await rm(finalDir, { recursive: true, force: true });
+await rename(stageDir, finalDir);
+console.log(JSON.stringify({ group, written, out: finalDir, manifest: MANIFEST_URL, seed: SEED, county: COUNTY, property_improvement: PI }));

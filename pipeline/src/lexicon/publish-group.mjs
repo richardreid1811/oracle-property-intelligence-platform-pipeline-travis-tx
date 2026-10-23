@@ -136,9 +136,13 @@ evidence.export_tables.tables_car = await fileStats(join(tablesDir, "tables.car"
 await writeFile(evidencePath, JSON.stringify(evidence, null, 2) + "\n");
 }
 if (uploadOnly) {
-  // Evidence from the earlier run predates the size/digest fields; add them from the same files.
-  evidence.hash.car ??= await fileStats(car);
-  evidence.export_tables.tables_car ??= await fileStats(join(tablesDir, "tables.car"));
+  // Upload only the bytes that were validated: the CAR and the tables CAR must match the digests saved
+  // when they were validated. Evidence without them predates the digest fields and cannot be trusted.
+  for (const [label, saved, path] of [["CAR", evidence.hash?.car, car], ["tables CAR", evidence.export_tables?.tables_car, join(tablesDir, "tables.car")]]) {
+    if (!saved?.sha256) throw new Error(`--upload-only: no saved sha256 for the ${label}; rerun without --upload-only to validate it`);
+    const now = await fileStats(path);
+    if (now.sha256 !== saved.sha256 || now.bytes !== saved.bytes) throw new Error(`--upload-only: ${label} ${path} changed since validation (${now.sha256} != ${saved.sha256})`);
+  }
 }
 
 // 5. Upload (human-gated), with readback through the gateway.
@@ -160,6 +164,11 @@ if (upload) {
     tables: JSON.parse(await readFile(join(work, `${name}-tables-upload.json`), "utf8")),
     approval,
   };
+  // The roots the gateway accepted must be the roots that were validated.
+  if (evidence.upload.archive.root !== root) throw new Error(`uploaded archive root ${evidence.upload.archive.root} != validated root ${root}`);
+  if (evidence.upload.tables.root !== evidence.export_tables.tables_root) {
+    throw new Error(`uploaded tables root ${evidence.upload.tables.root} != validated tables root ${evidence.export_tables.tables_root}`);
+  }
 }
 evidence.finished_at = new Date().toISOString();
 await writeFile(evidencePath, JSON.stringify(evidence, null, 2) + "\n");
