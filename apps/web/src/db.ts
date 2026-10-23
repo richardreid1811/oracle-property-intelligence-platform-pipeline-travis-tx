@@ -16,16 +16,22 @@ export type LoadStep = { table: string; cid: string; gateway: string; ms: number
 let conn: duckdb.AsyncDuckDBConnection | null = null;
 let dbRef: duckdb.AsyncDuckDB | null = null;
 
-async function pickGateway(cid: string): Promise<string> {
-  for (const g of READ_GATEWAYS) {
+// Load one Parquet table by CID, trying each gateway in turn for the whole load (not just a probe), so a
+// gateway that fails partway through a range read falls through to the next one. Returns the gateway used.
+async function loadTable(db: duckdb.AsyncDuckDB, c: duckdb.AsyncDuckDBConnection, table: string, cid: string): Promise<string> {
+  const errors: string[] = [];
+  for (const [i, g] of READ_GATEWAYS.entries()) {
+    const file = `${table}-${i}.parquet`;
     try {
-      const res = await fetch(`${g}/ipfs/${cid}`, { headers: { Range: "bytes=0-3" } });
-      if (res.ok) return g;
-    } catch {
-      /* try next gateway */
+      await db.registerFileURL(file, `${g}/ipfs/${cid}`, duckdb.DuckDBDataProtocol.HTTP, false);
+      await c.query(`create or replace table ${table} as select * from read_parquet('${file}')`);
+      return g;
+    } catch (e) {
+      errors.push(`${g}: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`);
+      await db.dropFile(file).catch(() => {});
     }
   }
-  throw new Error(`no gateway could serve ${cid}`);
+  throw new Error(`no gateway could serve ${table} (${cid}): ${errors.join("; ")}`);
 }
 
 export async function initDb(manifest: Manifest, onStep: (s: LoadStep) => void): Promise<void> {
@@ -41,9 +47,7 @@ export async function initDb(manifest: Manifest, onStep: (s: LoadStep) => void):
     const obj = manifest.objects.find((o) => o.name === `tables/${table}.parquet`);
     if (!obj) throw new Error(`manifest has no tables/${table}.parquet`);
     const started = performance.now();
-    const gateway = await pickGateway(obj.cid);
-    await db.registerFileURL(`${table}.parquet`, `${gateway}/ipfs/${obj.cid}`, duckdb.DuckDBDataProtocol.HTTP, false);
-    await conn.query(`create or replace table ${table} as select * from read_parquet('${table}.parquet')`);
+    const gateway = await loadTable(db, conn, table, obj.cid);
     const rows = Number((await query(`select count(*) as n from ${table}`))[0].n);
     onStep({ table, cid: obj.cid, gateway, ms: Math.round(performance.now() - started), rows });
   }
@@ -79,10 +83,11 @@ async function ensureEmbeddings() {
   embeddingsReady ??= (async () => {
     const obj = manifestRef?.objects.find((o) => o.name === "tables/permit_embeddings.parquet");
     if (!obj) throw new Error("this snapshot has no permit embeddings yet");
-    const gateway = await pickGateway(obj.cid);
-    await dbRef!.registerFileURL("permit_embeddings.parquet", `${gateway}/ipfs/${obj.cid}`, duckdb.DuckDBDataProtocol.HTTP, false);
-    await conn!.query("create or replace table permit_embeddings as select * from read_parquet('permit_embeddings.parquet')");
-  })();
+    await loadTable(dbRef!, conn!, "permit_embeddings", obj.cid);
+  })().catch((e) => {
+    embeddingsReady = null; // a failed load is retried on the next search, not cached
+    throw e;
+  });
   return embeddingsReady;
 }
 async function embedQuery(text: string): Promise<Float32Array> {

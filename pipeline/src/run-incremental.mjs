@@ -10,7 +10,8 @@
 // Usage: node src/run-incremental.mjs [--runs ../runs] [--gateway https://ipfs.filebase.io] [--dry-run]
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -110,6 +111,30 @@ node("src/build/embeddings.mjs", db, "--prev-dir", prevDir);
 node("src/publish/export.mjs", db, runDir);
 // The published schema must match docs/data-contract.md; drift stops the run before anything is pinned.
 node("src/publish/check-contract.mjs", join(runDir, "tables"));
+// The window starts a day before the watermark, so it always returns some rows already published. When
+// every rebuilt table is byte-identical to the previous snapshot's, nothing changed: record a check and
+// publish nothing.
+const fileSha256 = async (path) => {
+  const h = createHash("sha256");
+  for await (const chunk of createReadStream(path)) h.update(chunk);
+  return h.digest("hex");
+};
+const prevTables = new Map(prevManifest.objects.filter((o) => o.codec === "file" && o.name.startsWith("tables/")).map((o) => [o.name, o.sha256]));
+const builtTables = (await readdir(join(runDir, "tables"), { recursive: true })).filter((f) => f.endsWith(".parquet")).map((f) => `tables/${f}`);
+let tablesChanged = builtTables.length !== prevTables.size;
+for (const name of builtTables) {
+  if (tablesChanged) break;
+  if (prevTables.get(name) !== (await fileSha256(join(runDir, name)))) tablesChanged = true;
+}
+if (!tablesChanged) {
+  history.checks = [...(history.checks ?? []), {
+    checked_at: startedAt, source: "austin_permits", window_since: since, rows: harvest.written,
+    result: "window rows already published; every table identical to the previous snapshot", current_run_id: prev.run_id,
+  }];
+  if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
+  console.log(JSON.stringify({ run_id: null, result: "no_changes", window_since: since }));
+  process.exit(0);
+}
 node("src/publish/deltas.mjs", db, prevManifestPath, runDir, "--prev-dir", prevDir);
 node("src/publish/run-summary.mjs", runDir, runId, join(data, "raw"), "incremental", startedAt, "--prev-run", prevRunPath,
   "--note", `Austin permit business-date window since ${since} (${harvest.written} permits) layered over run ${prev.run_id}; TCAD roll and identity sources carried forward.`);
