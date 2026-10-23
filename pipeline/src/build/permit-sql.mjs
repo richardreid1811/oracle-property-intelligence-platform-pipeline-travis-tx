@@ -139,8 +139,9 @@ end;`;
 
 /**
  * Deterministic parcel links. geo_id is not unique in the roll (~10k shared ids): unique geo_id
- * first; when shared, the parcel whose situs address matches the permit address; else the lowest
- * PROP_ID, flagged as ambiguous. Older permits often carry the 6-7 digit PROP_ID instead.
+ * first; when shared, the one parcel whose situs address matches the permit address (a blank
+ * address never matches, and two matching parcels are a tie); else the lowest PROP_ID, flagged as
+ * ambiguous. Older permits often carry the 6-7 digit PROP_ID instead.
  */
 export const linkSql = (table) => `
 alter table ${table} add column if not exists prop_id varchar;
@@ -150,14 +151,18 @@ create or replace temp table geo_link as
 with cand as (
   select p.permit_key, pr.prop_id,
          count(*) over (partition by p.permit_key) as n,
-         (upper(coalesce(pr.situs_address, '')) = upper(trim(coalesce(p.address, '')))) as addr_match
+         (trim(coalesce(p.address, '')) <> ''
+          and upper(trim(coalesce(pr.situs_address, ''))) = upper(trim(p.address))) as addr_match
   from ${table} p join properties pr on pr.geo_id = p.tcad_id
+), scored as (
+  select *, count(*) filter (addr_match) over (partition by permit_key) as addr_n from cand
 )
 select permit_key, prop_id,
        case when n = 1 then 'tcad_id=geo_id'
-            when addr_match then 'tcad_id=geo_id+address (' || n || ' parcels share geo_id)'
+            when addr_match and addr_n = 1 then 'tcad_id=geo_id+address (' || n || ' parcels share geo_id)'
+            when addr_n > 1 then 'tcad_id=geo_id (ambiguous ' || n || ', ' || addr_n || ' address matches, lowest prop_id)'
             else 'tcad_id=geo_id (ambiguous ' || n || ', lowest prop_id)' end as link_basis
-from (select *, row_number() over (partition by permit_key order by addr_match desc, prop_id::bigint) as rk from cand)
+from (select *, row_number() over (partition by permit_key order by addr_match desc, prop_id::bigint) as rk from scored)
 where rk = 1;
 update ${table} p set prop_id = g.prop_id, link_basis = g.link_basis from geo_link g where g.permit_key = p.permit_key;
 update ${table} p set prop_id = pr.prop_id, link_basis = 'tcad_id=prop_id'

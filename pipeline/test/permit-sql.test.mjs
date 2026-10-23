@@ -2,7 +2,7 @@
 // each run on a few hand-written rows in an in-memory DuckDB.
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
-import { reclassifySql, roofAgeSql, roofingWorkExpr, statusBucketExpr } from "../src/build/permit-sql.mjs";
+import { linkSql, reclassifySql, roofAgeSql, roofingWorkExpr, statusBucketExpr } from "../src/build/permit-sql.mjs";
 import { byKey, duck } from "./duck.mjs";
 
 let db;
@@ -107,6 +107,29 @@ describe("reclassifySql", () => {
     assert.equal(r["lakeway:1"].status_bucket, "open");
     assert.equal(r["lakeway:2"].roofing_work, null);
     assert.equal(r["lakeway:2"].status_bucket, "closed");
+  });
+});
+
+describe("linkSql", () => {
+  test("unique geo_id links; a shared geo_id resolves only on exactly one address match", async () => {
+    await db.run(`
+      create or replace table properties (prop_id varchar, geo_id varchar, situs_address varchar);
+      insert into properties values
+        ('10', 'G1', '1 A ST'),                                -- unique geo_id
+        ('20', 'G2', '2 B ST'), ('21', 'G2', '3 C ST'),        -- shared, one address matches
+        ('30', 'G3', '4 D ST'), ('31', 'G3', '4 D ST'),        -- shared, both addresses match: a tie
+        ('40', 'G4', null), ('41', 'G4', null),                -- shared, both blank
+        ('50', 'G5', '5 E ST'), ('51', 'G5', '6 F ST');        -- shared, no match
+      create or replace table permits (permit_key varchar, tcad_id varchar, address varchar);
+      insert into permits values ('a', 'G1', '1 A ST'), ('b', 'G2', '3 c st'), ('c', 'G3', '4 D ST'),
+        ('d', 'G4', null), ('e', 'G5', '9 Z ST');`);
+    await db.run(linkSql("permits"));
+    const r = byKey(await db.rows("select permit_key, prop_id, link_basis from permits"), "permit_key");
+    assert.deepEqual([r.a.prop_id, r.a.link_basis], ["10", "tcad_id=geo_id"]);
+    assert.deepEqual([r.b.prop_id, r.b.link_basis], ["21", "tcad_id=geo_id+address (2 parcels share geo_id)"]);
+    assert.match(r.c.link_basis, /ambiguous 2, 2 address matches/);
+    assert.match(r.d.link_basis, /ambiguous 2, lowest prop_id/);
+    assert.match(r.e.link_basis, /ambiguous 2, lowest prop_id/);
   });
 });
 

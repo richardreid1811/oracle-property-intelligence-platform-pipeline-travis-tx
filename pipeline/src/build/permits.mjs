@@ -27,6 +27,8 @@ await c.run(normalizePermitsSql("permits"));
 await c.run(openDaysSql("permits"));
 await c.run(linkSql("permits"));
 await c.run(windowSourceSql("permits", receipts));
+// Same columns as the incremental build (data contract): Lakeway rows carry their portal request here.
+await c.run("alter table permits add column if not exists source_request_json varchar");
 
 const s = await c.runAndReadAll(`
 select count(*) as permits,
