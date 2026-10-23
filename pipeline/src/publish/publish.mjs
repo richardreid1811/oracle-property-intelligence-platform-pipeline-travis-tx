@@ -5,7 +5,7 @@
 //     GitHub Release) and are pinned on Filebase with a directory-node-only CAR after their files.
 //   - Every listed file is also added as its own root to Filebase and Pinata, so it is announced
 //     and retrievable by bare CID, and survives the loss of either vendor.
-//   - CIDs already published by a previous run are not re-uploaded; nothing is ever unpinned.
+//   - CIDs still pinned by a retained run are not re-uploaded; prune-pins.mjs releases older runs.
 // Usage: node src/publish/publish.mjs <run-dir> <run-id> <repo-runs-dir> <cars-dir> [--dry-run]
 import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
@@ -87,14 +87,16 @@ const pinataAdd = (path, name) =>
     (await formPost("https://uploads.pinata.cloud/v3/files", { Authorization: `Bearer ${env.PINATA_JWT}` }, path,
       { filename: name.split("/").pop(), network: "public", name })).data.cid);
 
-// --- previous runs: CIDs already published are never re-uploaded
+// --- previous runs: CIDs still pinned by a retained run are not re-uploaded
 await mkdir(runsDir, { recursive: true });
 const historyPath = join(runsDir, "history.json");
 const history = existsSync(historyPath) ? JSON.parse(await readFile(historyPath, "utf8")) : { county: "travis", state: "TX", runs: [] };
 if (history.runs.some((r) => r.run_id === runId)) throw new Error(`run ${runId} already in history`);
 const published = new Map(); // cid -> pins already recorded
 const pinataRefused = []; // files Pinata refused this run (second copy: root CAR in the release)
-for (const r of history.runs) {
+// Runs whose pins were released by prune-pins.mjs no longer guarantee their CIDs are pinned: bytes that
+// reappear from such a run are pinned again. CIDs shared with a retained run stay pinned (prune keeps them).
+for (const r of history.runs.filter((r) => !r.pins_released)) {
   const m = JSON.parse(await readFile(join(runsDir, r.run_id, "manifest.json"), "utf8"));
   for (const o of m.objects) published.set(o.cid, o.pins);
 }

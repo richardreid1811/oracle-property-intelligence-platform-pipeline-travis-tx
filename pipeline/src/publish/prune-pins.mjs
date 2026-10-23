@@ -69,9 +69,17 @@ for (const [cid, runIds] of release) {
   console.error(`${cid} filebase=${r.filebase} pinata=${r.pinata}`);
 }
 const at = new Date().toISOString();
-for (const r of runs.filter((r) => !kept.has(r.run_id) && !r.pins_released)) {
+// A run is marked released only when every CID released for it was removed on both vendors; a run with a
+// failed removal stays eligible, so the next prune retries it.
+const failed = results.filter((r) => /error/.test(r.filebase + r.pinata));
+const failedRuns = new Set(failed.flatMap((r) => r.runs));
+for (const r of runs.filter((r) => !kept.has(r.run_id) && !r.pins_released && !failedRuns.has(r.run_id))) {
   r.pins_released = { at, policy: `keep initial run + latest ${keep}`, archive: `GitHub Release run-${r.run_id} (CARs)` };
 }
 history.retention = { policy: `keep initial run + latest ${keep} runs pinned on both vendors; older runs archived as CARs`, last_applied: at };
 await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
-console.log(JSON.stringify({ applied: true, released: results.length, errors: results.filter((r) => /error/.test(r.filebase + r.pinata)).length }));
+console.log(JSON.stringify({ applied: true, released: results.length, errors: failed.length, retry_runs: [...failedRuns] }));
+if (failed.length) {
+  console.error(`${failed.length} removals failed; runs ${[...failedRuns].join(", ")} stay eligible for the next prune`);
+  process.exit(1);
+}
