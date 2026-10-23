@@ -106,7 +106,10 @@ async function ensureLoaded() {
     }
     state = { conn, manifest, manifestCid, run };
     return state;
-  })();
+  })().catch((e) => {
+    loading = null; // a failed load (network, gateways, DuckDB) is retried on the next request, not cached
+    throw e;
+  });
   return loading;
 }
 
