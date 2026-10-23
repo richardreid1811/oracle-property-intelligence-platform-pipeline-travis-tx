@@ -2,7 +2,7 @@
 // model allocation is used up. README demo prompts and a few variants map to one tool call each.
 import assert from "node:assert/strict";
 import { after, before, describe, test } from "node:test";
-import { parseQuestion, planQuestion } from "@travis-oracle/query-tools/question.mjs";
+import { hailSince, parseQuestion, planQuestion } from "@travis-oracle/query-tools/question.mjs";
 import { duck } from "./duck.mjs";
 
 describe("parseQuestion", () => {
@@ -58,6 +58,20 @@ describe("parseQuestion", () => {
 
   test("anything else falls back to aged roofs", () => {
     assert.equal(parseQuestion("good leads in Lakeway").tool, "aged_roofs_near");
+  });
+
+  test("hail size and window are kept", () => {
+    const p = parseQuestion("Which homes near Allandale were hit by 2 inch hail since 2023?");
+    assert.deepEqual(p.args, { radius_miles: 3, min_hail_inches: 2, since: "2023-01-01" });
+    assert.equal(hailSince("hail in the last 2 years", new Date("2026-10-22T00:00:00Z")), "2024-10-22");
+    assert.equal(parseQuestion("old roofs near homes built after 2000 in Austin").args.min_hail_inches, undefined);
+  });
+
+  test("a condition the chosen tool cannot apply is disclosed, not silently dropped", () => {
+    const p = parseQuestion("Within 3 miles of 78704, which owners have not sold in over 10 years and mail their tax bills out of state?");
+    assert.equal(p.tool, "stale_ownership_near");
+    assert.ok(p.assumptions.some((a) => /not applied without the model: the out-of-area mailing address condition/.test(a)));
+    assert.deepEqual(parseQuestion("old roofs hit by hail near Hyde Park").assumptions.filter((a) => a.startsWith("not applied")), []);
   });
 });
 

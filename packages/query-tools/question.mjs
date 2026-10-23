@@ -58,6 +58,26 @@ const anyYears = (text) => {
   return m ? toNum(m[1]) : null;
 };
 
+/** Hail size in inches from "2 inch", "1.75-inch", "2\"", "golf ball"; null when not given. */
+export function hailInches(text) {
+  const m = new RegExp(`${NUM}\\s*(?:-\\s*)?(?:inch(?:es)?|")`, "i").exec(text);
+  if (m) return toNum(m[1]);
+  if (/\bgolf[- ]?ball\b/i.test(text)) return 1.75;
+  return null;
+}
+
+/** Hail window start (ISO date) from "since 2023", "in the last 2 years", "past 18 months"; null when not given. */
+export function hailSince(text, today = new Date()) {
+  const y = /\bsince\s+((?:19|20)\d{2})\b/i.exec(text);
+  if (y) return `${y[1]}-01-01`;
+  const m = new RegExp(`\\b(?:last|past)\\s+${NUM}?\\s*(years?|months?)\\b`, "i").exec(text);
+  if (!m) return null;
+  const n = m[1] ? toNum(m[1]) : 1;
+  const d = new Date(today);
+  if (/^month/i.test(m[2])) d.setUTCMonth(d.getUTCMonth() - n); else d.setUTCFullYear(d.getUTCFullYear() - n);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Pure parse: tool, arguments (place unresolved), place candidates and the assumptions made. */
 export function parseQuestion(text) {
   const q = String(text ?? "").replace(/\s+/g, " ").trim();
@@ -71,6 +91,12 @@ export function parseQuestion(text) {
     const age = yearsAfter(q, "older than|over|more than|at least") ?? (/\broofs?\b[^.?!]*\bold\b/i.test(q) ? anyYears(q) : null);
     if (age !== null) args.older_than_years = age;
     else if (tool === "aged_roofs_near") assumptions.push("no roof age given; using older than 15 years");
+    if (tool === "hail_exposed_roofs_near") {
+      const inches = hailInches(q);
+      if (inches !== null) args.min_hail_inches = inches;
+      const since = hailSince(q);
+      if (since !== null) args.since = since;
+    }
   } else if (tool === "open_roofing_permits_near") {
     const yrs = yearsAfter(q, "open|opened|unfinaled|expired|for|over|more than|at least|longer than");
     if (yrs !== null) args.min_open_years = yrs;
@@ -83,8 +109,22 @@ export function parseQuestion(text) {
     if (yrs !== null) args.min_years = yrs;
     else assumptions.push("no tenure given; using more than 10 years");
   }
+  // One tool runs per question. A condition that belongs to another tool is not applied, and the answer
+  // says so instead of presenting the broader result as the answer.
+  for (const [other, re] of INTENTS) {
+    if (other === tool || other === "aged_roofs_near" || !re.test(q)) continue;
+    if (tool === "hail_exposed_roofs_near" && other === "aged_roofs_near") continue;
+    assumptions.push(`not applied without the model: the ${CONDITION[other]} condition (this search uses ${tool} only)`);
+  }
   return { tool, args, place_candidates: placeCandidates(q), assumptions };
 }
+
+const CONDITION = {
+  hail_exposed_roofs_near: "hail",
+  open_roofing_permits_near: "open-permit",
+  stale_ownership_near: "years-since-sale",
+  absentee_owners_near: "out-of-area mailing address",
+};
 
 /**
  * Parse, then resolve the place with the resolve_place tool: the first candidate that matches the
