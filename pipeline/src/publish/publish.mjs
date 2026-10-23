@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 import { createReadStream, existsSync } from "node:fs";
 import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
-import { ipnsLabel, publishPointer } from "./ipns.mjs";
+import { ipnsLabel, publishPointer, withPointerRollback } from "./ipns.mjs";
 import { importTree, PROFILE_DESCRIPTION, writeCar, writeDirOnlyCar } from "./unixfs.mjs";
 
 const [runDir, runId, runsDir, carsDir, ...flags] = process.argv.slice(2);
@@ -25,6 +25,9 @@ for (const k of ["FILEBASE_ACCESS_KEY", "FILEBASE_SECRET_KEY", "FILEBASE_BUCKET"
   if (!dryRun && !env[k]) throw new Error(`${k} is not set`);
 }
 const FILEBASE_RPC = "https://rpc.filebase.io/api/v0";
+// Release assets live in the repository that runs the publication (the workflow's `gh release create`
+// targets it); the fork is the fallback for runs from the operator's machine.
+const RELEASE_REPO = env.GITHUB_REPOSITORY || "richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx";
 const filebaseToken = () =>
   Buffer.from(`${env.FILEBASE_ACCESS_KEY}:${env.FILEBASE_SECRET_KEY}:${env.FILEBASE_BUCKET}`).toString("base64");
 const DIRECTORY_ARTIFACTS = ["", "tables/permits"];
@@ -123,7 +126,7 @@ for (const dir of DIRECTORY_ARTIFACTS) {
   objects.push({
     name: dir || ".", cid: e.cid.toString(), codec: "directory", size: e.size, sha256: null,
     car: { file: `${runId}/${carName}`, bytes: (await stat(carPath)).size, sha256: await sha256(carPath), blocks,
-           release_asset: `https://github.com/richardreid1811/oracle-property-intelligence-platform-pipeline-travis-tx/releases/download/run-${runId}/${carName}` },
+           release_asset: `https://github.com/${RELEASE_REPO}/releases/download/run-${runId}/${carName}` },
     pins: [], local_car_path: carPath, local_dir_car_path: dirOnlyPath,
   });
 }
@@ -172,20 +175,6 @@ for (const o of uploadOrder) {
 }
 process.stderr.write("\n");
 
-// --- IPNS: re-point the county's open-data name at this run's root before the manifest is
-// written, so the manifest records the name and the CID it resolved to. Filebase's free plan
-// allows one name, so the query table is addressed by path under the same name.
-let ipns = null;
-if (!dryRun) {
-  const p = await publishPointer(ipnsLabel("open-data", "travis"), entries.get("").cid.toString());
-  ipns = {
-    ...p,
-    query_table_path: `/ipns/${p.name}/tables/leads.parquet`,
-    note: "IPNS is a pointer; the CID is the snapshot. resolved_cid is what the name resolved to when this run was published.",
-  };
-  if (!p.resolves_to_target) console.error(`warning: ${p.label} has not resolved to the new root yet (got ${p.resolved_cid})`);
-}
-
 // --- Elephant Lexicon archives (one CAR per county per data group, built and uploaded with
 // elephant-cli by src/lexicon/publish-group.mjs; evidence in runs/lexicon/<group>.json). Listed in
 // every run's manifest while current, so the manifest names every eligible published artifact.
@@ -213,62 +202,82 @@ objects.push(...lexiconObjects);
 
 // --- manifest
 const coverage = JSON.parse(await readFile(join(runDir, "coverage.json"), "utf8"));
-const manifest = {
-  schema: "travis-oracle/artifact-manifest@1",
-  run_id: runId,
-  created_at: new Date().toISOString(),
-  county: "travis", state: "TX", fips: "48453",
-  root: { cid: entries.get("").cid.toString(), car: objects[0].car },
-  unixfs_profile: PROFILE_DESCRIPTION,
-  cid_version: 1, multibase: "base32",
-  previous_run: previous ? { run_id: previous.run_id, root_cid: previous.root_cid, manifest_cid: previous.manifest_cid } : null,
-  ipns,
-  gateway_urls_note: "Gateway URLs are derived from CIDs and are convenience locators only; the CID is the artifact.",
-  objects: objects.map(({ local_path, local_car_path, local_dir_car_path, ...o }) => ({
-    ...o,
-    gateway_urls: GATEWAYS.map((g) => `${g}/ipfs/${o.cid}`),
-  })),
-  counts: coverage.counts,
-};
-const runOut = join(runsDir, runId);
-await mkdir(runOut, { recursive: true });
-const manifestPath = join(runOut, "manifest.json");
-await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-
-let manifestCid = null;
-let manifestPinNote = null;
+// --- IPNS: re-point the county's open-data name at this run's root before the manifest is
+// written, so the manifest records the name and the CID it resolved to. Filebase's free plan
+// allows one name, so the query table is addressed by path under the same name. It moves last, after
+// every upload; the manifest and history steps run under withPointerRollback, so if either fails the
+// name goes back to the previous run's root instead of naming a run that history does not list.
+const IPNS_LABEL = ipnsLabel("open-data", "travis");
+let ipns = null;
 if (!dryRun) {
-  manifestCid = await filebaseAdd(manifestPath, `${runId}/manifest.json`);
-  // The manifest is also committed to the repository; a Pinata plan limit on this one small file is
-  // recorded in the run history rather than failing a run whose data files are pinned on both vendors.
-  try {
-    if (!(await pinataHas(manifestCid))) {
-      const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
-      if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
-    }
-  } catch (e) {
-    if (/CID mismatch/.test(e.message)) throw e;
-    manifestPinNote = `manifest pinned on Filebase and committed to the repository; Pinata refused it: ${e.message.slice(0, 200)}`;
-    console.error(`warning: ${manifestPinNote}`);
-  }
+  const p = await publishPointer(IPNS_LABEL, entries.get("").cid.toString());
+  ipns = {
+    ...p,
+    query_table_path: `/ipns/${p.name}/tables/leads.parquet`,
+    note: "IPNS is a pointer; the CID is the snapshot. resolved_cid is what the name resolved to when this run was published.",
+  };
+  if (!p.resolves_to_target) console.error(`warning: ${p.label} has not resolved to the new root yet (got ${p.resolved_cid})`);
 }
 
-const prevCounts = previous?.counts ?? null;
-const deltas = Object.fromEntries(Object.entries(coverage.counts).map(([k, v]) => [k, prevCounts ? Number(v) - Number(prevCounts[k] ?? 0) : Number(v)]));
-history.runs.push({
-  run_id: runId,
-  published_at: manifest.created_at,
-  root_cid: manifest.root.cid,
-  manifest_cid: manifestCid,
-  manifest_path: `runs/${runId}/manifest.json`,
-  objects: manifest.objects.length,
-  new_objects: manifest.objects.filter((o) => !o.reused_from_previous_run).length,
-  counts: coverage.counts,
-  deltas_vs_previous: deltas,
-  previous_run_id: previous?.run_id ?? null,
-  ipns: ipns ? { name: ipns.name, label: ipns.label, resolved_cid: ipns.resolved_cid } : null,
-  ...(manifestPinNote ? { manifest_pin_note: manifestPinNote } : {}),
-  ...(pinataRefused.length ? { pinata_refused: pinataRefused } : {}),
+const { manifest, manifestCid } = await withPointerRollback(IPNS_LABEL, ipns ? previous?.root_cid : null, async () => {
+  const manifest = {
+    schema: "travis-oracle/artifact-manifest@1",
+    run_id: runId,
+    created_at: new Date().toISOString(),
+    county: "travis", state: "TX", fips: "48453",
+    root: { cid: entries.get("").cid.toString(), car: objects[0].car },
+    unixfs_profile: PROFILE_DESCRIPTION,
+    cid_version: 1, multibase: "base32",
+    previous_run: previous ? { run_id: previous.run_id, root_cid: previous.root_cid, manifest_cid: previous.manifest_cid } : null,
+    ipns,
+    gateway_urls_note: "Gateway URLs are derived from CIDs and are convenience locators only; the CID is the artifact.",
+    objects: objects.map(({ local_path, local_car_path, local_dir_car_path, ...o }) => ({
+      ...o,
+      gateway_urls: GATEWAYS.map((g) => `${g}/ipfs/${o.cid}`),
+    })),
+    counts: coverage.counts,
+  };
+  const runOut = join(runsDir, runId);
+  await mkdir(runOut, { recursive: true });
+  const manifestPath = join(runOut, "manifest.json");
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+
+  let manifestCid = null;
+  let manifestPinNote = null;
+  if (!dryRun) {
+    manifestCid = await filebaseAdd(manifestPath, `${runId}/manifest.json`);
+    // The manifest is also committed to the repository; a Pinata plan limit on this one small file is
+    // recorded in the run history rather than failing a run whose data files are pinned on both vendors.
+    try {
+      if (!(await pinataHas(manifestCid))) {
+        const pn = await pinataAdd(manifestPath, `${runId}/manifest.json`);
+        if (pn !== manifestCid) throw new Error(`manifest CID mismatch: filebase ${manifestCid} pinata ${pn}`);
+      }
+    } catch (e) {
+      if (/CID mismatch/.test(e.message)) throw e;
+      manifestPinNote = `manifest pinned on Filebase and committed to the repository; Pinata refused it: ${e.message.slice(0, 200)}`;
+      console.error(`warning: ${manifestPinNote}`);
+    }
+  }
+
+  const prevCounts = previous?.counts ?? null;
+  const deltas = Object.fromEntries(Object.entries(coverage.counts).map(([k, v]) => [k, prevCounts ? Number(v) - Number(prevCounts[k] ?? 0) : Number(v)]));
+  history.runs.push({
+    run_id: runId,
+    published_at: manifest.created_at,
+    root_cid: manifest.root.cid,
+    manifest_cid: manifestCid,
+    manifest_path: `runs/${runId}/manifest.json`,
+    objects: manifest.objects.length,
+    new_objects: manifest.objects.filter((o) => !o.reused_from_previous_run).length,
+    counts: coverage.counts,
+    deltas_vs_previous: deltas,
+    previous_run_id: previous?.run_id ?? null,
+    ipns: ipns ? { name: ipns.name, label: ipns.label, resolved_cid: ipns.resolved_cid } : null,
+    ...(manifestPinNote ? { manifest_pin_note: manifestPinNote } : {}),
+    ...(pinataRefused.length ? { pinata_refused: pinataRefused } : {}),
+  });
+  if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
+  return { manifest, manifestCid };
 });
-if (!dryRun) await writeFile(historyPath, JSON.stringify(history, null, 2) + "\n");
 console.log(JSON.stringify({ run_id: runId, root: manifest.root.cid, manifest_cid: manifestCid, objects: manifest.objects.length, dry_run: dryRun }));

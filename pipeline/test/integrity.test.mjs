@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, test } from "node:test";
 import { assertDigest, guardSql, rawCidSha256, withTimeout } from "../../mcp/guards.mjs";
+import { withPointerRollback } from "../src/publish/ipns.mjs";
 import { importTree } from "../src/publish/unixfs.mjs";
 
 describe("UnixFS CID determinism (publish profile)", () => {
@@ -108,5 +109,31 @@ describe("run_sql timeout", () => {
 
   test("a fast query returns normally", async () => {
     assert.equal(await withTimeout(async () => 42, 1000), 42);
+  });
+});
+
+describe("IPNS pointer rollback (publish.mjs)", () => {
+  const recorder = () => {
+    const calls = [];
+    return { calls, point: async (label, cid) => { calls.push([label, cid]); } };
+  };
+
+  test("a failed manifest or history step re-points the name at the previous root and rethrows", async () => {
+    const { calls, point } = recorder();
+    await assert.rejects(withPointerRollback("oracle-open-data-travis", "bafyprev", async () => { throw new Error("filebase add manifest: HTTP 503"); }, { point }),
+      /HTTP 503/);
+    assert.deepEqual(calls, [["oracle-open-data-travis", "bafyprev"]]);
+  });
+
+  test("success leaves the name alone; with no previous root (dry run, first run) nothing is re-pointed", async () => {
+    const { calls, point } = recorder();
+    assert.equal(await withPointerRollback("l", "bafyprev", async () => "ok", { point }), "ok");
+    await assert.rejects(withPointerRollback("l", null, async () => { throw new Error("boom"); }, { point }), /boom/);
+    assert.deepEqual(calls, []);
+  });
+
+  test("a failed restore is logged and the original error still surfaces", async () => {
+    await assert.rejects(withPointerRollback("l", "bafyprev", async () => { throw new Error("history write failed"); },
+      { point: async () => { throw new Error("names PUT 500"); } }), /history write failed/);
   });
 });

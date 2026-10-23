@@ -74,3 +74,24 @@ export async function publishPointer(label, cid, env = process.env) {
     resolves_to_target: resolved?.cid === cid,
   };
 }
+
+/**
+ * Run the publication steps that follow a pointer move (manifest upload, history write). If one fails,
+ * re-point the label at previousCid, the root it named before this run, so the name never names a run
+ * that run history does not list; then rethrow. With no previousCid (dry run, first run) nothing moves.
+ */
+export async function withPointerRollback(label, previousCid, steps, { point = pointName, env = process.env } = {}) {
+  try {
+    return await steps();
+  } catch (err) {
+    if (previousCid) {
+      try {
+        await point(label, previousCid, env);
+        console.error(`IPNS ${label} restored to ${previousCid} after a failed publication`);
+      } catch (e) {
+        console.error(`warning: could not restore IPNS ${label} to ${previousCid}: ${e.message}`);
+      }
+    }
+    throw err;
+  }
+}
