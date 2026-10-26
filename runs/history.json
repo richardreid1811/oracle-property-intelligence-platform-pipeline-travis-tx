@@ -138,7 +138,12 @@
         "deed_over_10y": 0,
         "owner_out_of_state": 0
       },
-      "previous_run_id": "20261020T185517Z"
+      "previous_run_id": "20261020T185517Z",
+      "pins_released": {
+        "at": "2026-10-26T08:31:06.885Z",
+        "policy": "keep initial run + latest 7",
+        "archive": "GitHub Release run-20261020T194930Z (CARs)"
+      }
     },
     {
       "run_id": "20261020T223321Z",
@@ -475,10 +480,69 @@
         "label": "oracle-open-data-travis",
         "resolved_cid": "bafybeic4bj72nikyeyte5yn2hq25kexnvqrggp3jjozvmb4itkr6sbsffa"
       }
+    },
+    {
+      "run_id": "20261026T082051Z",
+      "published_at": "2026-10-26T08:26:52.585Z",
+      "root_cid": "bafybeiez4fv3zodj7mniwlarjll3g5kskc7hujchhbsj4rv2gkqewg4qne",
+      "manifest_cid": "bafkreibih2jopiqyuouv76lijne4pcjdxdt67qugam6byse4wv45v3sb2m",
+      "manifest_path": "runs/20261026T082051Z/manifest.json",
+      "objects": 77,
+      "new_objects": 24,
+      "counts": {
+        "properties": "441972",
+        "properties_with_coordinates": "430761",
+        "permits": "2381895",
+        "permits_linked_to_parcel": "2018388",
+        "roofing_permits": "31980",
+        "roofing_permits_open_or_unfinaled": "1727",
+        "contractors": "32485",
+        "contractors_resolved": "10743",
+        "contractors_with_bbb": "0",
+        "businesses": "367843",
+        "licenses": "54784",
+        "roof_15y_plus": "280254",
+        "deed_over_10y": "170317",
+        "owners": "376634",
+        "multi_property_owners": "21793",
+        "owner_out_of_state": "26231",
+        "permits_lakeway": "0",
+        "business_locations": "93331",
+        "business_locations_linked_to_parcel": "37916",
+        "business_locations_linked_to_registry": "8686"
+      },
+      "deltas_vs_previous": {
+        "properties": 0,
+        "properties_with_coordinates": 0,
+        "permits": 439,
+        "permits_linked_to_parcel": 389,
+        "roofing_permits": 5,
+        "roofing_permits_open_or_unfinaled": 1,
+        "contractors": 9,
+        "contractors_resolved": -1,
+        "contractors_with_bbb": 0,
+        "businesses": 0,
+        "licenses": 0,
+        "roof_15y_plus": -2,
+        "deed_over_10y": 110,
+        "owners": 0,
+        "multi_property_owners": 0,
+        "owner_out_of_state": 0,
+        "permits_lakeway": 0,
+        "business_locations": 0,
+        "business_locations_linked_to_parcel": 0,
+        "business_locations_linked_to_registry": 0
+      },
+      "previous_run_id": "20261022T141203Z",
+      "ipns": {
+        "name": "k51qzi5uqu5dme32gxohimdgqm9s09u1dzud92xhdp7fpg38xz201064yq8noj",
+        "label": "oracle-open-data-travis",
+        "resolved_cid": "bafybeiez4fv3zodj7mniwlarjll3g5kskc7hujchhbsj4rv2gkqewg4qne"
+      }
     }
   ],
   "retention": {
     "policy": "keep initial run + latest 7 runs pinned on both vendors; older runs archived as CARs",
-    "last_applied": "2026-10-22T14:19:56.750Z"
+    "last_applied": "2026-10-26T08:31:06.885Z"
   }
 }
