@@ -1,0 +1,1357 @@
+{
+  "run_id": "20261029T082344Z",
+  "manifest_sha256": "c9f82774f83a82999cfc9098a0f13498b95b33eb9b0a63fcb2a3c4addebe0238",
+  "verified_at": "2026-10-29T08:59:24.900Z",
+  "verifier": "github-actions run 40841779982",
+  "gateways": [
+    "https://ipfs.orbitor.dev",
+    "https://dget.top"
+  ],
+  "method": "files: full GET + sha256; directories: CAR with every block re-hashed against its CID, dag-scope=all when the CAR is <= 80 MB, else entity (data files verified individually); Lexicon roots (dag-json): dag-scope=block, root block re-hashed (every-block proof: elephant-cli CAR validation + release CAR)",
+  "objects": 77,
+  "failures": 144,
+  "all_ok": false,
+  "results": [
+    {
+      "name": ".",
+      "cid": "bafybeiaxze6huw2aftrzhsmkcinrbgq3db54ayx6kienqavyvtbanbofoq",
+      "codec": "directory",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "scope": "entity",
+          "url": "https://ipfs.orbitor.dev/ipfs/bafybeiaxze6huw2aftrzhsmkcinrbgq3db54ayx6kienqavyvtbanbofoq?format=car&dag-scope=entity",
+          "car_bytes": 376,
+          "roots": [
+            "bafybeiaxze6huw2aftrzhsmkcinrbgq3db54ayx6kienqavyvtbanbofoq"
+          ],
+          "blocks": 1,
+          "expected_blocks": null,
+          "bad_blocks": 0,
+          "ms": 368
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 342322
+        }
+      }
+    },
+    {
+      "name": "tables/permits",
+      "cid": "bafybeihuzb7xiz2vm6nhlswkrg27myaitvq7tyastyielrosg7hwqhw4xy",
+      "codec": "directory",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "scope": "entity",
+          "url": "https://ipfs.orbitor.dev/ipfs/bafybeihuzb7xiz2vm6nhlswkrg27myaitvq7tyastyielrosg7hwqhw4xy?format=car&dag-scope=entity",
+          "car_bytes": 3152,
+          "roots": [
+            "bafybeihuzb7xiz2vm6nhlswkrg27myaitvq7tyastyielrosg7hwqhw4xy"
+          ],
+          "blocks": 1,
+          "expected_blocks": null,
+          "bad_blocks": 0,
+          "ms": 467
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 381074
+        }
+      }
+    },
+    {
+      "name": "coverage.json",
+      "cid": "bafkreiekvf4lkzmdvttnj3tb5h6jt7lo3o6g6rlinquhmeqagn3njaeyky",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreiekvf4lkzmdvttnj3tb5h6jt7lo3o6g6rlinquhmeqagn3njaeyky",
+          "bytes": 780,
+          "sha256": "8aa978b56583ace6d4ee61e9fc99fd6edbbc6f45686c287612003376d4809856",
+          "ms": 432
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 361477
+        }
+      }
+    },
+    {
+      "name": "deltas.json",
+      "cid": "bafkreigkht4kieii6nw7hwxpfx7ixffz4le2aeyozx2rpv7ksd7mstjpha",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreigkht4kieii6nw7hwxpfx7ixffz4le2aeyozx2rpv7ksd7mstjpha",
+          "bytes": 1445,
+          "sha256": "ca3cf8a41108f36df3daef2dfe8b94b9e2c9a0130ecdf517d7ea90fec94d2f38",
+          "ms": 689
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 400987
+        }
+      }
+    },
+    {
+      "name": "run.json",
+      "cid": "bafkreiakuajvtwdy35ogjktevi7jklfszd4q5qko6buytu4foujkbb4lei",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreiakuajvtwdy35ogjktevi7jklfszd4q5qko6buytu4foujkbb4lei",
+          "bytes": 25456,
+          "sha256": "0aa01359d878df5c64aa64aa3e952cb2c8f90ec14ef06989d3857512a0878b22",
+          "ms": 577
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 380895
+        }
+      }
+    },
+    {
+      "name": "samples/contractors-roofing.csv",
+      "cid": "bafkreihcrzghmn6hpyvcvw53ifd2umuhyen7x7x3dyajg5m4cgpibnq4cm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreihcrzghmn6hpyvcvw53ifd2umuhyen7x7x3dyajg5m4cgpibnq4cm",
+          "bytes": 28283,
+          "sha256": "e28e4c7637c77e2a2adbbb4147aa3287c11bfbfefb1e0093759c119e80b61c13",
+          "ms": 931
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 400111
+        }
+      }
+    },
+    {
+      "name": "samples/leads-roof-15y-plus.csv",
+      "cid": "bafkreic2twdqoqlsb5b6zaiab75544frlsww56ojarordzs6ez2ncy572e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreic2twdqoqlsb5b6zaiab75544frlsww56ojarordzs6ez2ncy572e",
+          "bytes": 80478,
+          "sha256": "5a9d870741720f43ec81000ffbde70b15cad6ef9c9045d11e65e2674d163bfd1",
+          "ms": 618
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 381387
+        }
+      }
+    },
+    {
+      "name": "samples/roofing-permits-open.csv",
+      "cid": "bafkreideglu3g3owx6ze2majrte7bxdnveyvqepjdyqdrm6cchuhqk6s7u",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafkreideglu3g3owx6ze2majrte7bxdnveyvqepjdyqdrm6cchuhqk6s7u",
+          "bytes": 44716,
+          "sha256": "6432e9b36dd6bfb24d30098cc9f0dc6da9315811e91e2038b3c211e8782bd2fd",
+          "ms": 548
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 400397
+        }
+      }
+    },
+    {
+      "name": "tables/business_locations.parquet",
+      "cid": "bafybeicwu34zthzeduoax7rsvdkoitbpajhk3zc4pxjcvf2vn3ezi3d73q",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafybeicwu34zthzeduoax7rsvdkoitbpajhk3zc4pxjcvf2vn3ezi3d73q",
+          "bytes": 6964577,
+          "sha256": "fab6fbaea31b33739992d0ed1fececee6f4b2ff9fc1498eb90487622ab46fa1e",
+          "ms": 2956
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "HTTP 522",
+          "ms": 361722
+        }
+      }
+    },
+    {
+      "name": "tables/businesses.parquet",
+      "cid": "bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": true,
+          "url": "https://ipfs.orbitor.dev/ipfs/bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
+          "bytes": 14609775,
+          "sha256": "bb0f2f24cdfdb698a02f73226eabec27e4f356d4fbb0b657387745e9f9c9a7eb",
+          "ms": 5983
+        },
+        "https://dget.top": {
+          "ok": false,
+          "error": "time budget exhausted (HTTP 522)",
+          "ms": 248038
+        }
+      }
+    },
+    {
+      "name": "tables/contractors.parquet",
+      "cid": "bafybeid65lzrcn4z54fvxf5zseail64ytcnnw4g6ikwjeah7a64xvjc7yu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/hail_events.parquet",
+      "cid": "bafkreietc4g4twk2gsel7svdq2abjd2gugkwzdjxgqh4fu42xdpzctdkhi",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/leads.parquet",
+      "cid": "bafybeigr2dqvntbsvjvzo2nrtme4atxgh3zwnwvhs2vvcw5te2qmp3ejpe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/licenses.parquet",
+      "cid": "bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/owner_signals.parquet",
+      "cid": "bafybeigtgmesfqkjyr2m4sqplszqmehxcivyyolxphdvrvbluui5vwgsya",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/owners.parquet",
+      "cid": "bafybeicc27abqr7jg7jfe7yq3nhuer6lr4kc3mpp7tmvb7gm4rrn63ebaq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permit_embeddings.parquet",
+      "cid": "bafybeigsgddhj3yf2elck7pfhmf5nshjx3nvi5hp4wpbr6bnf3tb4bk5ty",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1921/part0.parquet",
+      "cid": "bafkreica5etpgprrctko6jzdiunpuh6wp5kicicem5vq5wj4u5e5bg6bnu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1969/part0.parquet",
+      "cid": "bafkreihgl35oqg3rnselrs72nsjv4jd7eeqsf22wnld4chuwygfpgjciwm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1970/part0.parquet",
+      "cid": "bafkreiag7lyj3unakjppzsm7xaelydofqvy35qogvfgqw3wnft3fxbdj2i",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1971/part0.parquet",
+      "cid": "bafkreib5lltpmstav4c7tdodswgoen7yndv2clwwt46tkitxommu2tr5nm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1976/part0.parquet",
+      "cid": "bafkreifj25exsw3tvdpgxi76elm6ec6jh5jerrjz5wjc7id5ja3rcpa4vu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1977/part0.parquet",
+      "cid": "bafkreiecfklojogby622izk6ukudwn75bpgaqlgqy3ih4svhpo4rasbnou",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1978/part0.parquet",
+      "cid": "bafkreiabtlnyviizb67ykaqagzo5hfolfabs5w543io46bulzjlwvzezui",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1979/part0.parquet",
+      "cid": "bafkreibmjn4jwa6nyka2aqjrta5jjf7kmfljnfbe2j72xqvfchwfpcrynm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1980/part0.parquet",
+      "cid": "bafybeicyjnyupaxwhdzwm62nspcv6i274rtiih5wkroit2nvldzumtlrla",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1981/part0.parquet",
+      "cid": "bafybeidmcli34hxh453ij624cgkq6vwvwx6hgqthxk53ww65xncc373kye",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1982/part0.parquet",
+      "cid": "bafybeiefad65rakbj5vgndefg4m3cclsrza4he2s7foc4s6k7mzwilq5be",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1983/part0.parquet",
+      "cid": "bafybeibbqro23cdktzsbmkd5gr7lb4a6weizbb5kthbxxdtyhhekf3bkmy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1984/part0.parquet",
+      "cid": "bafybeifyprbp2svdquheqj5hx4lk32ekqwpshzvpdy37qp2cq4aqckhn4u",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1985/part0.parquet",
+      "cid": "bafybeifiabhuesi5fbnuck2w4qqlr7alenzsr4lc25nrdiuweb3yvtltbm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1986/part0.parquet",
+      "cid": "bafybeiecdl5jarugzj7n2u5iu2hclwuizgnkdy2q7n4djyacb4aiwdiwq4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1987/part0.parquet",
+      "cid": "bafybeighzs4vfesaevx6hcgbygoafmbkglwchz4ieqje6s5rqwvyi2camq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1988/part0.parquet",
+      "cid": "bafybeia7gmn67x4zg7sqwi53z6sjgb7y3lcpxavheokq4alxl42ycozoge",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1989/part0.parquet",
+      "cid": "bafybeiawadmzsvwudzurvp24ede7xnpzuwnsxgmiyichn3sau4omhvj6uq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1990/part0.parquet",
+      "cid": "bafybeicliewhqbjjehtbjy5mn2lhu2akp7ellb77egemro3ketpcewrhoq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1991/part0.parquet",
+      "cid": "bafybeieu6cx6ikavgxcehveibzxcoux7zvbrafqcgwaowaalynabgqguqm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1992/part0.parquet",
+      "cid": "bafybeieg4xk2c2q77j55as5omqzmgbroh62hddnpj2lay3hjmidg4cxxuq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1993/part0.parquet",
+      "cid": "bafybeibgyytimdbrpzp7zukxgyfpacr4x4yzxxtv5467llnl5bw3fmalsa",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1994/part0.parquet",
+      "cid": "bafybeiaxevapttlbdqkal7yk2u22srensbajc5c7rzrepabvqh2khiqwa4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1995/part0.parquet",
+      "cid": "bafybeigpo3ov4f6krgzxj6d5l5ugnyzhr3eec2eakzuv2yue3a64urpa5u",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1996/part0.parquet",
+      "cid": "bafybeiez36ymmzb3jsbmrnrnjrnxymttfirn7cy7nxukjs2fho3yxpe3c4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1997/part0.parquet",
+      "cid": "bafybeie6nnlj5yh6ahszip4viujnm23vnqrkrmhdhmaakr4mtyq7c4zpti",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1998/part0.parquet",
+      "cid": "bafybeifzwvi7hjqlpknenwk2ye5eflichwwukjdbc22ftmufunctdxtkhe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=1999/part0.parquet",
+      "cid": "bafybeif4lxtqo324xmcg42hwux4upnyeqfav7lzvfqrxpk3g7mot5qselm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2000/part0.parquet",
+      "cid": "bafybeie2jnljpf2us27du7gp73wpl6ho3efy4owa2w3i66gp44fsx4wp6e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2001/part0.parquet",
+      "cid": "bafybeic373qkjvvqdug3p6wik43rv3kd6jkfucjqzrxja7grijlxexojru",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2002/part0.parquet",
+      "cid": "bafybeib4vyl3ptl3u4dc3zdswu6wnwm2kq235aysgskzbjd2r33psj7y4e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2003/part0.parquet",
+      "cid": "bafybeig5kgxatd274dy6xvmsp2eb5e5g3qznxt3tjvkwcjnwmibh3u2n3y",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2004/part0.parquet",
+      "cid": "bafybeidl3jyhmshwfxqvqcam2evcol3dflgnldexzmpnc2lmpl56cqiepe",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2005/part0.parquet",
+      "cid": "bafybeifzkfwof7chrxlraypjnmqft6zbfcdc33xjh34x5hs7quby2az5cu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2006/part0.parquet",
+      "cid": "bafybeicgfrkjjbgqz3oogsbohsgjgarjgqgfkjougq4bztlfqroqqj3ilq",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2007/part0.parquet",
+      "cid": "bafybeihlu7r3bs2ewvb26fihz5eskq7cnrzdd4jwi3os4t7sgn5d3wmcoi",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2008/part0.parquet",
+      "cid": "bafybeieselrtj7q7lxo3f7zyvngg2lqkyvn75aon7zxbmebcx3kksoaiju",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2009/part0.parquet",
+      "cid": "bafybeigfrrlvr2zsn5eecgknwpvhbipebqplsaotaxv7oxzb2wksxgrtvm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2010/part0.parquet",
+      "cid": "bafybeifxdf6avjzczknvmojwqyadrprfa7tc7g7u2ae2hr63phl4pf7bey",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2011/part0.parquet",
+      "cid": "bafybeih3wpabxccmcru46fjkqchsa6wmisjpbklew6obu6oeicyks4syzy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2012/part0.parquet",
+      "cid": "bafybeicgxk3hbarjlkdos5xd3vw3xs7x64w2iypf5wjhpfcxlwnnme5pqu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2013/part0.parquet",
+      "cid": "bafybeihawfhreawup3f6edrmqfqqrsgbxhq5e6ozxq2f5n7b4nu63ffv44",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2014/part0.parquet",
+      "cid": "bafybeiehyijsyhnk37oxiwp4btwjnupb7za5yes7ztwbmwhepcl7a7g7uy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2015/part0.parquet",
+      "cid": "bafybeie6ih5gbsyc57jizwzmtlvvkgvnojggp4l5hum4edyr2pjl2bx4za",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2016/part0.parquet",
+      "cid": "bafybeicrbyzk452muwvjko7zr6h75wjlh6laz4gfamsnhtnvsyhp6gtdp4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2017/part0.parquet",
+      "cid": "bafybeihmmwlro44jrvvv75lmjocfu2f5btexdfannws6s4egriupuvn65q",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2018/part0.parquet",
+      "cid": "bafybeiclhyzai6g3nffb6zwisdscd722njj6ewbwq3xjb3mg4prmeng76a",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2019/part0.parquet",
+      "cid": "bafybeiblop6pagpoe7hwytkazvl6eqcpn6kcgw4whgbm6bw4o2opclmk5e",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2020/part0.parquet",
+      "cid": "bafybeid3ynw7mhklm6shpwavzy3636c2aymwjn4ggzp5t7c2hbzysj2dvy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2021/part0.parquet",
+      "cid": "bafybeibzhhap6fiyvyeur4wpezwsricujhqgjgwogrbti3wljhsax5inum",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2022/part0.parquet",
+      "cid": "bafybeicliqqqrwe4kdkglmb32pshklyhm56je4iwicun343chcq6xsbrcy",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2023/part0.parquet",
+      "cid": "bafybeidghb3fa3zlkryi4yvytnqd3qlsxs4caw4y5jsf6i2eur3txredmu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2024/part0.parquet",
+      "cid": "bafybeieam4azxiwccdsai2t33mhofhcbdyl3bwqllkies7vgdlfribu6ee",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2025/part0.parquet",
+      "cid": "bafybeicat3icwg3gctocpe7jnghpslic7riclxrpqo3553uotduxyoprvm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/permits/year=2026/part0.parquet",
+      "cid": "bafybeierpzi3bb6jhxtge3d2g7tnhnrgytolzxevmssfom6a27hwnyxxgu",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/properties.parquet",
+      "cid": "bafybeif5hn4t7y3rwub2wjgt7dodfbhrl75ahdectyqvx3xstjncjxd6ny",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/roof_age.parquet",
+      "cid": "bafybeid3ztbigcbb7qhhgumqdhdc2wlay7ke26rorgvpkaepeidyy2vkh4",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "tables/roofing_permits.parquet",
+      "cid": "bafybeihuoxu4exnzge3zggbudlsxts274ohxjbyejjafpf7wqspawhmgpm",
+      "codec": "file",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "lexicon/property_improvement/archive",
+      "cid": "baguqeeraabcjfnhgmvywt4lmkldznv4jgd2bw7azec4ujpnie2w46vrmf4tq",
+      "codec": "dag-json",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    },
+    {
+      "name": "lexicon/property_improvement/tables",
+      "cid": "baguqeeraddzenc37adtill3pzcxgcjanaqha5xwrnxrgbirb23qhelnmataa",
+      "codec": "dag-json",
+      "gateways": {
+        "https://ipfs.orbitor.dev": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        },
+        "https://dget.top": {
+          "ok": false,
+          "not_attempted": true,
+          "error": "time budget exhausted"
+        }
+      }
+    }
+  ]
+}
