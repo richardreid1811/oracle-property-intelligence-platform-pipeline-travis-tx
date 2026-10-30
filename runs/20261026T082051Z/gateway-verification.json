@@ -1,8 +1,8 @@
 {
   "run_id": "20261026T082051Z",
   "manifest_sha256": "283e92e7a218a3a95ff9684b49c78923b8e7efc286033c1c489cb579daee41d3",
-  "verified_at": "2026-10-29T07:51:34.879Z",
-  "verifier": "github-actions run 40833777505",
+  "verified_at": "2026-10-30T07:51:31.156Z",
+  "verifier": "github-actions run 41018477756",
   "gateways": [
     "https://ipfs.orbitor.dev",
     "https://dget.top"
@@ -28,12 +28,12 @@
           "blocks": 1,
           "expected_blocks": null,
           "bad_blocks": 0,
-          "ms": 1122
+          "ms": 679
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 342314
+          "ms": 322347
         }
       }
     },
@@ -53,12 +53,12 @@
           "blocks": 1,
           "expected_blocks": null,
           "bad_blocks": 0,
-          "ms": 1189
+          "ms": 653
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 342223
+          "ms": 342311
         }
       }
     },
@@ -72,12 +72,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreif3d7jl4iml33ec7joiajzff3cwtuy7azy7k2lc4t5rfyoqkkbz5y",
           "bytes": 780,
           "sha256": "bb1fd2be218bdec82fa5c8027252ec569d31f0671f56962e4fb12e1d052839ee",
-          "ms": 734
+          "ms": 438
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 401096
+          "ms": 400581
         }
       }
     },
@@ -91,12 +91,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreihoxnbe6yiabcvpz6vhf5hqw3inzeaon5fkkcloyh3sp5rg6sgco4",
           "bytes": 1445,
           "sha256": "eebb424f610008aafcfaa72f4f0b6d0dc900e6f4aa5096ec1f727f626f48c277",
-          "ms": 728
+          "ms": 300
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 420577
+          "ms": 400709
         }
       }
     },
@@ -110,12 +110,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreiakkyp5zcvx3zyt6bynw3b7yffuulj7rkhiidpjlxpc4bxi4gth7i",
           "bytes": 24944,
           "sha256": "0a561fdc8ab7de713f070db6c3fc14b4a2d3f8a8e840de95dde2e06e8e1a67fa",
-          "ms": 650
+          "ms": 672
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 419767
+          "ms": 362058
         }
       }
     },
@@ -129,12 +129,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreifrr5q3siejt4lfohjzqpjeg6pjao6q2qey42nusy3dq3fyouu4ai",
           "bytes": 28283,
           "sha256": "b18f61b920899f16571d3983d24379e903bd0d4098e69b49636386cb87529c02",
-          "ms": 710
+          "ms": 514
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 419639
+          "ms": 419838
         }
       }
     },
@@ -148,12 +148,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreic2twdqoqlsb5b6zaiab75544frlsww56ojarordzs6ez2ncy572e",
           "bytes": 80478,
           "sha256": "5a9d870741720f43ec81000ffbde70b15cad6ef9c9045d11e65e2674d163bfd1",
-          "ms": 747
+          "ms": 2011
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 401172
+          "ms": 420163
         }
       }
     },
@@ -167,12 +167,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreideglu3g3owx6ze2majrte7bxdnveyvqepjdyqdrm6cchuhqk6s7u",
           "bytes": 44716,
           "sha256": "6432e9b36dd6bfb24d30098cc9f0dc6da9315811e91e2038b3c211e8782bd2fd",
-          "ms": 872
+          "ms": 606
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 419495
+          "ms": 381610
         }
       }
     },
@@ -186,12 +186,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafybeicwu34zthzeduoax7rsvdkoitbpajhk3zc4pxjcvf2vn3ezi3d73q",
           "bytes": 6964577,
           "sha256": "fab6fbaea31b33739992d0ed1fececee6f4b2ff9fc1498eb90487622ab46fa1e",
-          "ms": 3151
+          "ms": 4268
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 341905
+          "ms": 380739
         }
       }
     },
@@ -205,12 +205,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafybeihv6x7y2xihy5tu4qzbrxazp5qlamysnir6j2nyw54l2naucmnju4",
           "bytes": 14609775,
           "sha256": "bb0f2f24cdfdb698a02f73226eabec27e4f356d4fbb0b657387745e9f9c9a7eb",
-          "ms": 4469
+          "ms": 3957
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 361598
+          "ms": 341944
         }
       }
     },
@@ -224,12 +224,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafybeiavlvbdez5b2sm7ccbl2jfai4ijuyhagds6o6xdjtngtq3wxf2zd4",
           "bytes": 1936615,
           "sha256": "ebfb065597acc477baf3ab4e4c3dccaa7fb16a3729b34c9ef0988d65901e6dc2",
-          "ms": 2985
+          "ms": 3490
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 420437
+          "ms": 400428
         }
       }
     },
@@ -243,12 +243,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafkreif4uqslb7gtpeghtwjhdpe2buh6n4ocxr4mc5ol2axzngsszj6sqa",
           "bytes": 12769,
           "sha256": "bca424b0fcd3790c79d9271bc9a0d0fe6f1c2bc78c175cbd02f969a52ca7d280",
-          "ms": 458
+          "ms": 1205
         },
         "https://dget.top": {
           "ok": false,
           "error": "HTTP 522",
-          "ms": 420917
+          "ms": 381755
         }
       }
     },
@@ -262,12 +262,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafybeih2dnw4gu7wjj2h2ifr4oofkukngecfjkodkbrp3sojs75nxmrmk4",
           "bytes": 24902053,
           "sha256": "a0b766c7603542c78c2019f6f42e04101468d48ccd02d265c0d74236cfc4fab5",
-          "ms": 8879
+          "ms": 7883
         },
         "https://dget.top": {
           "ok": false,
           "error": "time budget exhausted (HTTP 522)",
-          "ms": 83848
+          "ms": 148441
         }
       }
     },
@@ -281,12 +281,12 @@
           "url": "https://ipfs.orbitor.dev/ipfs/bafybeihxba2exgprx2ilmlspkjuo2urv653eu7tefr3biv3qjd3meu4t6e",
           "bytes": 1499654,
           "sha256": "f07d7cbab5cc454f1f5b9dc7ad8e145c71e043d1fb387ddd39061a34a454eed1",
-          "ms": 2864
+          "ms": 1367
         },
         "https://dget.top": {
           "ok": false,
-          "error": "time budget exhausted (timeout after 120s)",
-          "ms": 19244
+          "error": "time budget exhausted (HTTP 522)",
+          "ms": 103310
         }
       }
     },
